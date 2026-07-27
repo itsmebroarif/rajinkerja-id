@@ -4,28 +4,32 @@
     <aside :class="['sidebar-nav', { collapsed: isCollapsed }]">
       <div class="sidebar-brand p-3 d-flex align-items-center justify-content-between">
         <div v-if="!isCollapsed" class="d-flex align-items-center gap-2">
-          <img src="/logo.svg" alt="RajinKerja Logo" style="width: 36px; height: 36px;" class="rounded-3 shadow-sm p-0.5 bg-white border border-dark" />
+          <img src="/logo.svg" alt="RajinKerja Logo" style="width: 34px; height: 34px;" class="rounded-3 shadow-sm p-0.5 bg-white border" />
           <div class="lh-1">
             <span class="fw-extrabold text-app fs-5 d-block" style="letter-spacing: -0.3px;">RajinKerja<span :style="{ color: accentColor }">.id</span></span>
             <small class="text-sub fw-bold text-uppercase d-block mt-1" style="font-size: 9px; letter-spacing: 0.8px;">WORKFLOW & TASK OS</small>
           </div>
         </div>
-        <button class="btn btn-sm text-sub p-1 rounded-circle border-0 icon-hover" @click="isCollapsed = !isCollapsed" title="Toggle Material Drawer">
+        <button class="btn btn-sm text-sub p-1 rounded-circle border-0 icon-hover" @click="isCollapsed = !isCollapsed" title="Toggle Sidebar">
           <i :class="isCollapsed ? 'bi bi-layout-sidebar-reverse fs-5' : 'bi bi-layout-sidebar fs-5'"></i>
         </button>
       </div>
 
-      <!-- Material Navigation Links -->
+      <!-- Navigation Links -->
       <nav class="sidebar-links p-2 flex-grow-1">
+        <!-- GROUP 1: WORKFLOW & PROYEK -->
+        <div v-if="!isCollapsed" class="sidebar-section-header">WORKFLOW & PROYEK</div>
+        <div v-else class="sidebar-divider my-1"></div>
+
         <router-link to="/" class="material-nav-link" title="Dashboard">
           <i class="bi bi-grid-1x2-fill me-3 fs-5 nav-icon"></i>
           <span v-if="!isCollapsed" class="nav-label">Dashboard</span>
         </router-link>
 
-        <router-link to="/todo" class="material-nav-link" title="To-Do & Kanban (Standard/Kanban)">
+        <router-link to="/todo" class="material-nav-link" title="To-Do & Kanban">
           <i class="bi bi-kanban-fill me-3 fs-5 nav-icon"></i>
           <span v-if="!isCollapsed" class="nav-label">To-Do & Kanban</span>
-          <span v-if="!isCollapsed && pendingTasksCount > 0" class="badge rounded-pill bg-warning text-dark ms-auto small">
+          <span v-if="!isCollapsed && pendingTasksCount > 0" class="badge rounded-pill bg-warning text-dark ms-auto small fw-bold">
             {{ pendingTasksCount }}
           </span>
         </router-link>
@@ -33,10 +37,16 @@
         <router-link to="/project" class="material-nav-link" title="Proyek & Kontrak">
           <i class="bi bi-folder-fill me-3 fs-5 nav-icon"></i>
           <span v-if="!isCollapsed" class="nav-label">Proyek</span>
-          <span v-if="!isCollapsed && activeProjectsCount > 0" class="badge rounded-pill bg-info text-dark ms-auto small">
+          <span v-if="!isCollapsed && activeProjectsCount > 0" class="badge rounded-pill bg-info text-dark ms-auto small fw-bold">
             {{ activeProjectsCount }}
           </span>
         </router-link>
+
+        <div class="sidebar-divider my-2"></div>
+
+        <!-- GROUP 2: KEUANGAN & KLIEN -->
+        <div v-if="!isCollapsed" class="sidebar-section-header">KEUANGAN & KLIEN</div>
+        <div v-else class="sidebar-divider my-1"></div>
 
         <router-link to="/finance" class="material-nav-link" title="Keuangan & Tracker">
           <i class="bi bi-wallet2 me-3 fs-5 nav-icon"></i>
@@ -54,10 +64,16 @@
         <router-link to="/contacts" class="material-nav-link" title="Kontak Klien">
           <i class="bi bi-person-lines-fill me-3 fs-5 nav-icon"></i>
           <span v-if="!isCollapsed" class="nav-label">Kontak Klien</span>
-          <span v-if="!isCollapsed && totalClientsCount > 0" class="badge rounded-pill bg-secondary text-white ms-auto small">
+          <span v-if="!isCollapsed && totalClientsCount > 0" class="badge rounded-pill bg-secondary text-white ms-auto small fw-bold">
             {{ totalClientsCount }}
           </span>
         </router-link>
+
+        <div class="sidebar-divider my-2"></div>
+
+        <!-- GROUP 3: PRODUKTIVITAS & AGENDA -->
+        <div v-if="!isCollapsed" class="sidebar-section-header">PRODUKTIVITAS & AGENDA</div>
+        <div v-else class="sidebar-divider my-1"></div>
 
         <router-link to="/habits" class="material-nav-link" title="Habit Tracker & Streaks">
           <i class="bi bi-lightning-charge-fill me-3 fs-5 nav-icon"></i>
@@ -69,12 +85,16 @@
           <span v-if="!isCollapsed" class="nav-label">Kalender & Agenda</span>
         </router-link>
 
-        <router-link to="/notes" class="material-nav-link" title="Sticky Notes & Search">
+        <router-link to="/notes" class="material-nav-link" title="Sticky Notes & Scratchpad">
           <i class="bi bi-journal-text me-3 fs-5 nav-icon"></i>
           <span v-if="!isCollapsed" class="nav-label">Notes & Scratchpad</span>
         </router-link>
 
-        <div class="my-2 border-top divider-color"></div>
+        <div class="sidebar-divider my-2"></div>
+
+        <!-- GROUP 4: SISTEM & PANDUAN -->
+        <div v-if="!isCollapsed" class="sidebar-section-header">SISTEM & PANDUAN</div>
+        <div v-else class="sidebar-divider my-1"></div>
 
         <router-link to="/preferences" class="material-nav-link" title="Preferences, Theme & Backup">
           <i class="bi bi-sliders me-3 fs-5 nav-icon"></i>
@@ -148,17 +168,28 @@
             <i class="bi bi-x-lg"></i>
           </button>
         </div>
-        <nav class="d-flex flex-column gap-2" @click="mobileDrawer = false">
+        <nav class="d-flex flex-column gap-1" @click="mobileDrawer = false">
+          <div class="sidebar-section-header px-1 pt-1">WORKFLOW & PROYEK</div>
           <router-link to="/" class="material-nav-link"><i class="bi bi-grid-1x2-fill me-3 text-primary"></i>Dashboard</router-link>
           <router-link to="/todo" class="material-nav-link"><i class="bi bi-kanban-fill me-3 text-warning"></i>To-Do & Kanban</router-link>
           <router-link to="/project" class="material-nav-link"><i class="bi bi-folder-fill me-3 text-info"></i>Proyek</router-link>
+
+          <div class="sidebar-divider my-2"></div>
+          <div class="sidebar-section-header px-1">KEUANGAN & KLIEN</div>
           <router-link to="/finance" class="material-nav-link"><i class="bi bi-wallet2 me-3 text-success"></i>Keuangan</router-link>
           <router-link to="/invoice" class="material-nav-link"><i class="bi bi-receipt me-3 text-primary"></i>Invoice Generator</router-link>
           <router-link to="/contacts" class="material-nav-link"><i class="bi bi-person-lines-fill me-3 text-info"></i>Kontak Klien</router-link>
+
+          <div class="sidebar-divider my-2"></div>
+          <div class="sidebar-section-header px-1">PRODUKTIVITAS & AGENDA</div>
           <router-link to="/habits" class="material-nav-link"><i class="bi bi-lightning-charge-fill me-3 text-danger"></i>Habit Tracker</router-link>
           <router-link to="/calendar" class="material-nav-link"><i class="bi bi-calendar3 me-3 text-warning"></i>Kalender & Agenda</router-link>
           <router-link to="/notes" class="material-nav-link"><i class="bi bi-journal-text me-3 text-secondary"></i>Notes & Scratchpad</router-link>
+
+          <div class="sidebar-divider my-2"></div>
+          <div class="sidebar-section-header px-1">SISTEM & PANDUAN</div>
           <router-link to="/preferences" class="material-nav-link"><i class="bi bi-sliders me-3 text-primary"></i>Preferences</router-link>
+          <router-link to="/faq" class="material-nav-link"><i class="bi bi-question-circle-fill me-3 text-info"></i>FAQ & About App</router-link>
         </nav>
       </div>
 
@@ -269,9 +300,15 @@ export default {
   --text-main: #0f172a;
   --text-sub: #64748b;
   --border-color: #e2e8f0;
-  --sidebar-bg: #0f172a;
-  --sidebar-text: #94a3b8;
-  --sidebar-active-bg: rgba(37, 99, 235, 0.15);
+
+  --sidebar-bg: #ffffff;
+  --sidebar-text: #475569;
+  --sidebar-hover-bg: #f1f5f9;
+  --sidebar-active-bg: var(--primary-color);
+  --sidebar-active-text: #ffffff;
+  --sidebar-divider: #e2e8f0;
+  --sidebar-header-color: #94a3b8;
+  --sidebar-border: #e2e8f0;
 }
 
 /* Light Theme Variables */
@@ -281,8 +318,15 @@ export default {
   --text-main: #0f172a;
   --text-sub: #64748b;
   --border-color: #e2e8f0;
-  --sidebar-bg: #0f172a;
-  --sidebar-text: #94a3b8;
+
+  --sidebar-bg: #ffffff;
+  --sidebar-text: #475569;
+  --sidebar-hover-bg: #f1f5f9;
+  --sidebar-active-bg: var(--primary-color);
+  --sidebar-active-text: #ffffff;
+  --sidebar-divider: #e2e8f0;
+  --sidebar-header-color: #94a3b8;
+  --sidebar-border: #e2e8f0;
 }
 
 /* Dark Theme Variables */
@@ -292,8 +336,15 @@ export default {
   --text-main: #f1f5f9;
   --text-sub: #94a3b8;
   --border-color: #1e293b;
-  --sidebar-bg: #090d16;
+
+  --sidebar-bg: #0d1322;
   --sidebar-text: #94a3b8;
+  --sidebar-hover-bg: rgba(255, 255, 255, 0.06);
+  --sidebar-active-bg: var(--primary-color);
+  --sidebar-active-text: #ffffff;
+  --sidebar-divider: #1e293b;
+  --sidebar-header-color: #64748b;
+  --sidebar-border: #1e293b;
 }
 
 body {
@@ -438,58 +489,82 @@ body {
   background-color: var(--sidebar-bg);
   display: flex;
   flex-direction: column;
-  transition: width 0.25s cubic-bezier(0.2, 0, 0, 1);
+  transition: width 0.25s cubic-bezier(0.2, 0, 0, 1), background-color 0.3s ease;
   z-index: 1040;
-  border-right: 1px solid var(--border-color);
+  border-right: 1px solid var(--sidebar-border);
 }
 
 .sidebar-nav.collapsed {
   width: var(--sidebar-collapsed-width);
 }
 
+.sidebar-brand {
+  border-bottom: 1px solid var(--sidebar-divider);
+}
+
 .sidebar-links {
   overflow-y: auto;
+}
+
+.sidebar-section-header {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.9px;
+  color: var(--sidebar-header-color);
+  text-transform: uppercase;
+  padding: 14px 12px 6px 12px;
+}
+
+.sidebar-divider {
+  height: 1px;
+  background-color: var(--sidebar-divider);
+  margin: 10px 6px;
+  opacity: 0.85;
 }
 
 .material-nav-link {
   display: flex;
   align-items: center;
-  padding: 12px 18px;
-  border-radius: 28px; /* Material 3 Pill shape */
+  padding: 10px 14px;
+  border-radius: 12px;
   color: var(--sidebar-text);
   text-decoration: none;
-  font-size: 14px;
-  font-weight: 500;
-  margin-bottom: 6px;
+  font-size: 13.5px;
+  font-weight: 600;
+  margin-bottom: 2px;
   transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);
 }
 
 .material-nav-link:hover {
-  background-color: rgba(255, 255, 255, 0.08);
-  color: #ffffff;
+  background-color: var(--sidebar-hover-bg);
+  color: var(--text-main);
   transform: translateX(2px);
 }
 
 .material-nav-link.router-link-active,
 .material-nav-link.router-link-exact-active {
-  background-color: var(--primary-color);
-  color: #ffffff !important;
+  background-color: var(--sidebar-active-bg);
+  color: var(--sidebar-active-text) !important;
   font-weight: 700;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.22);
+}
+
+.text-app {
+  color: var(--text-main);
 }
 
 .btn-outline-theme {
-  border-color: var(--sidebar-text);
+  border-color: var(--sidebar-divider);
   color: var(--sidebar-text);
 }
 
 .btn-outline-theme:hover {
-  background-color: rgba(255, 255, 255, 0.1);
-  color: #ffffff;
+  background-color: var(--sidebar-hover-bg);
+  color: var(--text-main);
 }
 
 .divider-color {
-  border-color: rgba(255, 255, 255, 0.1) !important;
+  border-color: var(--sidebar-divider) !important;
 }
 
 /* Main Content Area */
