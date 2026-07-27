@@ -1,0 +1,698 @@
+import { createStore } from 'vuex';
+
+// Default empty datasets as requested: "buat semuanya dari raw dan kosong tanpa ada data apa apa"
+const DEFAULT_CONTACTS = [];
+const DEFAULT_PROJECTS = [];
+const DEFAULT_TASKS = [];
+const DEFAULT_TRANSACTIONS = [];
+const DEFAULT_INVOICES = [];
+const DEFAULT_HABITS = [];
+const DEFAULT_NOTES = [
+  {
+    id: 'note_demo',
+    title: '📝 Welcome Scratchpad',
+    content: `# Welcome to RajinKerja.id!
+
+- [x] High-performance workspace karyawan & profesional
+- [ ] Record daily tasks & projects
+- [ ] Export reports to **Excel** & **PDF**
+
+Write your **Markdown** notes here!`,
+    color: '#fef08a', // Yellow sticky
+    updatedAt: new Date().toISOString()
+  }
+];
+
+const DEFAULT_EVENTS = [
+  {
+    id: 'ev_1',
+    title: 'Client Meeting - PT Teknologi Nusantara',
+    date: '2026-07-28',
+    startTime: '10:00',
+    endTime: '11:30',
+    category: 'Meeting',
+    reminder: '30m',
+    notes: 'Diskusi feedback wireframe checkout app.'
+  },
+  {
+    id: 'ev_2',
+    title: 'Sprint Demo & Code Review',
+    date: '2026-07-31',
+    startTime: '14:00',
+    endTime: '15:00',
+    category: 'Milestone',
+    reminder: '1h',
+    notes: 'Demo component library ke Global Tech.'
+  }
+];
+
+// Sample data generator for users who click "Load Sample Data"
+const SAMPLE_CONTACTS = [
+  {
+    id: 'c1',
+    name: 'Budi Santoso',
+    company: 'PT Teknologi Nusantara',
+    email: 'budi@teknus.co.id',
+    phone: '0812-3456-7890',
+    address: 'Jl. Jend. Sudirman No. 45, Jakarta Selatan',
+    category: 'Corporate Client',
+    status: 'Active',
+    notes: 'Klien lama, pembayaran selalu tepat waktu.',
+    createdDate: '2026-01-15'
+  },
+  {
+    id: 'c2',
+    name: 'Sarah Jenkins',
+    company: 'Global Tech Solutions',
+    email: 'sarah.j@globaltech.com',
+    phone: '+1 (415) 892-0123',
+    address: '500 Howard St, San Francisco, CA 94105',
+    category: 'International',
+    status: 'VIP',
+    notes: 'Proyek frontend Vue 3. Pembayaran USD via Wise.',
+    createdDate: '2026-02-10'
+  }
+];
+
+const SAMPLE_PROJECTS = [
+  {
+    id: 'p1',
+    clientName: 'PT Teknologi Nusantara',
+    clientEmail: 'budi@teknus.co.id',
+    clientPhone: '0812-3456-7890',
+    projectTitle: 'Redesign E-Commerce Mobile App UI/UX',
+    deadline: '2026-08-20',
+    rate: 15000000,
+    status: 'In Progress',
+    description: 'Mengubah tampilan dashboard & checkout e-commerce.',
+    progress: 65
+  },
+  {
+    id: 'p2',
+    clientName: 'Global Tech Solutions',
+    clientEmail: 'sarah.j@globaltech.com',
+    clientPhone: '+1 (415) 892-0123',
+    projectTitle: 'Vue 3 Dashboard Widget Components',
+    deadline: '2026-08-30',
+    rate: 18000000,
+    status: 'In Progress',
+    description: 'Modul statistik & charting reusable component library.',
+    progress: 40
+  }
+];
+
+const SAMPLE_TASKS = [
+  {
+    id: 't1',
+    name: 'Selesaikan Wireframe Checkout Flow',
+    level: 'Penting',
+    projectTag: 'E-Commerce Mobile App',
+    deadline: '2026-07-30',
+    done: true,
+    statusColumn: 'done',
+    recurring: 'none',
+    eisenhower: 'do_first',
+    notes: 'Disetujui oleh Pak Budi.'
+  },
+  {
+    id: 't2',
+    name: 'Integrasi Store & LocalStorage Persistence',
+    level: 'Penting',
+    projectTag: 'Vue 3 Components',
+    deadline: '2026-08-02',
+    done: false,
+    statusColumn: 'in_progress',
+    recurring: 'weekly',
+    eisenhower: 'do_first',
+    notes: 'Pastikan state tersimpan secara otomatis.'
+  },
+  {
+    id: 't3',
+    name: 'Kirim Invoice Down Payment',
+    level: 'Menengah',
+    projectTag: 'Vue 3 Components',
+    deadline: '2026-08-05',
+    done: false,
+    statusColumn: 'todo',
+    recurring: 'none',
+    eisenhower: 'schedule',
+    notes: 'Nominal DP 50% = Rp 9.000.000.'
+  }
+];
+
+const SAMPLE_TRANSACTIONS = [
+  {
+    id: 'tr1',
+    item: 'Down Payment Proyek Redesign E-Commerce',
+    amount: 7500000,
+    type: 'income',
+    date: '2026-07-10',
+    category: 'Web Development',
+    method: 'Bank Transfer',
+    track: 'PT Teknologi Nusantara'
+  },
+  {
+    id: 'tr2',
+    item: 'Langganan Software Design & Servers',
+    amount: 2200000,
+    type: 'expense',
+    date: '2026-07-12',
+    category: 'Software Subscription',
+    method: 'Credit Card',
+    track: 'Operational Tools'
+  }
+];
+
+const SAMPLE_HABITS = [
+  { id: 'h1', name: 'Coding / Deep Work 2 Jam', category: 'Productivity', history: { '2026-07-26': true, '2026-07-27': true } },
+  { id: 'h2', name: 'Prospek & Outreach Klien Baru', category: 'Business', history: { '2026-07-27': true } },
+  { id: 'h3', name: 'Olahraga & Stretching 30 Mnt', category: 'Health', history: {} }
+];
+
+function loadLocal(key, defaultData) {
+  try {
+    const saved = localStorage.getItem(key);
+    return saved !== null ? JSON.parse(saved) : defaultData;
+  } catch (e) {
+    return defaultData;
+  }
+}
+
+function saveLocal(key, data) {
+  try {
+    localStorage.setItem(key, JSON.stringify(data));
+  } catch (e) {
+    console.error('Storage error:', e);
+  }
+}
+
+export default createStore({
+  state() {
+    return {
+      contacts: loadLocal('ft_contacts', DEFAULT_CONTACTS),
+      projects: loadLocal('ft_projects', DEFAULT_PROJECTS),
+      tasks: loadLocal('ft_tasks', DEFAULT_TASKS),
+      transactions: loadLocal('ft_transactions', DEFAULT_TRANSACTIONS),
+      invoices: loadLocal('ft_invoices', DEFAULT_INVOICES),
+      habits: loadLocal('ft_habits', DEFAULT_HABITS),
+      notes: loadLocal('ft_notes', DEFAULT_NOTES),
+      events: loadLocal('ft_events', DEFAULT_EVENTS),
+      themeMode: loadLocal('ft_themeMode', 'light'), // 'light' | 'dark'
+      accentColor: loadLocal('ft_accentColor', '#2563eb'), // default Material blue
+      budgetThreshold: loadLocal('ft_budgetThreshold', 5000000), // Default budget threshold: Rp 5.000.000
+      myBusiness: loadLocal('ft_myBusiness', {
+        name: 'Studio Freelance Digital',
+        tagline: 'Solusi Web, Mobile & Design Specialist',
+        owner: 'Arif Alexander',
+        email: 'aripstrike@gmail.com',
+        phone: '0858-1704-8266',
+        bankName: 'Bank BCA',
+        accountNumber: '123-456-7890',
+        accountHolder: 'Arif Alexander'
+      })
+    };
+  },
+  getters: {
+    getContacts: (state) => state.contacts,
+    getProjects: (state) => state.projects,
+    getTasks: (state) => state.tasks,
+    getTransactions: (state) => state.transactions,
+    getInvoices: (state) => state.invoices,
+    getHabits: (state) => state.habits,
+    getNotes: (state) => state.notes,
+    getEvents: (state) => state.events,
+    getThemeMode: (state) => state.themeMode,
+    getAccentColor: (state) => state.accentColor,
+    getBudgetThreshold: (state) => state.budgetThreshold,
+    getMyBusiness: (state) => state.myBusiness,
+
+    // Statistics
+    totalClientsCount: (state) => state.contacts.length,
+    activeProjectsCount: (state) => state.projects.filter(p => p.status === 'In Progress').length,
+    completedTasksCount: (state) => state.tasks.filter(t => t.done || t.statusColumn === 'done').length,
+    totalTasksCount: (state) => state.tasks.length,
+    pendingTasksCount: (state) => state.tasks.filter(t => !t.done && t.statusColumn !== 'done').length,
+
+    totalIncome: (state) => {
+      return state.transactions
+        .filter(t => t.type === 'income')
+        .reduce((sum, t) => sum + Number(t.amount || 0), 0);
+    },
+    totalExpense: (state) => {
+      return state.transactions
+        .filter(t => t.type === 'expense')
+        .reduce((sum, t) => sum + Number(t.amount || 0), 0);
+    },
+    netProfit: (state, getters) => {
+      return getters.totalIncome - getters.totalExpense;
+    },
+    isBudgetExceeded: (state, getters) => {
+      return getters.totalExpense > state.budgetThreshold;
+    }
+  },
+  mutations: {
+    // Theme & Preferences
+    SET_THEME_MODE(state, mode) {
+      state.themeMode = mode;
+      saveLocal('ft_themeMode', state.themeMode);
+    },
+    SET_ACCENT_COLOR(state, color) {
+      state.accentColor = color;
+      saveLocal('ft_accentColor', state.accentColor);
+    },
+
+    // Contacts
+    ADD_CONTACT(state, contact) {
+      state.contacts.unshift(contact);
+      saveLocal('ft_contacts', state.contacts);
+    },
+    ADD_CONTACTS_BULK(state, list) {
+      state.contacts.unshift(...list);
+      saveLocal('ft_contacts', state.contacts);
+    },
+    UPDATE_CONTACT(state, updatedContact) {
+      const index = state.contacts.findIndex(c => c.id === updatedContact.id);
+      if (index !== -1) {
+        state.contacts.splice(index, 1, updatedContact);
+        saveLocal('ft_contacts', state.contacts);
+      }
+    },
+    DELETE_CONTACT(state, id) {
+      state.contacts = state.contacts.filter(c => c.id !== id);
+      saveLocal('ft_contacts', state.contacts);
+    },
+    DELETE_CONTACTS_BULK(state, ids) {
+      state.contacts = state.contacts.filter(c => !ids.includes(c.id));
+      saveLocal('ft_contacts', state.contacts);
+    },
+
+    // Projects
+    ADD_PROJECT(state, project) {
+      state.projects.unshift(project);
+      saveLocal('ft_projects', state.projects);
+    },
+    ADD_PROJECTS_BULK(state, list) {
+      state.projects.unshift(...list);
+      saveLocal('ft_projects', state.projects);
+    },
+    UPDATE_PROJECT(state, updatedProject) {
+      const index = state.projects.findIndex(p => p.id === updatedProject.id);
+      if (index !== -1) {
+        state.projects.splice(index, 1, updatedProject);
+        saveLocal('ft_projects', state.projects);
+      }
+    },
+    DELETE_PROJECT(state, id) {
+      state.projects = state.projects.filter(p => p.id !== id);
+      saveLocal('ft_projects', state.projects);
+    },
+    DELETE_PROJECTS_BULK(state, ids) {
+      state.projects = state.projects.filter(p => !ids.includes(p.id));
+      saveLocal('ft_projects', state.projects);
+    },
+
+    // Tasks
+    ADD_TASK(state, task) {
+      state.tasks.unshift(task);
+      saveLocal('ft_tasks', state.tasks);
+    },
+    ADD_TASKS_BULK(state, list) {
+      state.tasks.unshift(...list);
+      saveLocal('ft_tasks', state.tasks);
+    },
+    UPDATE_TASK(state, updatedTask) {
+      const index = state.tasks.findIndex(t => t.id === updatedTask.id);
+      if (index !== -1) {
+        state.tasks.splice(index, 1, updatedTask);
+        saveLocal('ft_tasks', state.tasks);
+      }
+    },
+    TOGGLE_TASK(state, id) {
+      const task = state.tasks.find(t => t.id === id);
+      if (task) {
+        task.done = !task.done;
+        if (task.done) {
+          task.statusColumn = 'done';
+        } else {
+          task.statusColumn = 'todo';
+        }
+        saveLocal('ft_tasks', state.tasks);
+      }
+    },
+    UPDATE_TASK_STATUS(state, { id, statusColumn }) {
+      const task = state.tasks.find(t => t.id === id);
+      if (task) {
+        task.statusColumn = statusColumn;
+        task.done = (statusColumn === 'done');
+        saveLocal('ft_tasks', state.tasks);
+      }
+    },
+    DELETE_TASK(state, id) {
+      state.tasks = state.tasks.filter(t => t.id !== id);
+      saveLocal('ft_tasks', state.tasks);
+    },
+    DELETE_TASKS_BULK(state, ids) {
+      state.tasks = state.tasks.filter(t => !ids.includes(t.id));
+      saveLocal('ft_tasks', state.tasks);
+    },
+
+    // Transactions
+    ADD_TRANSACTION(state, transaction) {
+      state.transactions.unshift(transaction);
+      saveLocal('ft_transactions', state.transactions);
+    },
+    ADD_TRANSACTIONS_BULK(state, list) {
+      state.transactions.unshift(...list);
+      saveLocal('ft_transactions', state.transactions);
+    },
+    UPDATE_TRANSACTION(state, updatedTx) {
+      const index = state.transactions.findIndex(t => t.id === updatedTx.id);
+      if (index !== -1) {
+        state.transactions.splice(index, 1, updatedTx);
+        saveLocal('ft_transactions', state.transactions);
+      }
+    },
+    DELETE_TRANSACTION(state, id) {
+      state.transactions = state.transactions.filter(t => t.id !== id);
+      saveLocal('ft_transactions', state.transactions);
+    },
+    DELETE_TRANSACTIONS_BULK(state, ids) {
+      state.transactions = state.transactions.filter(t => !ids.includes(t.id));
+      saveLocal('ft_transactions', state.transactions);
+    },
+
+    // Invoices
+    ADD_INVOICE(state, invoice) {
+      state.invoices.unshift(invoice);
+      saveLocal('ft_invoices', state.invoices);
+    },
+    UPDATE_INVOICE(state, updatedInv) {
+      const index = state.invoices.findIndex(i => i.id === updatedInv.id);
+      if (index !== -1) {
+        state.invoices.splice(index, 1, updatedInv);
+        saveLocal('ft_invoices', state.invoices);
+      }
+    },
+    DELETE_INVOICE(state, id) {
+      state.invoices = state.invoices.filter(i => i.id !== id);
+      saveLocal('ft_invoices', state.invoices);
+    },
+    DELETE_INVOICES_BULK(state, ids) {
+      state.invoices = state.invoices.filter(i => !ids.includes(i.id));
+      saveLocal('ft_invoices', state.invoices);
+    },
+
+    // Habits
+    ADD_HABIT(state, habit) {
+      state.habits.unshift(habit);
+      saveLocal('ft_habits', state.habits);
+    },
+    TOGGLE_HABIT_DATE(state, { id, dateStr }) {
+      const habit = state.habits.find(h => h.id === id);
+      if (habit) {
+        if (!habit.history) habit.history = {};
+        habit.history[dateStr] = !habit.history[dateStr];
+        saveLocal('ft_habits', state.habits);
+      }
+    },
+    DELETE_HABIT(state, id) {
+      state.habits = state.habits.filter(h => h.id !== id);
+      saveLocal('ft_habits', state.habits);
+    },
+
+    // Notes
+    ADD_NOTE(state, note) {
+      state.notes.unshift(note);
+      saveLocal('ft_notes', state.notes);
+    },
+    UPDATE_NOTE(state, updatedNote) {
+      const index = state.notes.findIndex(n => n.id === updatedNote.id);
+      if (index !== -1) {
+        state.notes.splice(index, 1, updatedNote);
+        saveLocal('ft_notes', state.notes);
+      }
+    },
+    DELETE_NOTE(state, id) {
+      state.notes = state.notes.filter(n => n.id !== id);
+      saveLocal('ft_notes', state.notes);
+    },
+
+    // Calendar Events
+    ADD_EVENT(state, eventItem) {
+      state.events.unshift(eventItem);
+      saveLocal('ft_events', state.events);
+    },
+    UPDATE_EVENT(state, updatedEv) {
+      const index = state.events.findIndex(e => e.id === updatedEv.id);
+      if (index !== -1) {
+        state.events.splice(index, 1, updatedEv);
+        saveLocal('ft_events', state.events);
+      }
+    },
+    DELETE_EVENT(state, id) {
+      state.events = state.events.filter(e => e.id !== id);
+      saveLocal('ft_events', state.events);
+    },
+
+    // Settings & Budget
+    SET_BUDGET_THRESHOLD(state, amount) {
+      state.budgetThreshold = Number(amount) || 0;
+      saveLocal('ft_budgetThreshold', state.budgetThreshold);
+    },
+
+    // My Business
+    UPDATE_MY_BUSINESS(state, info) {
+      state.myBusiness = { ...state.myBusiness, ...info };
+      saveLocal('ft_myBusiness', state.myBusiness);
+    },
+
+    // Global Reset & Import/Export
+    CLEAR_ALL_DATA(state) {
+      state.contacts = [];
+      state.projects = [];
+      state.tasks = [];
+      state.transactions = [];
+      state.invoices = [];
+      state.habits = [];
+      state.notes = [];
+      state.events = [];
+
+      saveLocal('ft_contacts', []);
+      saveLocal('ft_projects', []);
+      saveLocal('ft_tasks', []);
+      saveLocal('ft_transactions', []);
+      saveLocal('ft_invoices', []);
+      saveLocal('ft_habits', []);
+      saveLocal('ft_notes', []);
+      saveLocal('ft_events', []);
+    },
+
+    LOAD_SAMPLE_DATA(state) {
+      state.contacts = [...SAMPLE_CONTACTS];
+      state.projects = [...SAMPLE_PROJECTS];
+      state.tasks = [...SAMPLE_TASKS];
+      state.transactions = [...SAMPLE_TRANSACTIONS];
+      state.habits = [...SAMPLE_HABITS];
+      state.notes = [...DEFAULT_NOTES];
+      state.events = [...DEFAULT_EVENTS];
+
+      saveLocal('ft_contacts', state.contacts);
+      saveLocal('ft_projects', state.projects);
+      saveLocal('ft_tasks', state.tasks);
+      saveLocal('ft_transactions', state.transactions);
+      saveLocal('ft_habits', state.habits);
+      saveLocal('ft_notes', state.notes);
+      saveLocal('ft_events', state.events);
+    },
+
+    IMPORT_FULL_DATA(state, data) {
+      if (!data) return;
+      state.contacts = data.contacts || [];
+      state.projects = data.projects || [];
+      state.tasks = data.tasks || [];
+      state.transactions = data.transactions || [];
+      state.invoices = data.invoices || [];
+      state.habits = data.habits || [];
+      state.notes = data.notes || [];
+      state.events = data.events || [];
+      if (data.themeMode) state.themeMode = data.themeMode;
+      if (data.accentColor) state.accentColor = data.accentColor;
+      if (data.budgetThreshold) state.budgetThreshold = data.budgetThreshold;
+      if (data.myBusiness) state.myBusiness = data.myBusiness;
+
+      saveLocal('ft_contacts', state.contacts);
+      saveLocal('ft_projects', state.projects);
+      saveLocal('ft_tasks', state.tasks);
+      saveLocal('ft_transactions', state.transactions);
+      saveLocal('ft_invoices', state.invoices);
+      saveLocal('ft_habits', state.habits);
+      saveLocal('ft_notes', state.notes);
+      saveLocal('ft_events', state.events);
+      saveLocal('ft_themeMode', state.themeMode);
+      saveLocal('ft_accentColor', state.accentColor);
+      saveLocal('ft_budgetThreshold', state.budgetThreshold);
+      saveLocal('ft_myBusiness', state.myBusiness);
+    }
+  },
+  actions: {
+    setThemeMode({ commit }, mode) {
+      commit('SET_THEME_MODE', mode);
+    },
+    setAccentColor({ commit }, color) {
+      commit('SET_ACCENT_COLOR', color);
+    },
+
+    addContact({ commit }, contact) {
+      commit('ADD_CONTACT', { ...contact, id: 'c_' + Date.now() + Math.random().toString(36).substr(2, 4) });
+    },
+    addContactsBulk({ commit }, list) {
+      const formatted = list.map((c, i) => ({ ...c, id: 'c_' + (Date.now() + i) + Math.random().toString(36).substr(2, 4) }));
+      commit('ADD_CONTACTS_BULK', formatted);
+    },
+    updateContact({ commit }, contact) {
+      commit('UPDATE_CONTACT', contact);
+    },
+    deleteContact({ commit }, id) {
+      commit('DELETE_CONTACT', id);
+    },
+    deleteContactsBulk({ commit }, ids) {
+      commit('DELETE_CONTACTS_BULK', ids);
+    },
+
+    addProject({ commit }, project) {
+      commit('ADD_PROJECT', { ...project, id: 'p_' + Date.now() + Math.random().toString(36).substr(2, 4) });
+    },
+    addProjectsBulk({ commit }, list) {
+      const formatted = list.map((p, i) => ({ ...p, id: 'p_' + (Date.now() + i) + Math.random().toString(36).substr(2, 4) }));
+      commit('ADD_PROJECTS_BULK', formatted);
+    },
+    updateProject({ commit }, project) {
+      commit('UPDATE_PROJECT', project);
+    },
+    deleteProject({ commit }, id) {
+      commit('DELETE_PROJECT', id);
+    },
+    deleteProjectsBulk({ commit }, ids) {
+      commit('DELETE_PROJECTS_BULK', ids);
+    },
+
+    addTask({ commit }, task) {
+      commit('ADD_TASK', {
+        recurring: 'none',
+        statusColumn: 'todo',
+        eisenhower: 'do_first',
+        ...task,
+        id: 't_' + Date.now() + Math.random().toString(36).substr(2, 4)
+      });
+    },
+    addTasksBulk({ commit }, list) {
+      const formatted = list.map((t, i) => ({
+        recurring: 'none',
+        statusColumn: 'todo',
+        eisenhower: 'do_first',
+        level: 'Menengah',
+        projectTag: 'Umum',
+        deadline: new Date().toISOString().split('T')[0],
+        done: false,
+        ...t,
+        id: 't_' + (Date.now() + i) + Math.random().toString(36).substr(2, 4)
+      }));
+      commit('ADD_TASKS_BULK', formatted);
+    },
+    updateTask({ commit }, task) {
+      commit('UPDATE_TASK', task);
+    },
+    toggleTask({ commit }, id) {
+      commit('TOGGLE_TASK', id);
+    },
+    updateTaskStatus({ commit }, payload) {
+      commit('UPDATE_TASK_STATUS', payload);
+    },
+    deleteTask({ commit }, id) {
+      commit('DELETE_TASK', id);
+    },
+    deleteTasksBulk({ commit }, ids) {
+      commit('DELETE_TASKS_BULK', ids);
+    },
+
+    addTransaction({ commit }, transaction) {
+      commit('ADD_TRANSACTION', { ...transaction, id: 'tr_' + Date.now() + Math.random().toString(36).substr(2, 4) });
+    },
+    addTransactionsBulk({ commit }, list) {
+      const formatted = list.map((tr, i) => ({ ...tr, id: 'tr_' + (Date.now() + i) + Math.random().toString(36).substr(2, 4) }));
+      commit('ADD_TRANSACTIONS_BULK', formatted);
+    },
+    updateTransaction({ commit }, transaction) {
+      commit('UPDATE_TRANSACTION', transaction);
+    },
+    deleteTransaction({ commit }, id) {
+      commit('DELETE_TRANSACTION', id);
+    },
+    deleteTransactionsBulk({ commit }, ids) {
+      commit('DELETE_TRANSACTIONS_BULK', ids);
+    },
+
+    addInvoice({ commit }, invoice) {
+      commit('ADD_INVOICE', { ...invoice, id: 'inv_' + Date.now() });
+    },
+    updateInvoice({ commit }, invoice) {
+      commit('UPDATE_INVOICE', invoice);
+    },
+    deleteInvoice({ commit }, id) {
+      commit('DELETE_INVOICE', id);
+    },
+    deleteInvoicesBulk({ commit }, ids) {
+      commit('DELETE_INVOICES_BULK', ids);
+    },
+
+    addHabit({ commit }, habit) {
+      commit('ADD_HABIT', { ...habit, id: 'h_' + Date.now(), history: {} });
+    },
+    toggleHabitDate({ commit }, payload) {
+      commit('TOGGLE_HABIT_DATE', payload);
+    },
+    deleteHabit({ commit }, id) {
+      commit('DELETE_HABIT', id);
+    },
+
+    addNote({ commit }, note) {
+      commit('ADD_NOTE', { ...note, id: 'n_' + Date.now(), updatedAt: new Date().toISOString() });
+    },
+    updateNote({ commit }, note) {
+      commit('UPDATE_NOTE', { ...note, updatedAt: new Date().toISOString() });
+    },
+    deleteNote({ commit }, id) {
+      commit('DELETE_NOTE', id);
+    },
+
+    addEvent({ commit }, eventItem) {
+      commit('ADD_EVENT', { ...eventItem, id: 'ev_' + Date.now() });
+    },
+    updateEvent({ commit }, eventItem) {
+      commit('UPDATE_EVENT', eventItem);
+    },
+    deleteEvent({ commit }, id) {
+      commit('DELETE_EVENT', id);
+    },
+
+    setBudgetThreshold({ commit }, amount) {
+      commit('SET_BUDGET_THRESHOLD', amount);
+    },
+
+    updateMyBusiness({ commit }, info) {
+      commit('UPDATE_MY_BUSINESS', info);
+    },
+
+    clearAllData({ commit }) {
+      commit('CLEAR_ALL_DATA');
+    },
+
+    loadSampleData({ commit }) {
+      commit('LOAD_SAMPLE_DATA');
+    },
+
+    importFullData({ commit }, data) {
+      commit('IMPORT_FULL_DATA', data);
+    }
+  }
+});
