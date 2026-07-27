@@ -4,9 +4,7 @@
     <aside :class="['sidebar-nav', { collapsed: isCollapsed }]">
       <div class="sidebar-brand p-3 d-flex align-items-center justify-content-between">
         <div v-if="!isCollapsed" class="d-flex align-items-center gap-2">
-          <div class="brand-logo rounded-3 d-flex align-items-center justify-content-center text-white fw-extrabold shadow-sm px-2 py-1 fs-6" :style="{ backgroundColor: accentColor }">
-            RK
-          </div>
+          <img src="/logo.svg" alt="RajinKerja Logo" style="width: 36px; height: 36px;" class="rounded-3 shadow-sm p-0.5 bg-white border border-dark" />
           <div class="lh-1">
             <span class="fw-extrabold text-app fs-5 d-block" style="letter-spacing: -0.3px;">RajinKerja<span :style="{ color: accentColor }">.id</span></span>
             <small class="text-sub fw-bold text-uppercase d-block mt-1" style="font-size: 9px; letter-spacing: 0.8px;">WORKFLOW & TASK OS</small>
@@ -83,9 +81,9 @@
           <span v-if="!isCollapsed" class="nav-label">Preferences</span>
         </router-link>
 
-        <router-link to="/chat" class="material-nav-link" title="AI Assistant">
-          <i class="bi bi-robot me-3 fs-5 nav-icon"></i>
-          <span v-if="!isCollapsed" class="nav-label">AI Chat Assistant</span>
+        <router-link to="/faq" class="material-nav-link" title="FAQ, Panduan & Tentang App">
+          <i class="bi bi-question-circle-fill me-3 fs-5 nav-icon"></i>
+          <span v-if="!isCollapsed" class="nav-label">FAQ & About App</span>
         </router-link>
       </nav>
 

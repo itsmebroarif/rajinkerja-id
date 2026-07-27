@@ -425,6 +425,10 @@ export default createStore({
       state.notes.unshift(note);
       saveLocal('ft_notes', state.notes);
     },
+    ADD_NOTES_BULK(state, notesArray) {
+      state.notes = [...notesArray, ...state.notes];
+      saveLocal('ft_notes', state.notes);
+    },
     UPDATE_NOTE(state, updatedNote) {
       const index = state.notes.findIndex(n => n.id === updatedNote.id);
       if (index !== -1) {
@@ -434,6 +438,10 @@ export default createStore({
     },
     DELETE_NOTE(state, id) {
       state.notes = state.notes.filter(n => n.id !== id);
+      saveLocal('ft_notes', state.notes);
+    },
+    DELETE_NOTES_BULK(state, ids) {
+      state.notes = state.notes.filter(n => !ids.includes(n.id));
       saveLocal('ft_notes', state.notes);
     },
 
@@ -658,11 +666,22 @@ export default createStore({
     addNote({ commit }, note) {
       commit('ADD_NOTE', { ...note, id: 'n_' + Date.now(), updatedAt: new Date().toISOString() });
     },
+    addNotesBulk({ commit }, notesArray) {
+      const formatted = notesArray.map((note, index) => ({
+        ...note,
+        id: 'n_' + (Date.now() + index),
+        updatedAt: new Date().toISOString()
+      }));
+      commit('ADD_NOTES_BULK', formatted);
+    },
     updateNote({ commit }, note) {
       commit('UPDATE_NOTE', { ...note, updatedAt: new Date().toISOString() });
     },
     deleteNote({ commit }, id) {
       commit('DELETE_NOTE', id);
+    },
+    deleteNotesBulk({ commit }, ids) {
+      commit('DELETE_NOTES_BULK', ids);
     },
 
     addEvent({ commit }, eventItem) {

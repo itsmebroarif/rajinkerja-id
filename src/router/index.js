@@ -62,14 +62,18 @@ const routes = [
     component: () => import("../views/PreferencesView.vue"),
   },
   {
+    path: "/faq",
+    name: "faq",
+    component: () => import("../views/FaqAboutView.vue"),
+  },
+  {
     path: "/chat",
-    name: "chat",
-    component: () => import("../views/chat.vue"),
+    redirect: "/faq",
   },
   {
     path: "/about",
     name: "about",
-    component: () => import("../views/AboutView.vue"),
+    component: () => import("../views/FaqAboutView.vue"),
   }
 ];
 

@@ -4,29 +4,248 @@
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3 bg-white p-4 rounded-4 shadow-sm border">
       <div>
         <div class="d-flex align-items-center gap-2 mb-1">
-          <span class="badge bg-light text-dark border fw-semibold px-3 py-2 rounded-pill">Scratchpad & Docs</span>
+          <span class="badge bg-primary-subtle text-primary fw-bold px-3 py-2 rounded-pill">RajinKerja Notes & Docs</span>
         </div>
-        <h2 class="fw-bold mb-1 text-dark">📌 Sticky Notes & Markdown Scratchpad</h2>
-        <p class="text-muted mb-0">Catatan cepat, coretan ide, dan dokumentasi proyek berbasis Markdown dengan live preview.</p>
+        <h2 class="fw-bold mb-1 text-dark">📝 Notes, Scratchpad & Bulk Documenter</h2>
+        <p class="text-muted mb-0">Kelola catatan harian, dokumentasi proyek, dan coretan ide karyawan dengan dukungan Markdown & Bulk Input.</p>
       </div>
-      <div>
-        <button class="btn btn-primary px-4 py-2 rounded-3 fw-semibold d-flex align-items-center gap-2 shadow-sm" @click="openAddModal">
-          <i class="bi bi-plus-lg fs-5"></i>
-          <span>Buat Note Baru</span>
+      <div class="d-flex flex-wrap gap-2">
+        <button
+          class="btn px-3 py-2 rounded-3 fw-semibold d-flex align-items-center gap-2 border"
+          :class="activeMode === 'editor' ? 'btn-primary text-white shadow-sm' : 'btn-light text-dark'"
+          @click="toggleMode('editor')"
+        >
+          <i class="bi bi-pencil-square fs-5"></i>
+          <span>{{ isEditing ? 'Edit Note Inline' : 'Buat Note Baru' }}</span>
+        </button>
+        <button
+          class="btn px-3 py-2 rounded-3 fw-semibold d-flex align-items-center gap-2 border"
+          :class="activeMode === 'bulk' ? 'btn-success text-white shadow-sm' : 'btn-light text-dark'"
+          @click="toggleMode('bulk')"
+        >
+          <i class="bi bi-ui-checks-grid fs-5"></i>
+          <span>Bulk Multi-Form Input</span>
         </button>
       </div>
     </div>
 
-    <!-- Search & Filter Controls -->
+    <!-- INLINE EDITOR PANEL (No Modal!) -->
+    <div v-if="activeMode === 'editor'" class="card border-0 shadow-sm rounded-4 bg-white p-4 mb-4 transition-all">
+      <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
+        <div class="d-flex align-items-center gap-2">
+          <h5 class="fw-bold text-dark mb-0">
+            <i class="bi" :class="isEditing ? 'bi-pencil-fill text-warning' : 'bi-plus-circle-fill text-primary'"></i>
+            {{ isEditing ? 'Edit Note' : 'Tulis Note / Scratchpad Baru' }}
+          </h5>
+          <span v-if="draftSaved" class="badge bg-success-subtle text-success small rounded-pill px-2 py-1">
+            <i class="bi bi-cloud-check me-1"></i>Draft Tersimpan Otomatis
+          </span>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+          <button v-if="form.title || form.content" type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3" @click="resetEditorForm">
+            <i class="bi bi-x-circle me-1"></i> Bersihkan Draft
+          </button>
+          <button type="button" class="btn btn-sm btn-light rounded-circle" @click="activeMode = 'list'">
+            <i class="bi bi-x-lg"></i>
+          </button>
+        </div>
+      </div>
+
+      <form @submit.prevent="saveNote" class="row g-3">
+        <div class="col-md-7 col-lg-8">
+          <label class="form-label small fw-bold text-dark">Judul Catatan / Dokumen <span class="text-danger">*</span></label>
+          <input
+            type="text"
+            class="form-control form-control-lg border-2 shadow-none fs-6"
+            v-model="form.title"
+            @input="onFormInput"
+            placeholder="Contoh: Checklist Meeting Proyek & KPI Q3"
+            required
+          />
+        </div>
+
+        <div class="col-md-5 col-lg-4">
+          <label class="form-label small fw-bold text-dark">Warna Tema Sticky Note</label>
+          <div class="d-flex gap-2 pt-1">
+            <button
+              type="button"
+              v-for="c in colorOptions"
+              :key="c.code"
+              class="btn rounded-3 p-0 flex-grow-1 color-selector-btn"
+              :style="{ backgroundColor: c.code }"
+              :class="{ 'active-color-ring': form.color === c.code }"
+              @click="selectColor(c.code)"
+              :title="c.name"
+            >
+              <i v-if="form.color === c.code" class="bi bi-check-lg text-dark fw-bold"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Markdown Editor Side-by-Side Live Preview -->
+        <div class="col-md-6">
+          <div class="d-flex justify-content-between align-items-center mb-1">
+            <label class="form-label small fw-bold text-dark mb-0">Teks Markdown Editor</label>
+            <span class="small text-muted">{{ form.content.length }} Karakter | {{ getWordCount(form.content) }} Kata</span>
+          </div>
+          <textarea
+            class="form-control font-monospace border-2 p-3"
+            rows="9"
+            v-model="form.content"
+            @input="onFormInput"
+            placeholder="Ketik dengan format Markdown...&#10;# Judul Sesi&#10;- [x] Tugas 1&#10;- [ ] Tugas 2&#10;**Penting:** Target selesai hari ini."
+          ></textarea>
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label small fw-bold text-dark mb-1">Live Preview Markdown</label>
+          <div class="card p-3 rounded-3 border-2 bg-light h-100 overflow-auto preview-box" style="max-height: 230px;">
+            <div class="markdown-preview small text-dark" v-html="renderMarkdown(form.content)"></div>
+          </div>
+        </div>
+
+        <div class="col-12 d-flex justify-content-end gap-2 pt-3 border-top">
+          <button type="button" class="btn btn-light rounded-3 px-4 fw-semibold" @click="activeMode = 'list'">Tutup Editor</button>
+          <button type="submit" class="btn btn-primary rounded-3 px-4 py-2 fw-bold shadow-sm">
+            <i class="bi bi-check-circle-fill me-1"></i> {{ isEditing ? 'Update Catatan' : 'Simpan ke Local Database' }}
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- BULK MULTI-FORM INPUT PANEL (Insert Form yang Banyak) -->
+    <div v-if="activeMode === 'bulk'" class="card border-0 shadow-sm rounded-4 bg-white p-4 mb-4 transition-all">
+      <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
+        <div>
+          <h5 class="fw-bold text-dark mb-0"><i class="bi bi-ui-checks-grid text-success me-2"></i>Bulk Form Multi-Input Note</h5>
+          <small class="text-muted">Tambahkan banyak form note sekaligus tanpa reload halaman.</small>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+          <button class="btn btn-sm btn-outline-primary rounded-pill px-3" @click="addBulkRow">
+            <i class="bi bi-plus-lg me-1"></i> Tambah 1 Baris Form Lagi
+          </button>
+          <button class="btn btn-sm btn-outline-secondary rounded-pill px-3" @click="addMultipleRows(3)">
+            <i class="bi bi-plus-circle me-1"></i> +3 Baris
+          </button>
+          <button type="button" class="btn btn-sm btn-light rounded-circle" @click="activeMode = 'list'">
+            <i class="bi bi-x-lg"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Bulk Form Mode Switcher -->
+      <div class="d-flex gap-2 mb-3">
+        <button
+          class="btn btn-sm rounded-pill px-3"
+          :class="bulkTab === 'rows' ? 'btn-dark' : 'btn-outline-secondary'"
+          @click="bulkTab = 'rows'"
+        >
+          <i class="bi bi-list-task me-1"></i> Multi-Form Builder ({{ bulkRows.length }} Card)
+        </button>
+        <button
+          class="btn btn-sm rounded-pill px-3"
+          :class="bulkTab === 'paste' ? 'btn-dark' : 'btn-outline-secondary'"
+          @click="bulkTab = 'paste'"
+        >
+          <i class="bi bi-file-earmark-text me-1"></i> Quick Paste Delimited
+        </button>
+      </div>
+
+      <!-- Tab 1: Multi-Form Builder Cards -->
+      <div v-if="bulkTab === 'rows'">
+        <div class="row g-3">
+          <div v-for="(row, idx) in bulkRows" :key="idx" class="col-md-6 col-lg-4">
+            <div class="card border p-3 rounded-3 bg-light position-relative">
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <span class="badge bg-dark text-white rounded-pill px-2 py-1 small">Form Note #{{ idx + 1 }}</span>
+                <button
+                  type="button"
+                  class="btn btn-xs btn-outline-danger border-0 p-0 rounded-circle"
+                  @click="removeBulkRow(idx)"
+                  v-if="bulkRows.length > 1"
+                  title="Hapus baris form ini"
+                >
+                  <i class="bi bi-x-circle-fill fs-6"></i>
+                </button>
+              </div>
+
+              <input
+                type="text"
+                class="form-control form-control-sm mb-2 fw-semibold"
+                v-model="row.title"
+                placeholder="Judul Catatan..."
+              />
+
+              <textarea
+                class="form-control form-control-sm mb-2 font-monospace"
+                rows="4"
+                v-model="row.content"
+                placeholder="Isi catatan (Markdown supported)..."
+              ></textarea>
+
+              <div class="d-flex align-items-center justify-content-between pt-1">
+                <span class="small fw-semibold text-muted">Warna:</span>
+                <div class="d-flex gap-1">
+                  <button
+                    type="button"
+                    v-for="c in colorOptions"
+                    :key="c.code"
+                    class="btn rounded-circle p-0"
+                    :style="{ backgroundColor: c.code, width: '20px', height: '20px' }"
+                    :class="{ 'border border-2 border-dark': row.color === c.code }"
+                    @click="row.color = c.code"
+                  ></button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="d-flex flex-wrap justify-content-between align-items-center mt-4 pt-3 border-top gap-2">
+          <div class="d-flex gap-2">
+            <button class="btn btn-sm btn-outline-primary rounded-3" @click="addBulkRow">
+              <i class="bi bi-plus-lg me-1"></i> Tambah Baris Form
+            </button>
+            <button class="btn btn-sm btn-outline-secondary rounded-3" @click="addMultipleRows(5)">
+              <i class="bi bi-plus-square me-1"></i> +5 Baris Sekaligus
+            </button>
+          </div>
+          <button class="btn btn-success px-4 py-2 rounded-3 fw-bold shadow-sm" @click="saveBulkRows">
+            <i class="bi bi-check-all me-1"></i> Simpan Semua Note ({{ validBulkRowsCount }} Valid)
+          </button>
+        </div>
+      </div>
+
+      <!-- Tab 2: Quick Delimited Paste -->
+      <div v-else>
+        <div class="alert alert-info small py-2 px-3 rounded-3 mb-2">
+          Format paste: Pisahkan antar catatan menggunakan tanda <code>---</code> pada baris tersendiri. Baris pertama dari setiap blok akan dijadikan Judul.
+        </div>
+        <textarea
+          class="form-control font-monospace border-2 mb-3"
+          rows="8"
+          v-model="bulkPasteText"
+          placeholder="Judul Catatan 1&#10;- Poin 1&#10;- Poin 2&#10;---&#10;Judul Catatan 2&#10;Isi ringkas catatan kedua..."
+        ></textarea>
+        <div class="d-flex justify-content-end gap-2">
+          <button class="btn btn-light rounded-3 px-3" @click="bulkPasteText = ''">Bersihkan</button>
+          <button class="btn btn-success rounded-3 px-4 py-2 fw-bold" @click="processBulkPaste">
+            <i class="bi bi-file-earmark-plus me-1"></i> Import & Simpan Catatan
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- SEARCH & FILTER BAR -->
     <div class="bg-white p-3 rounded-4 shadow-sm border mb-4">
       <div class="row g-3 align-items-center">
-        <div class="col-md-6 col-lg-5">
+        <div class="col-md-5">
           <div class="input-group">
             <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-search"></i></span>
             <input
               type="text"
               class="form-control bg-light border-start-0 ps-0"
-              placeholder="Cari judul atau isi catatan..."
+              placeholder="Cari judul atau kata kunci catatan..."
               v-model="searchQuery"
             />
             <button v-if="searchQuery" class="btn btn-light border" @click="searchQuery = ''">
@@ -35,8 +254,8 @@
           </div>
         </div>
 
-        <div class="col-md-6 col-lg-7 d-flex align-items-center justify-content-md-end gap-2 overflow-auto">
-          <span class="small fw-semibold text-muted d-none d-sm-inline">Warna:</span>
+        <div class="col-md-7 d-flex align-items-center justify-content-md-end gap-2 overflow-auto">
+          <span class="small fw-semibold text-muted d-none d-sm-inline">Filter:</span>
           <button
             class="btn btn-sm rounded-pill px-3"
             :class="selectedColor === 'all' ? 'btn-dark' : 'btn-light border'"
@@ -59,30 +278,42 @@
           </button>
         </div>
       </div>
-      <div v-if="searchQuery || selectedColor !== 'all'" class="mt-2 pt-2 border-top d-flex justify-content-between align-items-center small text-muted">
-        <span>
-          Menampilkan <strong>{{ filteredNotes.length }}</strong> dari <strong>{{ notes.length }}</strong> catatan
+
+      <!-- Bulk Selection Toolbar -->
+      <div v-if="selectedIds.length > 0" class="mt-3 pt-2 border-top d-flex justify-content-between align-items-center bg-primary-subtle p-2 rounded-3">
+        <span class="small fw-bold text-primary">
+          <i class="bi bi-check-square-fill me-1"></i> {{ selectedIds.length }} catatan terpilih
         </span>
-        <button class="btn btn-link btn-sm text-decoration-none p-0 text-danger" @click="resetFilters">
-          <i class="bi bi-arrow-counterclockwise me-1"></i>Reset Filter
+        <button class="btn btn-sm btn-danger rounded-pill px-3" @click="bulkDeleteSelected">
+          <i class="bi bi-trash-fill me-1"></i> Hapus Terpilih
         </button>
       </div>
     </div>
 
-    <!-- Notes Grid -->
+    <!-- NOTES GRID -->
     <div class="row g-3" v-if="filteredNotes.length > 0">
       <div v-for="note in filteredNotes" :key="note.id" class="col-md-6 col-lg-4">
-        <div class="card border-0 shadow-sm rounded-4 h-100 p-4 hover-card" :style="{ backgroundColor: note.color || '#fef08a' }">
+        <div class="card border-0 shadow-sm rounded-4 h-100 p-4 hover-card position-relative" :style="{ backgroundColor: note.color || '#fef08a' }">
           <div class="d-flex justify-content-between align-items-start mb-2">
-            <h5 class="fw-bold text-dark mb-0">{{ note.title || 'Untitled Note' }}</h5>
+            <div class="d-flex align-items-center gap-2">
+              <input type="checkbox" class="form-check-input mt-0 cursor-pointer" :value="note.id" v-model="selectedIds" />
+              <h5 class="fw-bold text-dark mb-0 text-break">{{ note.title || 'Untitled Note' }}</h5>
+            </div>
             <div class="d-flex gap-1">
-              <button class="btn btn-xs btn-light rounded-circle" @click="editNote(note)"><i class="bi bi-pencil-fill"></i></button>
-              <button class="btn btn-xs btn-light text-danger rounded-circle" @click="deleteNote(note.id)"><i class="bi bi-trash-fill"></i></button>
+              <button class="btn btn-xs btn-light rounded-circle shadow-sm" @click="copyNoteContent(note.content)" title="Salin Isi Catatan">
+                <i class="bi bi-clipboard"></i>
+              </button>
+              <button class="btn btn-xs btn-light rounded-circle shadow-sm" @click="editNoteInline(note)" title="Edit Note">
+                <i class="bi bi-pencil-fill"></i>
+              </button>
+              <button class="btn btn-xs btn-light text-danger rounded-circle shadow-sm" @click="deleteNoteDirect(note.id)" title="Hapus Note">
+                <i class="bi bi-trash-fill"></i>
+              </button>
             </div>
           </div>
 
           <!-- Live Rendered Markdown Content -->
-          <div class="markdown-preview text-dark small flex-grow-1 my-2 border-top border-bottom py-2" v-html="renderMarkdown(note.content)"></div>
+          <div class="markdown-preview text-dark small flex-grow-1 my-2 border-top border-bottom py-2 overflow-hidden" style="max-height: 200px;" v-html="renderMarkdown(note.content)"></div>
 
           <div class="d-flex justify-content-between align-items-center mt-2 pt-2 text-muted style-footer">
             <span><i class="bi bi-clock me-1"></i>{{ formatDate(note.updatedAt) }}</span>
@@ -96,63 +327,26 @@
     <div v-else class="text-center py-5 bg-white rounded-4 shadow-sm border my-4">
       <i class="bi bi-journal-text display-1 text-muted opacity-50"></i>
       <h4 class="fw-bold mt-3 text-dark">Belum Ada Catatan</h4>
-      <p class="text-muted">Buat sticky notes pertama Anda untuk mencatat requirement atau todolist singkat.</p>
-      <button class="btn btn-primary rounded-3 px-4 py-2 mt-2" @click="openAddModal">
-        <i class="bi bi-plus-lg me-1"></i> Buat Note Baru
-      </button>
+      <p class="text-muted">Buat note pertama Anda atau gunakan fitur Bulk Multi-Form untuk menambah banyak catatan sekaligus.</p>
+      <div class="d-flex justify-content-center gap-2 mt-3">
+        <button class="btn btn-primary rounded-3 px-4 py-2 fw-semibold" @click="toggleMode('editor')">
+          <i class="bi bi-plus-lg me-1"></i> Buat Note Baru
+        </button>
+        <button class="btn btn-success rounded-3 px-4 py-2 fw-semibold" @click="toggleMode('bulk')">
+          <i class="bi bi-ui-checks-grid me-1"></i> Bulk Form Input
+        </button>
+      </div>
     </div>
 
-    <!-- Modal Form (Add / Edit Note with Live Markdown Preview) -->
-    <div class="modal fade" id="noteModal" tabindex="-1" ref="noteModalRef" aria-hidden="true">
-      <div class="modal-dialog modal-dialog-centered modal-lg">
-        <div class="modal-content rounded-4 border-0 shadow">
-          <div class="modal-header border-bottom-0 p-4 pb-0">
-            <h5 class="modal-title fw-bold text-dark">
-              {{ isEditing ? '✏️ Edit Markdown Note' : '➕ Buat Note Baru' }}
-            </h5>
-            <button type="button" class="btn-close" @click="closeModal"></button>
+    <!-- Sleek Toast Notification -->
+    <div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1090;">
+      <div v-if="toast.show" class="toast align-items-center text-white bg-dark border-0 show shadow-lg rounded-3" role="alert">
+        <div class="d-flex">
+          <div class="toast-body d-flex align-items-center gap-2">
+            <i class="bi bi-check-circle-fill text-success fs-5"></i>
+            <span>{{ toast.message }}</span>
           </div>
-          <div class="modal-body p-4">
-            <form @submit.prevent="saveNote" class="row g-3">
-              <div class="col-md-8">
-                <label class="form-label fw-semibold">Judul Catatan</label>
-                <input type="text" class="form-control" v-model="form.title" placeholder="Contoh: Checklist Launching Website" required />
-              </div>
-
-              <div class="col-md-4">
-                <label class="form-label fw-semibold">Warna Sticky Note</label>
-                <div class="d-flex gap-2 pt-1">
-                  <button
-                    type="button"
-                    v-for="c in colorOptions"
-                    :key="c.code"
-                    class="btn rounded-circle p-0 style-color-btn"
-                    :style="{ backgroundColor: c.code }"
-                    :class="{ 'border border-3 border-dark': form.color === c.code }"
-                    @click="form.color = c.code"
-                  ></button>
-                </div>
-              </div>
-
-              <!-- Dual Pane Editor & Live Preview -->
-              <div class="col-md-6">
-                <label class="form-label fw-semibold">Teks Markdown</label>
-                <textarea class="form-control" rows="10" v-model="form.content" placeholder="Gunakan sintaks Markdown (# Header, - List, **Bold**, dll)..."></textarea>
-              </div>
-
-              <div class="col-md-6">
-                <label class="form-label fw-semibold">Live Preview</label>
-                <div class="card p-3 rounded-3 border bg-light h-100 overflow-auto" style="max-height: 250px;">
-                  <div class="markdown-preview small text-dark" v-html="renderMarkdown(form.content)"></div>
-                </div>
-              </div>
-
-              <div class="col-12 text-end pt-3 border-top">
-                <button type="button" class="btn btn-light px-4 me-2 rounded-3" @click="closeModal">Batal</button>
-                <button type="submit" class="btn btn-primary px-4 rounded-3 fw-semibold">Simpan Note</button>
-              </div>
-            </form>
-          </div>
+          <button type="button" class="btn-close btn-close-white me-2 m-auto" @click="toast.show = false"></button>
         </div>
       </div>
     </div>
@@ -160,19 +354,24 @@
 </template>
 
 <script>
-import { computed, ref, onMounted } from 'vue';
+import { computed, ref, onMounted, watch } from 'vue';
 import { useStore } from 'vuex';
 import { marked } from 'marked';
+
+const DRAFT_KEY = 'rk_note_draft';
 
 export default {
   name: 'StickyNotesView',
   setup() {
     const store = useStore();
+
+    const activeMode = ref('list'); // 'list', 'editor', 'bulk'
     const isEditing = ref(false);
     const editingId = ref(null);
+    const draftSaved = ref(false);
+    const selectedIds = ref([]);
 
-    const noteModalRef = ref(null);
-    let modalInstance = null;
+    const toast = ref({ show: false, message: '' });
 
     const colorOptions = [
       { name: 'Kuning', code: '#fef08a' },
@@ -187,6 +386,15 @@ export default {
       content: '',
       color: '#fef08a'
     });
+
+    // Bulk rows builder
+    const bulkTab = ref('rows'); // 'rows', 'paste'
+    const bulkRows = ref([
+      { title: '', content: '', color: '#fef08a' },
+      { title: '', content: '', color: '#bae6fd' },
+      { title: '', content: '', color: '#bbf7d0' }
+    ]);
+    const bulkPasteText = ref('');
 
     const searchQuery = ref('');
     const selectedColor = ref('all');
@@ -205,40 +413,194 @@ export default {
       });
     });
 
-    const getNotesCountByColor = (colorCode) => {
-      return notes.value.filter(n => n.color === colorCode).length;
-    };
-
-    const resetFilters = () => {
-      searchQuery.value = '';
-      selectedColor.value = 'all';
-    };
-
-    const getModal = () => {
-      if (noteModalRef.value && window.bootstrap && window.bootstrap.Modal) {
-        return window.bootstrap.Modal.getOrCreateInstance(noteModalRef.value, { backdrop: true, keyboard: true });
-      }
-      return null;
-    };
-
-    const cleanupBackdrop = () => {
+    const showToast = (msg) => {
+      toast.value.message = msg;
+      toast.value.show = true;
       setTimeout(() => {
-        const openModals = document.querySelectorAll('.modal.show');
-        if (openModals.length === 0) {
-          document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
-          document.body.classList.remove('modal-open');
-          document.body.style.removeProperty('overflow');
-          document.body.style.removeProperty('padding-right');
-        }
-      }, 300);
+        toast.value.show = false;
+      }, 3000);
     };
 
+    // Auto-load draft from localStorage on mount
     onMounted(() => {
-      // Lazy init
+      try {
+        const savedDraft = localStorage.getItem(DRAFT_KEY);
+        if (savedDraft) {
+          const parsed = JSON.parse(savedDraft);
+          if (parsed.title || parsed.content) {
+            form.value = parsed;
+            draftSaved.value = true;
+          }
+        }
+      } catch (e) {
+        console.error('Failed to load draft:', e);
+      }
     });
 
+    // Auto-save draft on input
+    const onFormInput = () => {
+      if (!isEditing.value) {
+        localStorage.setItem(DRAFT_KEY, JSON.stringify(form.value));
+        draftSaved.value = true;
+      }
+    };
+
+    const toggleMode = (mode) => {
+      if (activeMode.value === mode) {
+        activeMode.value = 'list';
+      } else {
+        activeMode.value = mode;
+        if (mode === 'editor' && !isEditing.value && !form.value.title && !form.value.content) {
+          form.value = {
+            title: '',
+            content: '# Catatan Baru\n\n- [ ] Checklist tugas 1\n- [ ] Checklist tugas 2',
+            color: '#fef08a'
+          };
+        }
+      }
+    };
+
+    const selectColor = (code) => {
+      form.value.color = code;
+      onFormInput();
+    };
+
+    const resetEditorForm = () => {
+      form.value = {
+        title: '',
+        content: '',
+        color: '#fef08a'
+      };
+      isEditing.value = false;
+      editingId.value = null;
+      localStorage.removeItem(DRAFT_KEY);
+      draftSaved.value = false;
+      showToast('Draft dibersihkan.');
+    };
+
+    const editNoteInline = (note) => {
+      isEditing.value = true;
+      editingId.value = note.id;
+      form.value = { ...note };
+      activeMode.value = 'editor';
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
+    const saveNote = () => {
+      if (!form.value.title || !form.value.title.trim()) {
+        showToast('Judul catatan tidak boleh kosong.');
+        return;
+      }
+
+      if (isEditing.value) {
+        store.dispatch('updateNote', { ...form.value, id: editingId.value });
+        showToast('Note berhasil diperbarui!');
+      } else {
+        store.dispatch('addNote', form.value);
+        showToast('Note baru berhasil disimpan!');
+      }
+
+      localStorage.removeItem(DRAFT_KEY);
+      draftSaved.value = false;
+      form.value = { title: '', content: '', color: '#fef08a' };
+      isEditing.value = false;
+      editingId.value = null;
+      activeMode.value = 'list';
+    };
+
+    const deleteNoteDirect = (id) => {
+      store.dispatch('deleteNote', id);
+      showToast('Catatan berhasil dihapus.');
+    };
+
+    const bulkDeleteSelected = () => {
+      if (selectedIds.value.length === 0) return;
+      store.dispatch('deleteNotesBulk', selectedIds.value);
+      showToast(`${selectedIds.value.length} catatan dihapus.`);
+      selectedIds.value = [];
+    };
+
+    // Bulk Rows Logic
+    const addBulkRow = () => {
+      const colors = ['#fef08a', '#bae6fd', '#bbf7d0', '#fbcfe8', '#e9d5ff'];
+      const nextColor = colors[bulkRows.value.length % colors.length];
+      bulkRows.value.push({ title: '', content: '', color: nextColor });
+    };
+
+    const addMultipleRows = (count) => {
+      for (let i = 0; i < count; i++) {
+        addBulkRow();
+      }
+    };
+
+    const removeBulkRow = (idx) => {
+      bulkRows.value.splice(idx, 1);
+    };
+
+    const validBulkRowsCount = computed(() => {
+      return bulkRows.value.filter(r => r.title && r.title.trim()).length;
+    });
+
+    const saveBulkRows = () => {
+      const validRows = bulkRows.value.filter(r => r.title && r.title.trim());
+      if (validRows.length === 0) {
+        showToast('Mohon isi minimal 1 Judul Catatan pada form bulk.');
+        return;
+      }
+
+      store.dispatch('addNotesBulk', validRows);
+      showToast(`${validRows.length} catatan baru berhasil ditambahkan!`);
+
+      // Reset bulk rows
+      bulkRows.value = [
+        { title: '', content: '', color: '#fef08a' },
+        { title: '', content: '', color: '#bae6fd' },
+        { title: '', content: '', color: '#bbf7d0' }
+      ];
+      activeMode.value = 'list';
+    };
+
+    const processBulkPaste = () => {
+      if (!bulkPasteText.value || !bulkPasteText.value.trim()) {
+        showToast('Teks paste kosong.');
+        return;
+      }
+
+      const blocks = bulkPasteText.value.split(/^---$/m).map(b => b.trim()).filter(b => b.length > 0);
+      if (blocks.length === 0) {
+        showToast('Format paste tidak valid.');
+        return;
+      }
+
+      const colors = ['#fef08a', '#bae6fd', '#bbf7d0', '#fbcfe8', '#e9d5ff'];
+      const notesToInsert = blocks.map((block, idx) => {
+        const lines = block.split('\n');
+        const title = lines[0].replace(/^#+\s*/, '').trim() || `Catatan Import #${idx + 1}`;
+        const content = lines.slice(1).join('\n').trim() || lines[0];
+        return {
+          title,
+          content,
+          color: colors[idx % colors.length]
+        };
+      });
+
+      store.dispatch('addNotesBulk', notesToInsert);
+      showToast(`${notesToInsert.length} catatan berhasil di-import dari paste!`);
+      bulkPasteText.value = '';
+      activeMode.value = 'list';
+    };
+
+    const copyNoteContent = (content) => {
+      if (!content) return;
+      navigator.clipboard.writeText(content).then(() => {
+        showToast('Isi catatan berhasil disalin ke clipboard!');
+      }).catch(() => {
+        showToast('Gagal menyalin teks.');
+      });
+    };
+
     const renderMarkdown = (text) => {
-      if (!text) return '<em class="text-muted">Ketik teks untuk melihat preview...</em>';
+      if (!text) return '<em class="text-muted">Preview teks markdown...</em>';
       try {
         return marked.parse(text);
       } catch (e) {
@@ -246,45 +608,13 @@ export default {
       }
     };
 
-    const openAddModal = () => {
-      isEditing.value = false;
-      editingId.value = null;
-      form.value = {
-        title: '',
-        content: '# Catatan Baru\n\n- [ ] Poin penting 1\n- [ ] Poin penting 2',
-        color: '#fef08a'
-      };
-      const modal = getModal();
-      if (modal) modal.show();
+    const getWordCount = (str) => {
+      if (!str) return 0;
+      return str.trim().split(/\s+/).filter(Boolean).length;
     };
 
-    const editNote = (note) => {
-      isEditing.value = true;
-      editingId.value = note.id;
-      form.value = { ...note };
-      const modal = getModal();
-      if (modal) modal.show();
-    };
-
-    const closeModal = () => {
-      const modal = getModal();
-      if (modal) modal.hide();
-      cleanupBackdrop();
-    };
-
-    const saveNote = () => {
-      if (isEditing.value) {
-        store.dispatch('updateNote', { ...form.value, id: editingId.value });
-      } else {
-        store.dispatch('addNote', form.value);
-      }
-      closeModal();
-    };
-
-    const deleteNote = (id) => {
-      if (confirm('Hapus note ini?')) {
-        store.dispatch('deleteNote', id);
-      }
+    const getNotesCountByColor = (colorCode) => {
+      return notes.value.filter(n => n.color === colorCode).length;
     };
 
     const formatDate = (dateStr) => {
@@ -301,19 +631,35 @@ export default {
       notes,
       filteredNotes,
       colorOptions,
+      activeMode,
       isEditing,
       form,
+      draftSaved,
+      selectedIds,
+      toast,
+      bulkTab,
+      bulkRows,
+      bulkPasteText,
       searchQuery,
       selectedColor,
-      getNotesCountByColor,
-      resetFilters,
-      noteModalRef,
-      renderMarkdown,
-      openAddModal,
-      editNote,
-      closeModal,
+      validBulkRowsCount,
+      toggleMode,
+      selectColor,
+      onFormInput,
+      resetEditorForm,
+      editNoteInline,
       saveNote,
-      deleteNote,
+      deleteNoteDirect,
+      bulkDeleteSelected,
+      addBulkRow,
+      addMultipleRows,
+      removeBulkRow,
+      saveBulkRows,
+      processBulkPaste,
+      copyNoteContent,
+      renderMarkdown,
+      getWordCount,
+      getNotesCountByColor,
       formatDate
     };
   }
@@ -321,14 +667,22 @@ export default {
 </script>
 
 <style scoped>
-.style-color-btn {
-  width: 28px;
-  height: 28px;
-  cursor: pointer;
+.color-selector-btn {
+  height: 36px;
+  border: 2px solid transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.15s ease, border-color 0.15s ease;
 }
 
-.style-footer {
-  font-size: 11px;
+.color-selector-btn:hover {
+  transform: translateY(-2px);
+}
+
+.active-color-ring {
+  border-color: #0f172a !important;
+  box-shadow: 0 0 0 2px rgba(15, 23, 42, 0.2);
 }
 
 .hover-card {
@@ -340,15 +694,23 @@ export default {
   box-shadow: 0 8px 24px rgba(0,0,0,0.08) !important;
 }
 
+.style-footer {
+  font-size: 11px;
+}
+
+.cursor-pointer {
+  cursor: pointer;
+}
+
 .markdown-preview :deep(h1), .markdown-preview :deep(h2), .markdown-preview :deep(h3) {
-  font-size: 1.1rem;
+  font-size: 1.05rem;
   font-weight: 700;
-  margin-top: 0.5rem;
-  margin-bottom: 0.5rem;
+  margin-top: 0.4rem;
+  margin-bottom: 0.4rem;
 }
 
 .markdown-preview :deep(ul), .markdown-preview :deep(ol) {
   padding-left: 1.2rem;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.4rem;
 }
 </style>

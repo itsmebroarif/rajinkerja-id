@@ -102,6 +102,9 @@
       </div>
     </div>
 
+    <!-- 30-Day Productivity & Habit Streaks Analytics Dashboard -->
+    <ProductivityDashboard />
+
     <!-- Main Dashboard Section: 2 Column Layout -->
     <div class="row g-4 mb-4">
       <!-- Quick Tasks & Kanban Summary (Left) -->
@@ -191,9 +194,13 @@
 <script>
 import { computed } from 'vue';
 import { useStore } from 'vuex';
+import ProductivityDashboard from '@/components/ProductivityDashboard.vue';
 
 export default {
   name: 'HomeView',
+  components: {
+    ProductivityDashboard
+  },
   setup() {
     const store = useStore();
 
