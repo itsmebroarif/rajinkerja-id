@@ -506,7 +506,7 @@ export default {
         if (savedScratchpad !== null) {
           scratchpadContent.value = savedScratchpad;
         } else {
-          scratchpadContent.value = `# Scratchpad Cepat\n- Catatan rapat jam 14.00\n- Followup invoice PT Teknologi Nusantara\n- Referensi warna: #2563eb`;
+          scratchpadContent.value = '';
         }
       } catch (e) {
         console.error('Failed to load storage:', e);

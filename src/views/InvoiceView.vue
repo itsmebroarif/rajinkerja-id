@@ -362,13 +362,13 @@ export default {
       clientEmail: '',
       clientAddress: '',
       currency: 'IDR',
-      status: 'Sent',
+      status: 'Draft',
       items: [
-        { nama: 'Pengembangan Aplikasi Web / Frontend', quantity: 1, biaya: 5000000 }
+        { nama: '', quantity: 1, biaya: 0 }
       ],
       taxPercent: 0,
       discount: 0,
-      notes: `Silakan melakukan pembayaran ke rekening:\nBank BCA: 123-456-7890 a/n Arif Alexander\nTerima kasih atas kepercayaan Anda!`
+      notes: ''
     });
 
     onMounted(() => {

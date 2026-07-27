@@ -7,44 +7,8 @@ const DEFAULT_TASKS = [];
 const DEFAULT_TRANSACTIONS = [];
 const DEFAULT_INVOICES = [];
 const DEFAULT_HABITS = [];
-const DEFAULT_NOTES = [
-  {
-    id: 'note_demo',
-    title: '📝 Welcome Scratchpad',
-    content: `# Welcome to RajinKerja.id!
-
-- [x] High-performance workspace karyawan & profesional
-- [ ] Record daily tasks & projects
-- [ ] Export reports to **Excel** & **PDF**
-
-Write your **Markdown** notes here!`,
-    color: '#fef08a', // Yellow sticky
-    updatedAt: new Date().toISOString()
-  }
-];
-
-const DEFAULT_EVENTS = [
-  {
-    id: 'ev_1',
-    title: 'Client Meeting - PT Teknologi Nusantara',
-    date: '2026-07-28',
-    startTime: '10:00',
-    endTime: '11:30',
-    category: 'Meeting',
-    reminder: '30m',
-    notes: 'Diskusi feedback wireframe checkout app.'
-  },
-  {
-    id: 'ev_2',
-    title: 'Sprint Demo & Code Review',
-    date: '2026-07-31',
-    startTime: '14:00',
-    endTime: '15:00',
-    category: 'Milestone',
-    reminder: '1h',
-    notes: 'Demo component library ke Global Tech.'
-  }
-];
+const DEFAULT_NOTES = [];
+const DEFAULT_EVENTS = [];
 
 // Sample data generator for users who click "Load Sample Data"
 const SAMPLE_CONTACTS = [
@@ -204,14 +168,14 @@ export default createStore({
       accentColor: loadLocal('ft_accentColor', '#2563eb'), // default Material blue
       budgetThreshold: loadLocal('ft_budgetThreshold', 5000000), // Default budget threshold: Rp 5.000.000
       myBusiness: loadLocal('ft_myBusiness', {
-        name: 'Studio Freelance Digital',
-        tagline: 'Solusi Web, Mobile & Design Specialist',
-        owner: 'Arif Alexander',
-        email: 'aripstrike@gmail.com',
-        phone: '0858-1704-8266',
-        bankName: 'Bank BCA',
-        accountNumber: '123-456-7890',
-        accountHolder: 'Arif Alexander'
+        name: '',
+        tagline: '',
+        owner: '',
+        email: '',
+        phone: '',
+        bankName: '',
+        accountNumber: '',
+        accountHolder: ''
       })
     };
   },
