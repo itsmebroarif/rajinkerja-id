@@ -12,7 +12,7 @@
           </div>
           <h1 class="fw-extrabold display-6 mb-2">Selamat Datang, {{ myBusiness.owner || 'Rekan Kerja' }}!</h1>
           <p class="lead opacity-90 mb-4">
-            Pusat kendali produktivitas & organizer karir karyawan Anda: kelola tugas (5 view modes), proyek kantor, arus kas, invoice, dan habit harian.
+            Pusat kendali produktivitas & organizer karir karyawan Anda: kelola tugas (5 view modes), proyek kantor, arus kas, dan invoice.
           </p>
 
           <div class="d-flex flex-wrap gap-2">
@@ -158,14 +158,6 @@
               <div>
                 <h6 class="fw-bold text-dark mb-0">To-Do List (5 View Types)</h6>
                 <small class="text-muted">Standard, Kanban, Eisenhower, Timeline, Checklist</small>
-              </div>
-            </router-link>
-
-            <router-link to="/habits" class="p-3 bg-light rounded-3 border text-decoration-none d-flex align-items-center gap-3 hover-card">
-              <div class="p-3 bg-danger text-white rounded-3 fs-4"><i class="bi bi-lightning-charge"></i></div>
-              <div>
-                <h6 class="fw-bold text-dark mb-0">Habit Tracker & Streaks</h6>
-                <small class="text-muted">Pantau konsistensi coding, olahraga, dan bisnis</small>
               </div>
             </router-link>
 

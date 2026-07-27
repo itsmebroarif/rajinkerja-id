@@ -8,8 +8,8 @@
             <i class="bi bi-graph-up-arrow me-1"></i> 30-Day Analytics
           </span>
         </div>
-        <h4 class="fw-bold text-dark mb-0">📊 Productivity & Habit Streaks (30 Hari Terakhir)</h4>
-        <p class="small text-muted mb-0">Visualisasi tren penyelesaian tugas harian dan konsistensi habit streak karyawan.</p>
+        <h4 class="fw-bold text-dark mb-0">📊 Performa & Analisis Produktivitas (30 Hari Terakhir)</h4>
+        <p class="small text-muted mb-0">Visualisasi real-time tren penyelesaian tugas harian dan statistik aktivitas kerja.</p>
       </div>
 
       <div class="d-flex align-items-center gap-2">
@@ -25,14 +25,7 @@
           :class="activeMetric === 'tasks' ? 'btn-primary' : 'btn-outline-primary'"
           @click="activeMetric = 'tasks'"
         >
-          <i class="bi bi-check2-circle me-1"></i> Tugas
-        </button>
-        <button
-          class="btn btn-sm rounded-pill px-3 py-1.5 fw-semibold"
-          :class="activeMetric === 'habits' ? 'btn-success' : 'btn-outline-success'"
-          @click="activeMetric = 'habits'"
-        >
-          <i class="bi bi-lightning-charge-fill me-1"></i> Habit Streak
+          <i class="bi bi-check2-circle me-1"></i> Tugas Selesai
         </button>
       </div>
     </div>
@@ -51,10 +44,10 @@
 
       <div class="col-6 col-md-3">
         <div class="p-3 bg-light rounded-3 border">
-          <span class="small text-muted fw-semibold d-block mb-1">Total Habit Check-in</span>
-          <h3 class="fw-extrabold text-success mb-0">{{ totalHabitCheckins30Days }}</h3>
-          <small class="text-primary fw-bold" style="font-size: 11px;">
-            <i class="bi bi-fire me-1"></i>Max Streak: {{ maxStreak }} hari
+          <span class="small text-muted fw-semibold d-block mb-1">Rata-rata Penyelesaian</span>
+          <h3 class="fw-extrabold text-success mb-0">{{ dailyTaskAvg }}</h3>
+          <small class="text-muted fw-semibold" style="font-size: 11px;">
+            Tugas / Hari
           </small>
         </div>
       </div>
@@ -89,10 +82,6 @@
           <span class="d-flex align-items-center gap-1 fw-semibold text-primary">
             <span class="d-inline-block rounded-pill" style="width: 12px; height: 12px; background-color: #2563eb;"></span>
             Tugas Selesai
-          </span>
-          <span class="d-flex align-items-center gap-1 fw-semibold text-success">
-            <span class="d-inline-block rounded-pill" style="width: 12px; height: 12px; background-color: #10b981;"></span>
-            Habit Streak Check-in
           </span>
         </div>
       </div>

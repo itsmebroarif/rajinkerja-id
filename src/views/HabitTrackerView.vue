@@ -224,23 +224,29 @@
       </div>
     </div>
 
-    <!-- 30-DAY HISTORY MODAL -->
-    <div class="modal fade" id="historyModal" tabindex="-1" ref="historyModalRef">
-      <div class="modal-dialog modal-dialog-centered modal-lg">
-        <div class="modal-content rounded-4 border-0 shadow-lg">
-          <div class="modal-header border-bottom p-4 bg-light">
+    <!-- 30-DAY HISTORY MODAL (PURE VUE OVERLAY) -->
+    <transition name="overlay-fade">
+      <div v-if="historyModalOpen" class="drawer-backdrop" @click="closeHistoryModal"></div>
+    </transition>
+
+    <transition name="modal-scale">
+      <div v-if="historyModalOpen" class="custom-modal-wrapper" @click.self="closeHistoryModal">
+        <div class="custom-modal-content rounded-4 border-0 shadow-lg bg-white overflow-hidden">
+          <div class="p-4 border-bottom bg-light d-flex justify-content-between align-items-center">
             <div>
               <span class="badge bg-primary-subtle text-primary fw-bold rounded-pill px-3 py-1 mb-1">
                 <i class="bi bi-clock-history me-1"></i> 30-Day Activity History
               </span>
-              <h5 class="modal-title fw-bold text-dark mb-0">{{ activeModalHabit?.name }}</h5>
+              <h5 class="fw-bold text-dark mb-0">{{ activeModalHabit?.name }}</h5>
             </div>
-            <button type="button" class="btn-close" @click="closeHistoryModal"></button>
+            <button type="button" class="btn btn-sm btn-light rounded-circle border shadow-sm p-2" @click="closeHistoryModal">
+              <i class="bi bi-x-lg"></i>
+            </button>
           </div>
-          <div class="modal-body p-4">
+          <div class="p-4">
             <p class="text-muted small mb-3">Histori check-in 30 hari terakhir. Klik kotak tanggal untuk menambah atau mengubah status check-in.</p>
             
-            <div class="row g-2">
+            <div class="row g-2" style="max-height: 380px; overflow-y: auto;">
               <div
                 v-for="dayItem in past30Days"
                 :key="dayItem.dateStr"
@@ -259,72 +265,69 @@
               </div>
             </div>
           </div>
-          <div class="modal-footer border-top p-3 bg-light">
-            <button type="button" class="btn btn-secondary rounded-3 px-4" @click="closeHistoryModal">Tutup</button>
+          <div class="p-3 border-top bg-light text-end">
+            <button type="button" class="btn btn-secondary rounded-3 px-4 fw-semibold" @click="closeHistoryModal">Tutup</button>
           </div>
         </div>
       </div>
-    </div>
+    </transition>
 
     <!-- RIGHT SLIDE-OVER DRAWER BACKDROP -->
-    <div
-      v-if="drawerOpen"
-      class="drawer-backdrop"
-      @click="closeDrawer"
-    ></div>
+    <transition name="overlay-fade">
+      <div v-if="drawerOpen" class="drawer-backdrop" @click="closeDrawer"></div>
+    </transition>
 
     <!-- RIGHT SLIDE-OVER DRAWER PANEL (FORM ADD / EDIT HABIT) -->
-    <div
-      class="drawer-panel bg-white shadow-lg border-start transition-all"
-      :class="{ 'drawer-show': drawerOpen }"
-    >
-      <div class="drawer-header p-4 border-bottom d-flex align-items-center justify-content-between bg-light">
-        <div>
-          <span class="badge bg-danger-subtle text-danger fw-bold px-3 py-1.5 rounded-pill mb-1" style="font-size: 11px;">
-            <i class="bi bi-lightning-charge-fill me-1"></i> Habit Form
-          </span>
-          <h5 class="fw-bold text-dark mb-0">
-            {{ isEditing ? '✏️ Edit Kebiasaan' : '➕ Tambah Kebiasaan Baru' }}
-          </h5>
+    <transition name="drawer-slide">
+      <div v-if="drawerOpen" class="drawer-panel bg-white shadow-lg border-start">
+        <div class="drawer-header p-4 border-bottom d-flex align-items-center justify-content-between bg-light">
+          <div>
+            <span class="badge bg-danger-subtle text-danger fw-bold px-3 py-1.5 rounded-pill mb-1" style="font-size: 11px;">
+              <i class="bi bi-lightning-charge-fill me-1"></i> Habit Form
+            </span>
+            <h5 class="fw-bold text-dark mb-0">
+              {{ isEditing ? '✏️ Edit Kebiasaan' : '➕ Tambah Kebiasaan Baru' }}
+            </h5>
+          </div>
+          <button type="button" class="btn btn-light rounded-circle border shadow-sm p-2" @click="closeDrawer" title="Tutup">
+            <i class="bi bi-x-lg fs-5"></i>
+          </button>
         </div>
-        <button type="button" class="btn btn-light rounded-circle border shadow-sm p-2" @click="closeDrawer" title="Tutup">
-          <i class="bi bi-x-lg fs-5"></i>
-        </button>
+
+        <div class="drawer-body p-4 overflow-y-auto" style="height: calc(100vh - 90px);">
+          <form @submit.prevent="saveHabit" class="row g-3">
+            <div class="col-12">
+              <label class="form-label fw-bold text-dark small">Nama Kebiasaan / Habit <span class="text-danger">*</span></label>
+              <input
+                type="text"
+                class="form-control form-control-lg border-2 fs-6"
+                v-model="form.name"
+                placeholder="Contoh: Coding 2 Jam Sehari / Deep Work 90m"
+                required
+              />
+            </div>
+
+            <div class="col-12">
+              <label class="form-label fw-bold text-dark small">Kategori Rutinitas</label>
+              <select class="form-select border-2" v-model="form.category">
+                <option value="Productivity">💻 Productivity & Deep Work</option>
+                <option value="Business">💼 Business & Client Outreach</option>
+                <option value="Health">🏃 Health & Fitness</option>
+                <option value="Learning">📚 Learning & Skill Upgrade</option>
+                <option value="Routine">🔄 Rutinitas Harian / Personal</option>
+              </select>
+            </div>
+
+            <div class="col-12 pt-3 border-top mt-4 d-flex gap-2">
+              <button type="button" class="btn btn-light rounded-3 px-4 flex-grow-1" @click="closeDrawer">Batal</button>
+              <button type="submit" class="btn btn-primary rounded-3 px-4 py-2 fw-bold flex-grow-1 shadow-sm">
+                <i class="bi bi-check-circle-fill me-1"></i> {{ isEditing ? 'Simpan Perubahan' : 'Simpan Habit' }}
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
-
-      <div class="drawer-body p-4 overflow-y-auto" style="height: calc(100vh - 90px);">
-        <form @submit.prevent="saveHabit" class="row g-3">
-          <div class="col-12">
-            <label class="form-label fw-bold text-dark small">Nama Kebiasaan / Habit <span class="text-danger">*</span></label>
-            <input
-              type="text"
-              class="form-control form-control-lg border-2 fs-6"
-              v-model="form.name"
-              placeholder="Contoh: Coding 2 Jam Sehari / Deep Work 90m"
-              required
-            />
-          </div>
-
-          <div class="col-12">
-            <label class="form-label fw-bold text-dark small">Kategori Rutinitas</label>
-            <select class="form-select border-2" v-model="form.category">
-              <option value="Productivity">💻 Productivity & Deep Work</option>
-              <option value="Business">💼 Business & Client Outreach</option>
-              <option value="Health">🏃 Health & Fitness</option>
-              <option value="Learning">📚 Learning & Skill Upgrade</option>
-              <option value="Routine">🔄 Rutinitas Harian / Personal</option>
-            </select>
-          </div>
-
-          <div class="col-12 pt-3 border-top mt-4 d-flex gap-2">
-            <button type="button" class="btn btn-light rounded-3 px-4 flex-grow-1" @click="closeDrawer">Batal</button>
-            <button type="submit" class="btn btn-primary rounded-3 px-4 py-2 fw-bold flex-grow-1 shadow-sm">
-              <i class="bi bi-check-circle-fill me-1"></i> {{ isEditing ? 'Simpan Perubahan' : 'Simpan Habit' }}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+    </transition>
 
     <!-- Sleek Toast Notification -->
     <div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1090;">
@@ -359,7 +362,7 @@ export default {
     const toast = ref({ show: false, message: '' });
 
     const activeModalHabit = ref(null);
-    let historyBsModal = null;
+    const historyModalOpen = ref(false);
 
     const habits = computed(() => store.getters.getHabits || []);
 
@@ -601,19 +604,11 @@ export default {
 
     const openHistoryModal = (habit) => {
       activeModalHabit.value = habit;
-      if (window.bootstrap) {
-        const modalEl = document.getElementById('historyModal');
-        if (modalEl) {
-          historyBsModal = new window.bootstrap.Modal(modalEl);
-          historyBsModal.show();
-        }
-      }
+      historyModalOpen.value = true;
     };
 
     const closeHistoryModal = () => {
-      if (historyBsModal) {
-        historyBsModal.hide();
-      }
+      historyModalOpen.value = false;
     };
 
     const formatDate = (id) => {
@@ -638,6 +633,7 @@ export default {
       isEditing,
       toast,
       activeModalHabit,
+      historyModalOpen,
       isHabitDone,
       toggleHabit,
       checkInAllToday,
@@ -716,6 +712,55 @@ export default {
   transform: translateY(-2px);
 }
 
+/* Transitions */
+.overlay-fade-enter-active,
+.overlay-fade-leave-active {
+  transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.overlay-fade-enter-from,
+.overlay-fade-leave-to {
+  opacity: 0;
+}
+
+.drawer-slide-enter-active,
+.drawer-slide-leave-active {
+  transition: transform 0.32s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.drawer-slide-enter-from,
+.drawer-slide-leave-to {
+  transform: translateX(100%);
+}
+
+.modal-scale-enter-active,
+.modal-scale-leave-active {
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.modal-scale-enter-from,
+.modal-scale-leave-to {
+  opacity: 0;
+  transform: scale(0.95);
+}
+
+/* Custom Vue Modal Wrapper */
+.custom-modal-wrapper {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1085;
+  padding: 1rem;
+}
+
+.custom-modal-content {
+  width: 100%;
+  max-width: 720px;
+  max-height: 90vh;
+}
+
 /* RIGHT SLIDE-OVER DRAWER STYLES */
 .drawer-backdrop {
   position: fixed;
@@ -723,8 +768,9 @@ export default {
   left: 0;
   width: 100vw;
   height: 100vh;
-  background-color: rgba(15, 23, 42, 0.5);
-  backdrop-filter: blur(2px);
+  background-color: rgba(15, 23, 42, 0.55);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
   z-index: 1070;
 }
 
@@ -736,11 +782,6 @@ export default {
   max-width: 100vw;
   height: 100vh;
   z-index: 1080;
-  transform: translateX(100%);
-  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.drawer-panel.drawer-show {
-  transform: translateX(0);
+  box-shadow: -6px 0 24px rgba(0, 0, 0, 0.18);
 }
 </style>

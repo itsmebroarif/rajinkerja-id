@@ -75,11 +75,6 @@
         <div v-if="!isCollapsed" class="sidebar-section-header">PRODUKTIVITAS & AGENDA</div>
         <div v-else class="sidebar-divider my-1"></div>
 
-        <router-link to="/habits" class="material-nav-link" title="Habit Tracker & Streaks">
-          <i class="bi bi-lightning-charge-fill me-3 fs-5 nav-icon"></i>
-          <span v-if="!isCollapsed" class="nav-label">Habit Tracker</span>
-        </router-link>
-
         <router-link to="/calendar" class="material-nav-link" title="Kalender Agenda & Timed Events">
           <i class="bi bi-calendar3 me-3 fs-5 nav-icon"></i>
           <span v-if="!isCollapsed" class="nav-label">Kalender & Agenda</span>
@@ -189,7 +184,6 @@
 
             <div class="sidebar-divider my-2"></div>
             <div class="sidebar-section-header px-1">PRODUKTIVITAS & AGENDA</div>
-            <router-link to="/habits" class="material-nav-link"><i class="bi bi-lightning-charge-fill me-3 text-danger"></i>Habit Tracker</router-link>
             <router-link to="/calendar" class="material-nav-link"><i class="bi bi-calendar3 me-3 text-warning"></i>Kalender & Agenda</router-link>
             <router-link to="/notes" class="material-nav-link"><i class="bi bi-journal-text me-3 text-secondary"></i>Notes & Scratchpad</router-link>
 

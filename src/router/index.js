@@ -38,8 +38,7 @@ const routes = [
   },
   {
     path: "/habits",
-    name: "habits",
-    component: () => import("../views/HabitTrackerView.vue"),
+    redirect: "/",
   },
   {
     path: "/calendar",
