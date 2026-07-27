@@ -377,6 +377,31 @@ export default {
   align-items: center;
   justify-content: center;
   font-size: 16px;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.style-check-btn:hover {
+  transform: scale(1.18);
+}
+
+.style-check-btn:active {
+  transform: scale(0.92);
+}
+
+.badge {
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.badge:hover {
+  transform: scale(1.05);
+}
+
+.card {
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.card:hover {
+  transform: translateY(-2px);
 }
 
 /* RIGHT SLIDE-OVER DRAWER STYLES */

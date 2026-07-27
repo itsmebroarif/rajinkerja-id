@@ -66,6 +66,17 @@
             </div>
 
             <div class="col-md-4">
+              <label class="form-label fw-semibold">Kategori Organisasi</label>
+              <select class="form-select" v-model="form.category">
+                <option value="Work">💼 Work / Pekerjaan</option>
+                <option value="Personal">🏠 Personal / Pribadi</option>
+                <option value="Urgent">🔥 Urgent / Mendesak</option>
+                <option value="Client">🤝 Client Project</option>
+                <option value="Routine">🔄 Routine / Rutinitas</option>
+              </select>
+            </div>
+
+            <div class="col-md-4">
               <label class="form-label fw-semibold">Tingkat Prioritas</label>
               <select class="form-select" v-model="form.level">
                 <option value="Menengah">Menengah (Sedang)</option>
@@ -254,10 +265,20 @@
           </button>
         </div>
 
-        <!-- Search input -->
-        <div class="input-group" style="max-width: 260px;">
-          <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-search"></i></span>
-          <input type="text" class="form-control bg-light border-start-0" placeholder="Cari task..." v-model="searchQuery" />
+        <!-- Category Filter & Search input -->
+        <div class="d-flex align-items-center gap-2">
+          <select class="form-select bg-light border" style="width: 160px;" v-model="selectedCategory">
+            <option value="all">Semua Kategori</option>
+            <option value="Work">💼 Work</option>
+            <option value="Personal">🏠 Personal</option>
+            <option value="Urgent">🔥 Urgent</option>
+            <option value="Client">🤝 Client</option>
+            <option value="Routine">🔄 Routine</option>
+          </select>
+          <div class="input-group" style="max-width: 240px;">
+            <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-search"></i></span>
+            <input type="text" class="form-control bg-light border-start-0" placeholder="Cari task..." v-model="searchQuery" />
+          </div>
         </div>
       </div>
     </div>
@@ -294,6 +315,7 @@
                 <th style="width: 50px;" class="text-center">#</th>
                 <th style="width: 50px;">Status</th>
                 <th>Nama Kegiatan / Tugas</th>
+                <th>Kategori</th>
                 <th>Proyek / Tag</th>
                 <th>Prioritas</th>
                 <th>Frekuensi Recurring</th>
@@ -320,6 +342,11 @@
                     {{ task.name }}
                   </div>
                   <small class="text-muted d-block" v-if="task.notes">{{ task.notes }}</small>
+                </td>
+                <td>
+                  <span class="badge rounded-pill px-2.5 py-1.5 fw-semibold" :class="getCategoryBadgeClass(task.category)">
+                    {{ getCategoryLabel(task.category) }}
+                  </span>
                 </td>
                 <td>
                   <span class="badge bg-light text-dark border px-2 py-1 rounded-pill">
@@ -397,6 +424,9 @@
               </div>
               <p class="text-muted small mb-2" v-if="task.notes">{{ task.notes }}</p>
               <div class="d-flex flex-wrap justify-content-between align-items-center pt-2 border-top gap-1 style-mini">
+                <span class="badge rounded-pill px-2 py-0.5" :class="getCategoryBadgeClass(task.category)">
+                  {{ getCategoryLabel(task.category) }}
+                </span>
                 <span class="badge bg-light text-dark border">{{ task.projectTag || 'Umum' }}</span>
                 <span :class="badgeClass(task.level)" class="px-2 py-0.5 rounded-pill">{{ task.level }}</span>
                 <span class="text-muted"><i class="bi bi-clock me-1"></i>{{ formatDate(task.deadline) }}</span>
@@ -527,8 +557,13 @@
           <div v-for="t in groupTasks" :key="t.id" class="col-md-6">
             <div class="p-3 border rounded-3 bg-light d-flex justify-content-between align-items-center">
               <div>
-                <span class="fw-bold" :class="{ 'text-decoration-line-through text-muted': t.done }">{{ t.name }}</span>
-                <span class="badge bg-white text-dark border ms-2 small">{{ t.projectTag || 'Umum' }}</span>
+                <span class="fw-bold d-block" :class="{ 'text-decoration-line-through text-muted': t.done }">{{ t.name }}</span>
+                <div class="d-flex align-items-center gap-1 mt-1">
+                  <span class="badge rounded-pill px-2 py-0.5" :class="getCategoryBadgeClass(t.category)">
+                    {{ getCategoryLabel(t.category) }}
+                  </span>
+                  <span class="badge bg-white text-dark border small">{{ t.projectTag || 'Umum' }}</span>
+                </div>
               </div>
               <button class="btn btn-sm btn-outline-success rounded-circle" @click="toggleTaskDone(t.id)">
                 <i :class="t.done ? 'bi bi-check-circle-fill' : 'bi bi-circle'"></i>
@@ -553,6 +588,9 @@
             <span class="fw-semibold" :class="{ 'text-decoration-line-through text-muted': t.done }">{{ t.name }}</span>
           </div>
           <div class="d-flex align-items-center gap-2">
+            <span class="badge rounded-pill px-2 py-0.5" :class="getCategoryBadgeClass(t.category)">
+              {{ getCategoryLabel(t.category) }}
+            </span>
             <span class="badge bg-light text-dark border small">{{ t.projectTag }}</span>
             <span class="text-muted small">{{ formatDate(t.deadline) }}</span>
           </div>
@@ -587,6 +625,7 @@ export default {
 
     const currentViewMode = ref('list');
     const searchQuery = ref('');
+    const selectedCategory = ref('all');
     const showForm = ref(false);
     const formTab = ref('single'); // 'single' | 'bulk'
     const isEditing = ref(false);
@@ -597,6 +636,7 @@ export default {
 
     const form = ref({
       name: '',
+      category: 'Work',
       level: 'Menengah',
       projectTag: 'Umum',
       deadline: new Date().toISOString().split('T')[0],
@@ -612,6 +652,7 @@ export default {
     const bulkText = ref('');
     const bulkError = ref('');
     const bulkDefault = ref({
+      category: 'Work',
       projectTag: 'Umum',
       level: 'Menengah',
       deadline: new Date().toISOString().split('T')[0]
@@ -635,11 +676,13 @@ export default {
     const filteredTasks = computed(() => {
       return tasks.value.filter(t => {
         const query = searchQuery.value.toLowerCase();
-        return (
-          !query ||
+        const matchesQuery = !query ||
           t.name.toLowerCase().includes(query) ||
-          (t.projectTag && t.projectTag.toLowerCase().includes(query))
-        );
+          (t.projectTag && t.projectTag.toLowerCase().includes(query));
+
+        const matchesCategory = selectedCategory.value === 'all' || (t.category || 'Work') === selectedCategory.value;
+
+        return matchesQuery && matchesCategory;
       });
     });
 
@@ -845,6 +888,34 @@ export default {
       }
     };
 
+    const getCategoryBadgeClass = (category) => {
+      switch (category) {
+        case 'Work':
+          return 'bg-primary-subtle text-primary border border-primary-subtle';
+        case 'Personal':
+          return 'bg-purple-subtle text-purple border border-purple-subtle';
+        case 'Urgent':
+          return 'bg-danger text-white fw-bold shadow-sm';
+        case 'Client':
+          return 'bg-info-subtle text-info-emphasis border border-info-subtle';
+        case 'Routine':
+          return 'bg-success-subtle text-success border border-success-subtle';
+        default:
+          return 'bg-light text-dark border';
+      }
+    };
+
+    const getCategoryLabel = (category) => {
+      switch (category) {
+        case 'Work': return '💼 Work';
+        case 'Personal': return '🏠 Personal';
+        case 'Urgent': return '🔥 Urgent';
+        case 'Client': return '🤝 Client';
+        case 'Routine': return '🔄 Routine';
+        default: return category || '💼 Work';
+      }
+    };
+
     const formatDate = (dateStr) => {
       if (!dateStr) return '-';
       try {
@@ -864,6 +935,7 @@ export default {
       const exportData = tasks.value.map((t, idx) => ({
         No: idx + 1,
         NamaTugas: t.name,
+        Kategori: t.category || 'Work',
         ProyekTag: t.projectTag || 'Umum',
         Prioritas: t.level,
         Recurring: t.recurring || 'none',
@@ -884,6 +956,7 @@ export default {
       currentViewMode,
       kanbanColumns,
       searchQuery,
+      selectedCategory,
       tasks,
       filteredTasks,
       completedCount,
@@ -905,6 +978,8 @@ export default {
       isAllSelected,
       toggleSelectAll,
       toast,
+      getCategoryBadgeClass,
+      getCategoryLabel,
       toggleShowForm,
       openAddModal,
       openAddForCol,

@@ -5,11 +5,22 @@
       <div>
         <div class="d-flex align-items-center gap-2 mb-1">
           <span class="badge bg-primary-subtle text-primary fw-bold px-3 py-2 rounded-pill">RajinKerja Notes & Docs</span>
+          <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-2 rounded-pill d-flex align-items-center gap-1">
+            <span class="pulse-dot bg-success"></span> Auto-Save Active
+          </span>
         </div>
         <h2 class="fw-bold mb-1 text-dark">📝 Notes, Scratchpad & Bulk Documenter</h2>
-        <p class="text-muted mb-0">Kelola catatan harian, dokumentasi proyek, dan coretan ide karyawan dengan dukungan Markdown & Bulk Input.</p>
+        <p class="text-muted mb-0">Kelola catatan harian, dokumentasi proyek, dan coretan ide karyawan dengan auto-save interval otomatis.</p>
       </div>
       <div class="d-flex flex-wrap gap-2">
+        <button
+          class="btn px-3 py-2 rounded-3 fw-semibold d-flex align-items-center gap-2 border"
+          :class="activeMode === 'scratchpad' ? 'btn-warning text-dark shadow-sm' : 'btn-light text-dark'"
+          @click="toggleMode('scratchpad')"
+        >
+          <i class="bi bi-sticky-fill fs-5 text-warning"></i>
+          <span>Quick Scratchpad</span>
+        </button>
         <button
           class="btn px-3 py-2 rounded-3 fw-semibold d-flex align-items-center gap-2 border"
           :class="activeMode === 'editor' ? 'btn-primary text-white shadow-sm' : 'btn-light text-dark'"
@@ -26,6 +37,54 @@
           <i class="bi bi-ui-checks-grid fs-5"></i>
           <span>Bulk Multi-Form Input</span>
         </button>
+      </div>
+    </div>
+
+    <!-- QUICK SCRATCHPAD PANEL (Auto-saves continuously every 2s) -->
+    <div v-if="activeMode === 'scratchpad'" class="card border-0 shadow-sm rounded-4 bg-white p-4 mb-4 border-start border-4 border-warning">
+      <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 pb-2 border-bottom gap-2">
+        <div>
+          <h5 class="fw-bold text-dark mb-0">
+            <i class="bi bi-sticky-fill text-warning me-2"></i>Quick Scratchpad (Coretan Serbaguna)
+          </h5>
+          <small class="text-muted">Tulis ide cepat, nomor kontak, atau snippet. Otomatis tersimpan ke browser (localStorage) setiap 2 detik.</small>
+        </div>
+        <div class="d-flex align-items-center gap-3">
+          <div class="d-flex align-items-center gap-2 px-3 py-1 bg-light rounded-pill border small">
+            <i class="bi bi-floppy-fill text-success" :class="{ 'spin-icon': isAutoSavingScratchpad }"></i>
+            <span class="fw-semibold text-dark">{{ scratchpadSaveStatus }}</span>
+          </div>
+          <button type="button" class="btn btn-sm btn-outline-danger rounded-pill px-3" @click="clearScratchpad" v-if="scratchpadContent">
+            <i class="bi bi-eraser me-1"></i> Bersihkan
+          </button>
+          <button type="button" class="btn btn-sm btn-light rounded-circle" @click="activeMode = 'list'">
+            <i class="bi bi-x-lg"></i>
+          </button>
+        </div>
+      </div>
+
+      <div class="row g-3">
+        <div class="col-md-7">
+          <textarea
+            class="form-control font-monospace border-2 p-3 rounded-3"
+            rows="8"
+            v-model="scratchpadContent"
+            @input="handleScratchpadInput"
+            placeholder="Tulis coretan sementara di sini...&#10;- Ide produk baru&#10;- No WA Klien: 0812-3456-xxxx&#10;- Script SQL / Command terminal&#10;&#10;Isi ini tersimpan otomatis tanpa perlu tombol simpan!"
+          ></textarea>
+        </div>
+        <div class="col-md-5">
+          <div class="card p-3 rounded-3 border bg-light h-100">
+            <h6 class="fw-bold text-dark mb-2"><i class="bi bi-eye me-1"></i> Live Markdown Preview</h6>
+            <div class="markdown-preview small text-dark overflow-auto flex-grow-1" style="max-height: 180px;" v-html="renderMarkdown(scratchpadContent)"></div>
+            <div class="border-top pt-2 mt-2 d-flex justify-content-between align-items-center">
+              <span class="small text-muted">{{ scratchpadContent.length }} karakter</span>
+              <button class="btn btn-xs btn-primary rounded-pill px-3" @click="convertScratchpadToNote" v-if="scratchpadContent.trim()">
+                <i class="bi bi-arrow-right-circle me-1"></i> Ubah Jadi Note
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -354,22 +413,31 @@
 </template>
 
 <script>
-import { computed, ref, onMounted, watch } from 'vue';
+import { computed, ref, onMounted, onUnmounted, watch } from 'vue';
 import { useStore } from 'vuex';
 import { marked } from 'marked';
 
 const DRAFT_KEY = 'rk_note_draft';
+const SCRATCHPAD_KEY = 'rk_quick_scratchpad';
 
 export default {
   name: 'StickyNotesView',
   setup() {
     const store = useStore();
 
-    const activeMode = ref('list'); // 'list', 'editor', 'bulk'
+    const activeMode = ref('list'); // 'list', 'editor', 'bulk', 'scratchpad'
     const isEditing = ref(false);
     const editingId = ref(null);
     const draftSaved = ref(false);
+    const lastSavedTime = ref('');
     const selectedIds = ref([]);
+
+    // Quick Scratchpad Auto-save state
+    const scratchpadContent = ref('');
+    const scratchpadSaveStatus = ref('Otomatis tersimpan');
+    const isAutoSavingScratchpad = ref(false);
+    let scratchpadTimer = null;
+    let noteDraftTimer = null;
 
     const toast = ref({ show: false, message: '' });
 
@@ -421,7 +489,7 @@ export default {
       }, 3000);
     };
 
-    // Auto-load draft from localStorage on mount
+    // Auto-load draft & scratchpad from localStorage on mount
     onMounted(() => {
       try {
         const savedDraft = localStorage.getItem(DRAFT_KEY);
@@ -430,18 +498,78 @@ export default {
           if (parsed.title || parsed.content) {
             form.value = parsed;
             draftSaved.value = true;
+            lastSavedTime.value = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
           }
         }
+
+        const savedScratchpad = localStorage.getItem(SCRATCHPAD_KEY);
+        if (savedScratchpad !== null) {
+          scratchpadContent.value = savedScratchpad;
+        } else {
+          scratchpadContent.value = `# Scratchpad Cepat\n- Catatan rapat jam 14.00\n- Followup invoice PT Teknologi Nusantara\n- Referensi warna: #2563eb`;
+        }
       } catch (e) {
-        console.error('Failed to load draft:', e);
+        console.error('Failed to load storage:', e);
       }
     });
 
-    // Auto-save draft on input
+    onUnmounted(() => {
+      if (scratchpadTimer) clearTimeout(scratchpadTimer);
+      if (noteDraftTimer) clearTimeout(noteDraftTimer);
+    });
+
+    // Auto-save scratchpad logic with debounced timer
+    const handleScratchpadInput = () => {
+      scratchpadSaveStatus.value = 'Menyimpan...';
+      isAutoSavingScratchpad.value = true;
+
+      if (scratchpadTimer) clearTimeout(scratchpadTimer);
+
+      scratchpadTimer = setTimeout(() => {
+        try {
+          localStorage.setItem(SCRATCHPAD_KEY, scratchpadContent.value);
+          const nowStr = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+          scratchpadSaveStatus.value = `Tersimpan ${nowStr}`;
+          isAutoSavingScratchpad.value = false;
+        } catch (err) {
+          scratchpadSaveStatus.value = 'Gagal menyimpan';
+          isAutoSavingScratchpad.value = false;
+        }
+      }, 1500); // 1.5 seconds auto-save interval
+    };
+
+    const clearScratchpad = () => {
+      scratchpadContent.value = '';
+      localStorage.removeItem(SCRATCHPAD_KEY);
+      scratchpadSaveStatus.value = 'Scratchpad dibersihkan';
+      showToast('Quick Scratchpad berhasil dibersihkan.');
+    };
+
+    const convertScratchpadToNote = () => {
+      if (!scratchpadContent.value.trim()) return;
+      const lines = scratchpadContent.value.split('\n');
+      const title = lines[0].replace(/^#+\s*/, '').trim() || 'Note dari Scratchpad';
+      const content = scratchpadContent.value;
+
+      form.value = {
+        title,
+        content,
+        color: '#fef08a'
+      };
+      isEditing.value = false;
+      activeMode.value = 'editor';
+      showToast('Scratchpad dipindahkan ke Editor Note!');
+    };
+
+    // Auto-save note form on input
     const onFormInput = () => {
       if (!isEditing.value) {
-        localStorage.setItem(DRAFT_KEY, JSON.stringify(form.value));
-        draftSaved.value = true;
+        if (noteDraftTimer) clearTimeout(noteDraftTimer);
+        noteDraftTimer = setTimeout(() => {
+          localStorage.setItem(DRAFT_KEY, JSON.stringify(form.value));
+          draftSaved.value = true;
+          lastSavedTime.value = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        }, 1200);
       }
     };
 
@@ -635,6 +763,7 @@ export default {
       isEditing,
       form,
       draftSaved,
+      lastSavedTime,
       selectedIds,
       toast,
       bulkTab,
@@ -643,6 +772,12 @@ export default {
       searchQuery,
       selectedColor,
       validBulkRowsCount,
+      scratchpadContent,
+      scratchpadSaveStatus,
+      isAutoSavingScratchpad,
+      handleScratchpadInput,
+      clearScratchpad,
+      convertScratchpadToNote,
       toggleMode,
       selectColor,
       onFormInput,
@@ -667,6 +802,29 @@ export default {
 </script>
 
 <style scoped>
+.pulse-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+  animation: pulseDot 1.8s infinite ease-in-out;
+}
+
+@keyframes pulseDot {
+  0% { transform: scale(0.9); opacity: 0.6; }
+  50% { transform: scale(1.3); opacity: 1; }
+  100% { transform: scale(0.9); opacity: 0.6; }
+}
+
+.spin-icon {
+  animation: spinIcon 1s linear infinite;
+}
+
+@keyframes spinIcon {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
 .color-selector-btn {
   height: 36px;
   border: 2px solid transparent;

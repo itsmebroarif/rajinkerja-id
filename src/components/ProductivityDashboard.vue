@@ -443,4 +443,31 @@ export default {
 .pointer-events-none {
   pointer-events: none;
 }
+
+/* Fluid CSS transitions for SVG chart paths, points, and bars */
+path {
+  transition: d 0.5s cubic-bezier(0.16, 1, 0.3, 1), fill 0.3s ease, stroke 0.3s ease;
+}
+
+circle {
+  transition: cx 0.5s cubic-bezier(0.16, 1, 0.3, 1), cy 0.5s cubic-bezier(0.16, 1, 0.3, 1), r 0.2s ease;
+}
+
+circle:hover {
+  r: 7px;
+  cursor: pointer;
+}
+
+.btn {
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.bg-light.rounded-3 {
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.bg-light.rounded-3:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
 </style>
