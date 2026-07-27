@@ -160,38 +160,46 @@
       </header>
 
       <!-- Mobile Offcanvas Drawer -->
-      <div class="offcanvas-overlay" v-if="mobileDrawer" @click="mobileDrawer = false"></div>
-      <div class="mobile-drawer p-3" v-if="mobileDrawer">
-        <div class="d-flex justify-content-between align-items-center pb-3 border-bottom mb-3">
-          <div class="fw-bold fs-5 text-app">Menu Utama</div>
-          <button class="btn btn-sm btn-light rounded-circle" @click="mobileDrawer = false">
-            <i class="bi bi-x-lg"></i>
-          </button>
+      <transition name="overlay-fade">
+        <div class="offcanvas-overlay" v-if="mobileDrawer" @click="mobileDrawer = false"></div>
+      </transition>
+      
+      <transition name="drawer-slide">
+        <div class="mobile-drawer p-3" v-if="mobileDrawer">
+          <div class="d-flex justify-content-between align-items-center pb-3 border-bottom mb-3">
+            <div class="d-flex align-items-center gap-2">
+              <img src="/logo.svg" alt="RajinKerja Logo" style="width: 28px; height: 28px;" class="rounded-3 shadow-sm p-0.5 bg-white border" />
+              <div class="fw-bold fs-5 text-app">Menu Utama</div>
+            </div>
+            <button class="btn btn-sm btn-light rounded-circle shadow-sm" @click="mobileDrawer = false" title="Tutup Menu">
+              <i class="bi bi-x-lg"></i>
+            </button>
+          </div>
+          <nav class="d-flex flex-column gap-1" @click="mobileDrawer = false">
+            <div class="sidebar-section-header px-1 pt-1">WORKFLOW & PROYEK</div>
+            <router-link to="/" class="material-nav-link"><i class="bi bi-grid-1x2-fill me-3 text-primary"></i>Dashboard</router-link>
+            <router-link to="/todo" class="material-nav-link"><i class="bi bi-kanban-fill me-3 text-warning"></i>To-Do & Kanban</router-link>
+            <router-link to="/project" class="material-nav-link"><i class="bi bi-folder-fill me-3 text-info"></i>Proyek</router-link>
+
+            <div class="sidebar-divider my-2"></div>
+            <div class="sidebar-section-header px-1">KEUANGAN & KLIEN</div>
+            <router-link to="/finance" class="material-nav-link"><i class="bi bi-wallet2 me-3 text-success"></i>Keuangan</router-link>
+            <router-link to="/invoice" class="material-nav-link"><i class="bi bi-receipt me-3 text-primary"></i>Invoice Generator</router-link>
+            <router-link to="/contacts" class="material-nav-link"><i class="bi bi-person-lines-fill me-3 text-info"></i>Kontak Klien</router-link>
+
+            <div class="sidebar-divider my-2"></div>
+            <div class="sidebar-section-header px-1">PRODUKTIVITAS & AGENDA</div>
+            <router-link to="/habits" class="material-nav-link"><i class="bi bi-lightning-charge-fill me-3 text-danger"></i>Habit Tracker</router-link>
+            <router-link to="/calendar" class="material-nav-link"><i class="bi bi-calendar3 me-3 text-warning"></i>Kalender & Agenda</router-link>
+            <router-link to="/notes" class="material-nav-link"><i class="bi bi-journal-text me-3 text-secondary"></i>Notes & Scratchpad</router-link>
+
+            <div class="sidebar-divider my-2"></div>
+            <div class="sidebar-section-header px-1">SISTEM & PANDUAN</div>
+            <router-link to="/preferences" class="material-nav-link"><i class="bi bi-sliders me-3 text-primary"></i>Preferences</router-link>
+            <router-link to="/faq" class="material-nav-link"><i class="bi bi-question-circle-fill me-3 text-info"></i>FAQ & About App</router-link>
+          </nav>
         </div>
-        <nav class="d-flex flex-column gap-1" @click="mobileDrawer = false">
-          <div class="sidebar-section-header px-1 pt-1">WORKFLOW & PROYEK</div>
-          <router-link to="/" class="material-nav-link"><i class="bi bi-grid-1x2-fill me-3 text-primary"></i>Dashboard</router-link>
-          <router-link to="/todo" class="material-nav-link"><i class="bi bi-kanban-fill me-3 text-warning"></i>To-Do & Kanban</router-link>
-          <router-link to="/project" class="material-nav-link"><i class="bi bi-folder-fill me-3 text-info"></i>Proyek</router-link>
-
-          <div class="sidebar-divider my-2"></div>
-          <div class="sidebar-section-header px-1">KEUANGAN & KLIEN</div>
-          <router-link to="/finance" class="material-nav-link"><i class="bi bi-wallet2 me-3 text-success"></i>Keuangan</router-link>
-          <router-link to="/invoice" class="material-nav-link"><i class="bi bi-receipt me-3 text-primary"></i>Invoice Generator</router-link>
-          <router-link to="/contacts" class="material-nav-link"><i class="bi bi-person-lines-fill me-3 text-info"></i>Kontak Klien</router-link>
-
-          <div class="sidebar-divider my-2"></div>
-          <div class="sidebar-section-header px-1">PRODUKTIVITAS & AGENDA</div>
-          <router-link to="/habits" class="material-nav-link"><i class="bi bi-lightning-charge-fill me-3 text-danger"></i>Habit Tracker</router-link>
-          <router-link to="/calendar" class="material-nav-link"><i class="bi bi-calendar3 me-3 text-warning"></i>Kalender & Agenda</router-link>
-          <router-link to="/notes" class="material-nav-link"><i class="bi bi-journal-text me-3 text-secondary"></i>Notes & Scratchpad</router-link>
-
-          <div class="sidebar-divider my-2"></div>
-          <div class="sidebar-section-header px-1">SISTEM & PANDUAN</div>
-          <router-link to="/preferences" class="material-nav-link"><i class="bi bi-sliders me-3 text-primary"></i>Preferences</router-link>
-          <router-link to="/faq" class="material-nav-link"><i class="bi bi-question-circle-fill me-3 text-info"></i>FAQ & About App</router-link>
-        </nav>
-      </div>
+      </transition>
 
       <!-- Main Router View Container with Fade-Slide Animation -->
       <div class="p-3 p-md-4">
@@ -604,6 +612,28 @@ body {
   transform: translateY(-10px);
 }
 
+/* Overlay transition */
+.overlay-fade-enter-active,
+.overlay-fade-leave-active {
+  transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.overlay-fade-enter-from,
+.overlay-fade-leave-to {
+  opacity: 0;
+}
+
+/* Drawer slide transition */
+.drawer-slide-enter-active,
+.drawer-slide-leave-active {
+  transition: transform 0.32s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.drawer-slide-enter-from,
+.drawer-slide-leave-to {
+  transform: translateX(-100%);
+}
+
 /* Mobile Drawer & Overlay */
 .offcanvas-overlay {
   position: fixed;
@@ -611,8 +641,9 @@ body {
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(0, 0, 0, 0.6);
-  backdrop-filter: blur(4px);
+  background-color: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
   z-index: 1050;
 }
 
@@ -625,6 +656,7 @@ body {
   background-color: var(--sidebar-bg);
   z-index: 1060;
   overflow-y: auto;
+  box-shadow: 6px 0 24px rgba(0, 0, 0, 0.22);
 }
 
 /* Mobile Bottom Bar */

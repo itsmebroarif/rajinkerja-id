@@ -4,13 +4,22 @@
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3 bg-white p-4 rounded-4 shadow-sm border">
       <div>
         <div class="d-flex align-items-center gap-2 mb-1">
-          <span class="badge bg-danger-subtle text-danger fw-semibold px-3 py-2 rounded-pill">Daily Consistency & Streak Counter</span>
+          <span class="badge bg-danger-subtle text-danger fw-semibold px-3 py-1.5 rounded-pill">Daily Consistency & Streak Engine</span>
         </div>
         <h2 class="fw-bold mb-1 text-dark">⚡ Habit Tracker & Streak Counter</h2>
-        <p class="text-muted mb-0">Latih kebiasaan harian dan kumpulkan streak hari secara beruntun tanpa terputus.</p>
+        <p class="text-muted mb-0">Latih konsistensi harian, bangun rutinitas positif, dan jaga streak harian Anda tanpa terputus.</p>
       </div>
-      <div>
-        <button class="btn btn-primary px-4 py-2 rounded-3 fw-semibold d-flex align-items-center gap-2 shadow-sm" @click="openDrawer">
+      <div class="d-flex flex-wrap align-items-center gap-2">
+        <button
+          v-if="habits.length > 0"
+          class="btn btn-outline-success px-3 py-2 rounded-3 fw-semibold d-flex align-items-center gap-2 shadow-sm"
+          @click="checkInAllToday"
+          title="Tandai semua habit selesai hari ini"
+        >
+          <i class="bi bi-check2-all fs-5"></i>
+          <span>Check-in Semua Hari Ini</span>
+        </button>
+        <button class="btn btn-primary px-4 py-2 rounded-3 fw-semibold d-flex align-items-center gap-2 shadow-sm" @click="openAddDrawer">
           <i class="bi bi-plus-lg fs-5"></i>
           <span>Tambah Habit Baru</span>
         </button>
@@ -20,64 +29,133 @@
     <!-- Summary Stats Row -->
     <div class="row g-3 mb-4">
       <div class="col-6 col-md-3">
-        <div class="card border-0 shadow-sm rounded-4 p-3 bg-white border-start border-4 border-primary">
+        <div class="card border-0 shadow-sm rounded-4 p-3 bg-white border-start border-4 border-primary h-100">
           <div class="text-muted small fw-semibold">Total Kebiasaan</div>
           <div class="fs-3 fw-bold text-dark mt-1">{{ habits.length }}</div>
+          <div class="small text-muted mt-1">{{ categoriesCount }} Kategori aktif</div>
         </div>
       </div>
       <div class="col-6 col-md-3">
-        <div class="card border-0 shadow-sm rounded-4 p-3 bg-white border-start border-4 border-danger">
+        <div class="card border-0 shadow-sm rounded-4 p-3 bg-white border-start border-4 border-danger h-100">
           <div class="text-muted small fw-semibold">Streak Aktif</div>
           <div class="fs-3 fw-bold text-danger mt-1">
             <i class="bi bi-fire me-1"></i>{{ activeStreakCount }}
           </div>
+          <div class="small text-muted mt-1">Habit sedang aktif beruntun</div>
         </div>
       </div>
       <div class="col-6 col-md-3">
-        <div class="card border-0 shadow-sm rounded-4 p-3 bg-white border-start border-4 border-success">
-          <div class="text-muted small fw-semibold">Selesai Hari Ini</div>
+        <div class="card border-0 shadow-sm rounded-4 p-3 bg-white border-start border-4 border-success h-100">
+          <div class="d-flex justify-content-between align-items-center">
+            <div class="text-muted small fw-semibold">Selesai Hari Ini</div>
+            <span class="badge bg-success-subtle text-success fw-bold">{{ todayCompletionPercent }}%</span>
+          </div>
           <div class="fs-3 fw-bold text-success mt-1">{{ todayDoneCount }} / {{ habits.length }}</div>
+          <div class="progress mt-2" style="height: 6px;">
+            <div class="progress-bar bg-success rounded-pill" :style="{ width: todayCompletionPercent + '%' }"></div>
+          </div>
         </div>
       </div>
       <div class="col-6 col-md-3">
-        <div class="card border-0 shadow-sm rounded-4 p-3 bg-white border-start border-4 border-warning">
+        <div class="card border-0 shadow-sm rounded-4 p-3 bg-white border-start border-4 border-warning h-100">
           <div class="text-muted small fw-semibold">Streak Tertinggi</div>
           <div class="fs-3 fw-bold text-warning-emphasis mt-1">
-            <i class="bi bi-trophy-fill me-1"></i>{{ bestStreakEver }} Hari
+            <i class="bi bi-trophy-fill me-1 text-warning"></i>{{ bestStreakEver }} Hari
           </div>
+          <div class="small text-muted mt-1">Rekor konsistensi terbaik</div>
         </div>
       </div>
     </div>
 
-    <!-- Habit Grid Table -->
+    <!-- Quick Preset Templates Bar -->
+    <div class="card border-0 shadow-sm rounded-4 bg-white p-3 mb-4">
+      <div class="d-flex align-items-center justify-content-between mb-2">
+        <div class="fw-bold text-dark small d-flex align-items-center gap-2">
+          <i class="bi bi-magic text-primary"></i>
+          <span>Quick Preset Template (1-Click Tambah Habit Populer)</span>
+        </div>
+        <span class="small text-muted">Klik untuk langsung menambahkan</span>
+      </div>
+      <div class="d-flex flex-wrap gap-2">
+        <button
+          v-for="preset in presets"
+          :key="preset.name"
+          class="btn btn-sm btn-light border rounded-pill px-3 py-1.5 fw-semibold style-preset-btn d-flex align-items-center gap-1.5"
+          @click="addPresetHabit(preset)"
+        >
+          <span>{{ preset.icon }}</span>
+          <span>{{ preset.name }}</span>
+          <i class="bi bi-plus-circle text-primary ms-1" style="font-size: 11px;"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Search & Filter Controls -->
+    <div class="card border-0 shadow-sm rounded-4 bg-white mb-4 p-3">
+      <div class="row g-2 align-items-center">
+        <div class="col-md-5">
+          <div class="input-group">
+            <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-search"></i></span>
+            <input
+              type="text"
+              class="form-control bg-light border-start-0"
+              placeholder="Cari nama habit / kebiasaan..."
+              v-model="searchQuery"
+            />
+          </div>
+        </div>
+        <div class="col-md-4">
+          <select class="form-select bg-light border" v-model="selectedCategory">
+            <option value="all">Semua Kategori ({{ habits.length }})</option>
+            <option value="Productivity">💻 Productivity & Deep Work</option>
+            <option value="Business">💼 Business & Client Outreach</option>
+            <option value="Health">🏃 Health & Fitness</option>
+            <option value="Learning">📚 Learning & Skill Upgrade</option>
+            <option value="Routine">🔄 Routine & Personal</option>
+          </select>
+        </div>
+        <div class="col-md-3 text-end">
+          <span class="text-muted small fw-semibold">Menampilkan {{ filteredHabits.length }} dari {{ habits.length }} habit</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Habit Grid Table Card -->
     <div class="card border-0 shadow-sm rounded-4 bg-white">
       <div class="card-header bg-white border-bottom p-4 d-flex justify-content-between align-items-center">
-        <h5 class="fw-bold text-dark mb-0"><i class="bi bi-calendar-check text-danger me-2"></i>Tracking 7 Hari Terakhir</h5>
-        <span class="badge bg-light text-muted border">Otomatis hitung streak harian</span>
+        <div class="d-flex align-items-center gap-2">
+          <h5 class="fw-bold text-dark mb-0"><i class="bi bi-calendar-check text-danger me-2"></i>Tracking 7 Hari Terakhir</h5>
+          <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2.5">Real-time Persistence</span>
+        </div>
+        <span class="badge bg-light text-muted border">Klik lingkaran untuk toggle check-in</span>
       </div>
       <div class="card-body p-0">
-        <div class="table-responsive" v-if="habits.length > 0">
+        <div class="table-responsive" v-if="filteredHabits.length > 0">
           <table class="table table-hover align-middle mb-0">
             <thead class="table-light">
               <tr>
-                <th style="min-width: 200px;">Nama Kebiasaan / Habit</th>
-                <th style="width: 120px;">Kategori</th>
-                <th v-for="day in past7Days" :key="day.dateStr" class="text-center" style="width: 80px;">
-                  <div class="small fw-bold">{{ day.dayName }}</div>
+                <th style="min-width: 220px;">Nama Kebiasaan / Habit</th>
+                <th style="width: 140px;">Kategori</th>
+                <th v-for="day in past7Days" :key="day.dateStr" class="text-center" style="width: 75px;">
+                  <div class="small fw-bold" :class="{ 'text-primary': day.dateStr === todayStr }">{{ day.dayName }}</div>
                   <small class="text-muted" style="font-size: 11px;">{{ day.shortDate }}</small>
                 </th>
                 <th class="text-center" style="width: 130px;">Current Streak</th>
                 <th class="text-center" style="width: 110px;">Best Streak</th>
-                <th class="text-end pe-4" style="width: 80px;">Aksi</th>
+                <th class="text-center" style="width: 100px;">Rate (7hr)</th>
+                <th class="text-end pe-4" style="width: 110px;">Aksi</th>
               </tr>
             </thead>
             <tbody>
-              <tr v-for="habit in habits" :key="habit.id">
+              <tr v-for="habit in filteredHabits" :key="habit.id">
                 <td>
-                  <span class="fw-bold text-dark d-block">{{ habit.name }}</span>
+                  <span class="fw-bold text-dark d-block mb-0.5">{{ habit.name }}</span>
+                  <small class="text-muted d-block style-mini" style="font-size: 11px;">
+                    Dibuat: {{ formatDate(habit.id) }}
+                  </small>
                 </td>
                 <td>
-                  <span class="badge bg-light text-dark border px-2 py-1 rounded-pill small">
+                  <span class="badge rounded-pill px-2.5 py-1 fw-semibold" :class="getCategoryBadgeClass(habit.category)">
                     {{ habit.category || 'General' }}
                   </span>
                 </td>
@@ -86,13 +164,14 @@
                     class="btn btn-sm rounded-circle p-0 style-check-btn"
                     :class="isHabitDone(habit, day.dateStr) ? 'btn-success shadow-sm' : 'btn-outline-secondary opacity-75'"
                     @click="toggleHabit(habit.id, day.dateStr)"
+                    :title="isHabitDone(habit, day.dateStr) ? 'Sudah selesai pada ' + day.shortDate : 'Belum selesai pada ' + day.shortDate"
                   >
                     <i :class="isHabitDone(habit, day.dateStr) ? 'bi bi-check-lg text-white' : 'bi bi-plus'"></i>
                   </button>
                 </td>
                 <td class="text-center">
                   <span
-                    class="badge rounded-pill px-3 py-2 fw-bold"
+                    class="badge rounded-pill px-3 py-1.5 fw-bold"
                     :class="getStreakBadgeClass(calculateStreak(habit))"
                   >
                     <i class="bi bi-fire me-1"></i>{{ calculateStreak(habit) }} Hari
@@ -101,10 +180,33 @@
                 <td class="text-center fw-semibold text-muted">
                   <i class="bi bi-award me-1 text-warning"></i>{{ calculateBestStreak(habit) }} Hari
                 </td>
+                <td class="text-center fw-bold text-dark">
+                  {{ calculate7DayCompletionRate(habit) }}%
+                </td>
                 <td class="text-end pe-4">
-                  <button class="btn btn-sm btn-light text-danger rounded-circle" @click="deleteHabitDirect(habit.id)">
-                    <i class="bi bi-trash"></i>
-                  </button>
+                  <div class="d-flex justify-content-end gap-1">
+                    <button
+                      class="btn btn-sm btn-light text-primary rounded-circle"
+                      @click="openHistoryModal(habit)"
+                      title="Lihat Histori 30 Hari"
+                    >
+                      <i class="bi bi-calendar3"></i>
+                    </button>
+                    <button
+                      class="btn btn-sm btn-light text-secondary rounded-circle"
+                      @click="openEditDrawer(habit)"
+                      title="Edit Habit"
+                    >
+                      <i class="bi bi-pencil"></i>
+                    </button>
+                    <button
+                      class="btn btn-sm btn-light text-danger rounded-circle"
+                      @click="confirmDeleteHabit(habit)"
+                      title="Hapus Habit"
+                    >
+                      <i class="bi bi-trash"></i>
+                    </button>
+                  </div>
                 </td>
               </tr>
             </tbody>
@@ -113,11 +215,53 @@
 
         <div v-else class="text-center py-5">
           <i class="bi bi-lightning-charge display-1 text-muted opacity-50"></i>
-          <h4 class="fw-bold mt-3 text-dark">Belum Ada Habit</h4>
-          <p class="text-muted">Tambahkan rutinitas harian seperti "Coding 2 Jam" atau "Membaca Buku".</p>
-          <button class="btn btn-primary rounded-3 px-4 py-2 mt-2 fw-semibold" @click="openDrawer">
+          <h4 class="fw-bold mt-3 text-dark">Tidak Ada Habit Ditemukan</h4>
+          <p class="text-muted">Coba ubah kata kunci pencarian atau buat habit harian baru.</p>
+          <button class="btn btn-primary rounded-3 px-4 py-2 mt-2 fw-semibold" @click="openAddDrawer">
             <i class="bi bi-plus-lg me-1"></i> Tambah Habit Baru
           </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 30-DAY HISTORY MODAL -->
+    <div class="modal fade" id="historyModal" tabindex="-1" ref="historyModalRef">
+      <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content rounded-4 border-0 shadow-lg">
+          <div class="modal-header border-bottom p-4 bg-light">
+            <div>
+              <span class="badge bg-primary-subtle text-primary fw-bold rounded-pill px-3 py-1 mb-1">
+                <i class="bi bi-clock-history me-1"></i> 30-Day Activity History
+              </span>
+              <h5 class="modal-title fw-bold text-dark mb-0">{{ activeModalHabit?.name }}</h5>
+            </div>
+            <button type="button" class="btn-close" @click="closeHistoryModal"></button>
+          </div>
+          <div class="modal-body p-4">
+            <p class="text-muted small mb-3">Histori check-in 30 hari terakhir. Klik kotak tanggal untuk menambah atau mengubah status check-in.</p>
+            
+            <div class="row g-2">
+              <div
+                v-for="dayItem in past30Days"
+                :key="dayItem.dateStr"
+                class="col-4 col-sm-3 col-md-2"
+              >
+                <div
+                  class="p-2 border rounded-3 text-center cursor-pointer style-day-card"
+                  :class="isHabitDone(activeModalHabit, dayItem.dateStr) ? 'bg-success text-white border-success' : 'bg-light text-dark border-light-subtle'"
+                  @click="activeModalHabit && toggleHabit(activeModalHabit.id, dayItem.dateStr)"
+                >
+                  <div class="style-mini fw-bold" style="font-size: 11px;">{{ dayItem.shortDate }}</div>
+                  <div class="mt-1">
+                    <i :class="isHabitDone(activeModalHabit, dayItem.dateStr) ? 'bi bi-check-circle-fill fs-5' : 'bi bi-circle fs-5 opacity-25'"></i>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer border-top p-3 bg-light">
+            <button type="button" class="btn btn-secondary rounded-3 px-4" @click="closeHistoryModal">Tutup</button>
+          </div>
         </div>
       </div>
     </div>
@@ -129,7 +273,7 @@
       @click="closeDrawer"
     ></div>
 
-    <!-- RIGHT SLIDE-OVER DRAWER PANEL (FORM ADD HABIT) -->
+    <!-- RIGHT SLIDE-OVER DRAWER PANEL (FORM ADD / EDIT HABIT) -->
     <div
       class="drawer-panel bg-white shadow-lg border-start transition-all"
       :class="{ 'drawer-show': drawerOpen }"
@@ -140,7 +284,7 @@
             <i class="bi bi-lightning-charge-fill me-1"></i> Habit Form
           </span>
           <h5 class="fw-bold text-dark mb-0">
-            ➕ Tambah Kebiasaan Baru
+            {{ isEditing ? '✏️ Edit Kebiasaan' : '➕ Tambah Kebiasaan Baru' }}
           </h5>
         </div>
         <button type="button" class="btn btn-light rounded-circle border shadow-sm p-2" @click="closeDrawer" title="Tutup">
@@ -164,18 +308,18 @@
           <div class="col-12">
             <label class="form-label fw-bold text-dark small">Kategori Rutinitas</label>
             <select class="form-select border-2" v-model="form.category">
-              <option value="Productivity">Productivity / Deep Work</option>
-              <option value="Business">Business & Client Outreach</option>
-              <option value="Health">Health & Fitness</option>
-              <option value="Learning">Learning & Skill Upgrade</option>
-              <option value="Routine">Rutinitas Harian Kantor</option>
+              <option value="Productivity">💻 Productivity & Deep Work</option>
+              <option value="Business">💼 Business & Client Outreach</option>
+              <option value="Health">🏃 Health & Fitness</option>
+              <option value="Learning">📚 Learning & Skill Upgrade</option>
+              <option value="Routine">🔄 Rutinitas Harian / Personal</option>
             </select>
           </div>
 
           <div class="col-12 pt-3 border-top mt-4 d-flex gap-2">
             <button type="button" class="btn btn-light rounded-3 px-4 flex-grow-1" @click="closeDrawer">Batal</button>
             <button type="submit" class="btn btn-primary rounded-3 px-4 py-2 fw-bold flex-grow-1 shadow-sm">
-              <i class="bi bi-check-circle-fill me-1"></i> Simpan Habit
+              <i class="bi bi-check-circle-fill me-1"></i> {{ isEditing ? 'Simpan Perubahan' : 'Simpan Habit' }}
             </button>
           </div>
         </form>
@@ -198,7 +342,7 @@
 </template>
 
 <script>
-import { computed, ref } from 'vue';
+import { computed, ref, onMounted } from 'vue';
 import { useStore } from 'vuex';
 
 export default {
@@ -207,16 +351,35 @@ export default {
     const store = useStore();
 
     const drawerOpen = ref(false);
+    const isEditing = ref(false);
+    const editingId = ref(null);
+    const searchQuery = ref('');
+    const selectedCategory = ref('all');
     const form = ref({ name: '', category: 'Productivity' });
     const toast = ref({ show: false, message: '' });
 
-    const habits = computed(() => store.getters.getHabits);
+    const activeModalHabit = ref(null);
+    let historyBsModal = null;
+
+    const habits = computed(() => store.getters.getHabits || []);
+
+    const presets = [
+      { name: 'Minum 2L Air', category: 'Health', icon: '💧' },
+      { name: 'Baca Buku 20 Mnt', category: 'Learning', icon: '📚' },
+      { name: 'Olahraga 30 Mnt', category: 'Health', icon: '🏃' },
+      { name: 'Coding 2 Jam', category: 'Productivity', icon: '💻' },
+      { name: 'Meditasi 10 Mnt', category: 'Routine', icon: '🧘' },
+      { name: 'Deep Work 90 Mnt', category: 'Productivity', icon: '🎯' },
+      { name: 'Review Email Inbox', category: 'Business', icon: '📬' }
+    ];
 
     const showToast = (msg) => {
       toast.value.message = msg;
       toast.value.show = true;
       setTimeout(() => (toast.value.show = false), 3000);
     };
+
+    const todayStr = computed(() => new Date().toISOString().split('T')[0]);
 
     const past7Days = computed(() => {
       const days = [];
@@ -231,15 +394,50 @@ export default {
       return days;
     });
 
+    const past30Days = computed(() => {
+      const days = [];
+      for (let i = 29; i >= 0; i--) {
+        const d = new Date();
+        d.setDate(d.getDate() - i);
+        const dateStr = d.toISOString().split('T')[0];
+        const shortDate = `${d.getDate()}/${d.getMonth() + 1}`;
+        days.push({ dateStr, shortDate });
+      }
+      return days;
+    });
+
+    const filteredHabits = computed(() => {
+      return habits.value.filter(h => {
+        const q = searchQuery.value.toLowerCase().trim();
+        const matchesQuery = !q || h.name.toLowerCase().includes(q);
+        const matchesCategory = selectedCategory.value === 'all' || (h.category || 'Productivity') === selectedCategory.value;
+        return matchesQuery && matchesCategory;
+      });
+    });
+
+    const categoriesCount = computed(() => {
+      const cats = new Set(habits.value.map(h => h.category || 'Productivity'));
+      return cats.size;
+    });
+
     const isHabitDone = (habit, dateStr) => {
-      return habit.history && habit.history[dateStr] === true;
+      if (!habit || !habit.history) return false;
+      return habit.history[dateStr] === true;
     };
 
     const toggleHabit = (id, dateStr) => {
       store.dispatch('toggleHabitDate', { id, dateStr });
     };
 
-    const todayStr = computed(() => new Date().toISOString().split('T')[0]);
+    const checkInAllToday = () => {
+      const t = todayStr.value;
+      habits.value.forEach(h => {
+        if (!isHabitDone(h, t)) {
+          store.dispatch('toggleHabitDate', { id: h.id, dateStr: t });
+        }
+      });
+      showToast('Berhasil check-in semua habit hari ini! 🔥');
+    };
 
     const calculateStreak = (habit) => {
       if (!habit || !habit.history) return 0;
@@ -300,6 +498,15 @@ export default {
       return Math.max(maxStreak, calculateStreak(habit));
     };
 
+    const calculate7DayCompletionRate = (habit) => {
+      if (!habit) return 0;
+      let count = 0;
+      past7Days.value.forEach(day => {
+        if (isHabitDone(habit, day.dateStr)) count++;
+      });
+      return Math.round((count / 7) * 100);
+    };
+
     const activeStreakCount = computed(() => {
       return habits.value.filter(h => calculateStreak(h) > 0).length;
     });
@@ -307,6 +514,11 @@ export default {
     const todayDoneCount = computed(() => {
       const t = todayStr.value;
       return habits.value.filter(h => isHabitDone(h, t)).length;
+    });
+
+    const todayCompletionPercent = computed(() => {
+      if (habits.value.length === 0) return 0;
+      return Math.round((todayDoneCount.value / habits.value.length) * 100);
     });
 
     const bestStreakEver = computed(() => {
@@ -322,8 +534,38 @@ export default {
       return 'bg-light text-muted border';
     };
 
-    const openDrawer = () => {
+    const getCategoryBadgeClass = (category) => {
+      switch (category) {
+        case 'Productivity': return 'bg-primary-subtle text-primary border border-primary-subtle';
+        case 'Business': return 'bg-info-subtle text-info-emphasis border border-info-subtle';
+        case 'Health': return 'bg-success-subtle text-success border border-success-subtle';
+        case 'Learning': return 'bg-purple-subtle text-purple border border-purple-subtle';
+        case 'Routine': return 'bg-warning-subtle text-warning-emphasis border border-warning-subtle';
+        default: return 'bg-light text-dark border';
+      }
+    };
+
+    const addPresetHabit = (preset) => {
+      const exists = habits.value.some(h => h.name.toLowerCase() === preset.name.toLowerCase());
+      if (exists) {
+        showToast(`Habit "${preset.name}" sudah ada di daftar Anda!`);
+        return;
+      }
+      store.dispatch('addHabit', { name: preset.name, category: preset.category });
+      showToast(`Habit "${preset.name}" ditambahkan!`);
+    };
+
+    const openAddDrawer = () => {
       form.value = { name: '', category: 'Productivity' };
+      isEditing.value = false;
+      editingId.value = null;
+      drawerOpen.value = true;
+    };
+
+    const openEditDrawer = (habit) => {
+      form.value = { name: habit.name, category: habit.category || 'Productivity' };
+      isEditing.value = true;
+      editingId.value = habit.id;
       drawerOpen.value = true;
     };
 
@@ -336,34 +578,87 @@ export default {
         showToast('Nama kebiasaan tidak boleh kosong.');
         return;
       }
-      store.dispatch('addHabit', form.value);
-      showToast('Habit baru berhasil ditambahkan!');
+
+      if (isEditing.value && editingId.value) {
+        const existing = habits.value.find(h => h.id === editingId.value);
+        if (existing) {
+          store.dispatch('updateHabit', { ...existing, name: form.value.name, category: form.value.category });
+          showToast('Perubahan habit berhasil disimpan!');
+        }
+      } else {
+        store.dispatch('addHabit', form.value);
+        showToast('Habit baru berhasil ditambahkan!');
+      }
       closeDrawer();
     };
 
-    const deleteHabitDirect = (id) => {
-      store.dispatch('deleteHabit', id);
-      showToast('Habit berhasil dihapus.');
+    const confirmDeleteHabit = (habit) => {
+      if (confirm(`Apakah Anda yakin ingin menghapus habit "${habit.name}"?`)) {
+        store.dispatch('deleteHabit', habit.id);
+        showToast('Habit berhasil dihapus.');
+      }
+    };
+
+    const openHistoryModal = (habit) => {
+      activeModalHabit.value = habit;
+      if (window.bootstrap) {
+        const modalEl = document.getElementById('historyModal');
+        if (modalEl) {
+          historyBsModal = new window.bootstrap.Modal(modalEl);
+          historyBsModal.show();
+        }
+      }
+    };
+
+    const closeHistoryModal = () => {
+      if (historyBsModal) {
+        historyBsModal.hide();
+      }
+    };
+
+    const formatDate = (id) => {
+      if (!id) return '-';
+      const timestamp = parseInt(id.replace('h_', ''), 10);
+      if (isNaN(timestamp)) return 'Aktif';
+      return new Date(timestamp).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' });
     };
 
     return {
       habits,
       past7Days,
+      past30Days,
+      todayStr,
+      presets,
+      searchQuery,
+      selectedCategory,
+      filteredHabits,
+      categoriesCount,
       form,
       drawerOpen,
+      isEditing,
       toast,
+      activeModalHabit,
       isHabitDone,
       toggleHabit,
+      checkInAllToday,
       calculateStreak,
       calculateBestStreak,
+      calculate7DayCompletionRate,
       activeStreakCount,
       todayDoneCount,
+      todayCompletionPercent,
       bestStreakEver,
       getStreakBadgeClass,
-      openDrawer,
+      getCategoryBadgeClass,
+      addPresetHabit,
+      openAddDrawer,
+      openEditDrawer,
       closeDrawer,
       saveHabit,
-      deleteHabitDirect
+      confirmDeleteHabit,
+      openHistoryModal,
+      closeHistoryModal,
+      formatDate
     };
   }
 };
@@ -371,8 +666,8 @@ export default {
 
 <style scoped>
 .style-check-btn {
-  width: 32px;
-  height: 32px;
+  width: 34px;
+  height: 34px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -386,6 +681,23 @@ export default {
 
 .style-check-btn:active {
   transform: scale(0.92);
+}
+
+.style-preset-btn {
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.style-preset-btn:hover {
+  transform: translateY(-2px);
+  background-color: #f1f5f9;
+}
+
+.style-day-card {
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.style-day-card:hover {
+  transform: scale(1.06);
 }
 
 .badge {

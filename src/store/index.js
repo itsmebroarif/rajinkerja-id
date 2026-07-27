@@ -374,6 +374,13 @@ export default createStore({
       state.habits.unshift(habit);
       saveLocal('ft_habits', state.habits);
     },
+    UPDATE_HABIT(state, updatedHabit) {
+      const index = state.habits.findIndex(h => h.id === updatedHabit.id);
+      if (index !== -1) {
+        state.habits.splice(index, 1, updatedHabit);
+        saveLocal('ft_habits', state.habits);
+      }
+    },
     TOGGLE_HABIT_DATE(state, { id, dateStr }) {
       const habit = state.habits.find(h => h.id === id);
       if (habit) {
@@ -622,6 +629,9 @@ export default createStore({
 
     addHabit({ commit }, habit) {
       commit('ADD_HABIT', { ...habit, id: 'h_' + Date.now(), history: {} });
+    },
+    updateHabit({ commit }, habit) {
+      commit('UPDATE_HABIT', habit);
     },
     toggleHabitDate({ commit }, payload) {
       commit('TOGGLE_HABIT_DATE', payload);
