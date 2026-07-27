@@ -251,7 +251,7 @@ export default {
     const tasks = computed(() => store.getters.getTasks || []);
     const habits = computed(() => store.getters.getHabits || []);
 
-    // Generate 30 days data
+    // Generate 30 days data based 100% on actual store data
     const chartData = computed(() => {
       const list = [];
       const now = new Date();
@@ -264,33 +264,24 @@ export default {
         const shortDate = `${d.getDate()}/${d.getMonth() + 1}`;
         const fullDate = d.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
 
-        // Calculate completed tasks for this date
+        // Calculate completed tasks for this date strictly from actual tasks
         let completedTasks = 0;
         tasks.value.forEach(task => {
-          if (task.completed || task.status === 'Selesai' || task.status === 'Done') {
-            if (task.dueDate === isoKey || task.completedAt === isoKey) {
+          if (task.done || task.statusColumn === 'done' || task.status === 'Selesai' || task.status === 'Done') {
+            const taskDate = task.completedAt || task.deadline || task.dueDate || task.date;
+            if (taskDate === isoKey) {
               completedTasks++;
             }
           }
         });
 
-        // Seed realistic deterministic completed task distribution if new
-        if (completedTasks === 0) {
-          const charCodeSum = isoKey.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0);
-          completedTasks = (charCodeSum % 5) + (i % 2);
-        }
-
-        // Calculate habit check-ins
+        // Calculate habit check-ins strictly from actual habit histories
         let habitCheckins = 0;
         habits.value.forEach(h => {
           if (h.history && h.history[isoKey]) {
             habitCheckins++;
           }
         });
-
-        if (habitCheckins === 0 && habits.value.length > 0) {
-          habitCheckins = (isoKey.length * (i + 1)) % (habits.value.length + 2);
-        }
 
         list.push({
           dateKey: isoKey,
@@ -313,6 +304,7 @@ export default {
     });
 
     const dailyTaskAvg = computed(() => {
+      if (totalCompleted30Days.value === 0) return '0.0';
       return (totalCompleted30Days.value / 30).toFixed(1);
     });
 
@@ -327,17 +319,23 @@ export default {
           current = 0;
         }
       });
-      return Math.max(max, 7);
+      return max;
     });
 
     const mostProductiveDayName = computed(() => {
       const daysCount = { 'Sen': 0, 'Sel': 0, 'Rab': 0, 'Kam': 0, 'Jum': 0, 'Sab': 0, 'Min': 0 };
+      let totalVol = 0;
       chartData.value.forEach(d => {
         if (daysCount[d.dayOfWeek] !== undefined) {
-          daysCount[d.dayOfWeek] += d.completedTasks + d.habitCheckins;
+          const vol = d.completedTasks + d.habitCheckins;
+          daysCount[d.dayOfWeek] += vol;
+          totalVol += vol;
         }
       });
-      let bestDay = 'Senin';
+
+      if (totalVol === 0) return 'Belum ada data';
+
+      let bestDay = '-';
       let maxVol = 0;
       const mapFull = { 'Sen': 'Senin', 'Sel': 'Selasa', 'Rab': 'Rabu', 'Kam': 'Kamis', 'Jum': 'Jumat', 'Sab': 'Sabtu', 'Min': 'Minggu' };
       Object.keys(daysCount).forEach(k => {
@@ -350,7 +348,7 @@ export default {
     });
 
     const maxDayVolume = computed(() => {
-      return Math.max(...chartData.value.map(d => d.completedTasks + d.habitCheckins), 8);
+      return Math.max(...chartData.value.map(d => d.completedTasks + d.habitCheckins), 0);
     });
 
     const efficiencyRate = computed(() => {
@@ -362,8 +360,9 @@ export default {
     const maxScale = computed(() => {
       const maxVal = Math.max(
         ...chartData.value.map(d => Math.max(d.completedTasks, d.habitCheckins)),
-        6
+        0
       );
+      if (maxVal === 0) return 5; // Default grid axis when all metrics are 0
       return Math.ceil(maxVal * 1.2);
     });
 
