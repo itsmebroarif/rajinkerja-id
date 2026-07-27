@@ -1,5 +1,5 @@
 <template>
-  <div class="container-fluid p-0" data-aos="fade-up">
+  <div class="container-fluid p-0 position-relative" data-aos="fade-up">
     <!-- Header Banner -->
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3 bg-white p-4 rounded-4 shadow-sm border">
       <div>
@@ -10,7 +10,7 @@
         <p class="text-muted mb-0">Latih kebiasaan harian dan kumpulkan streak hari secara beruntun tanpa terputus.</p>
       </div>
       <div>
-        <button class="btn btn-primary px-4 py-2 rounded-3 fw-semibold d-flex align-items-center gap-2 shadow-sm" @click="openAddModal">
+        <button class="btn btn-primary px-4 py-2 rounded-3 fw-semibold d-flex align-items-center gap-2 shadow-sm" @click="openDrawer">
           <i class="bi bi-plus-lg fs-5"></i>
           <span>Tambah Habit Baru</span>
         </button>
@@ -102,7 +102,7 @@
                   <i class="bi bi-award me-1 text-warning"></i>{{ calculateBestStreak(habit) }} Hari
                 </td>
                 <td class="text-end pe-4">
-                  <button class="btn btn-sm btn-light text-danger rounded-circle" @click="deleteHabit(habit.id)">
+                  <button class="btn btn-sm btn-light text-danger rounded-circle" @click="deleteHabitDirect(habit.id)">
                     <i class="bi bi-trash"></i>
                   </button>
                 </td>
@@ -115,44 +115,82 @@
           <i class="bi bi-lightning-charge display-1 text-muted opacity-50"></i>
           <h4 class="fw-bold mt-3 text-dark">Belum Ada Habit</h4>
           <p class="text-muted">Tambahkan rutinitas harian seperti "Coding 2 Jam" atau "Membaca Buku".</p>
-          <button class="btn btn-primary rounded-3 px-4 py-2 mt-2" @click="openAddModal">
-            <i class="bi bi-plus-lg me-1"></i> Tambah Habit
+          <button class="btn btn-primary rounded-3 px-4 py-2 mt-2 fw-semibold" @click="openDrawer">
+            <i class="bi bi-plus-lg me-1"></i> Tambah Habit Baru
           </button>
         </div>
       </div>
     </div>
 
-    <!-- Modal Form -->
-    <div class="modal fade" id="habitModal" tabindex="-1" ref="habitModalRef" aria-hidden="true">
-      <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content rounded-4 border-0 shadow">
-          <div class="modal-header border-bottom-0 p-4 pb-0">
-            <h5 class="modal-title fw-bold text-dark">➕ Tambah Kebiasaan Baru</h5>
-            <button type="button" class="btn-close" @click="closeModal"></button>
-          </div>
-          <div class="modal-body p-4">
-            <form @submit.prevent="saveHabit" class="row g-3">
-              <div class="col-12">
-                <label class="form-label fw-semibold">Nama Kebiasaan <span class="text-danger">*</span></label>
-                <input type="text" class="form-control" v-model="form.name" placeholder="Contoh: Coding 2 Jam Sehari" required />
-              </div>
+    <!-- RIGHT SLIDE-OVER DRAWER BACKDROP -->
+    <div
+      v-if="drawerOpen"
+      class="drawer-backdrop"
+      @click="closeDrawer"
+    ></div>
 
-              <div class="col-12">
-                <label class="form-label fw-semibold">Kategori</label>
-                <select class="form-select" v-model="form.category">
-                  <option value="Productivity">Productivity / Deep Work</option>
-                  <option value="Business">Business / Client Outreach</option>
-                  <option value="Health">Health & Fitness</option>
-                  <option value="Learning">Learning & Reading</option>
-                </select>
-              </div>
+    <!-- RIGHT SLIDE-OVER DRAWER PANEL (FORM ADD HABIT) -->
+    <div
+      class="drawer-panel bg-white shadow-lg border-start transition-all"
+      :class="{ 'drawer-show': drawerOpen }"
+    >
+      <div class="drawer-header p-4 border-bottom d-flex align-items-center justify-content-between bg-light">
+        <div>
+          <span class="badge bg-danger-subtle text-danger fw-bold px-3 py-1.5 rounded-pill mb-1" style="font-size: 11px;">
+            <i class="bi bi-lightning-charge-fill me-1"></i> Habit Form
+          </span>
+          <h5 class="fw-bold text-dark mb-0">
+            ➕ Tambah Kebiasaan Baru
+          </h5>
+        </div>
+        <button type="button" class="btn btn-light rounded-circle border shadow-sm p-2" @click="closeDrawer" title="Tutup">
+          <i class="bi bi-x-lg fs-5"></i>
+        </button>
+      </div>
 
-              <div class="col-12 text-end pt-3 border-top">
-                <button type="button" class="btn btn-light px-4 me-2 rounded-3" @click="closeModal">Batal</button>
-                <button type="submit" class="btn btn-primary px-4 rounded-3 fw-semibold">Simpan Habit</button>
-              </div>
-            </form>
+      <div class="drawer-body p-4 overflow-y-auto" style="height: calc(100vh - 90px);">
+        <form @submit.prevent="saveHabit" class="row g-3">
+          <div class="col-12">
+            <label class="form-label fw-bold text-dark small">Nama Kebiasaan / Habit <span class="text-danger">*</span></label>
+            <input
+              type="text"
+              class="form-control form-control-lg border-2 fs-6"
+              v-model="form.name"
+              placeholder="Contoh: Coding 2 Jam Sehari / Deep Work 90m"
+              required
+            />
           </div>
+
+          <div class="col-12">
+            <label class="form-label fw-bold text-dark small">Kategori Rutinitas</label>
+            <select class="form-select border-2" v-model="form.category">
+              <option value="Productivity">Productivity / Deep Work</option>
+              <option value="Business">Business & Client Outreach</option>
+              <option value="Health">Health & Fitness</option>
+              <option value="Learning">Learning & Skill Upgrade</option>
+              <option value="Routine">Rutinitas Harian Kantor</option>
+            </select>
+          </div>
+
+          <div class="col-12 pt-3 border-top mt-4 d-flex gap-2">
+            <button type="button" class="btn btn-light rounded-3 px-4 flex-grow-1" @click="closeDrawer">Batal</button>
+            <button type="submit" class="btn btn-primary rounded-3 px-4 py-2 fw-bold flex-grow-1 shadow-sm">
+              <i class="bi bi-check-circle-fill me-1"></i> Simpan Habit
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Sleek Toast Notification -->
+    <div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1090;">
+      <div v-if="toast.show" class="toast align-items-center text-white bg-dark border-0 show shadow-lg rounded-3" role="alert">
+        <div class="d-flex">
+          <div class="toast-body d-flex align-items-center gap-2">
+            <i class="bi bi-check-circle-fill text-success fs-5"></i>
+            <span>{{ toast.message }}</span>
+          </div>
+          <button type="button" class="btn-close btn-close-white me-2 m-auto" @click="toast.show = false"></button>
         </div>
       </div>
     </div>
@@ -160,18 +198,25 @@
 </template>
 
 <script>
-import { computed, ref, onMounted } from 'vue';
+import { computed, ref } from 'vue';
 import { useStore } from 'vuex';
 
 export default {
   name: 'HabitTrackerView',
   setup() {
     const store = useStore();
-    const habitModalRef = ref(null);
-    let modalInstance = null;
 
+    const drawerOpen = ref(false);
     const form = ref({ name: '', category: 'Productivity' });
+    const toast = ref({ show: false, message: '' });
+
     const habits = computed(() => store.getters.getHabits);
+
+    const showToast = (msg) => {
+      toast.value.message = msg;
+      toast.value.show = true;
+      setTimeout(() => (toast.value.show = false), 3000);
+    };
 
     const past7Days = computed(() => {
       const days = [];
@@ -184,12 +229,6 @@ export default {
         days.push({ dateStr, dayName, shortDate });
       }
       return days;
-    });
-
-    onMounted(() => {
-      if (window.bootstrap && habitModalRef.value) {
-        modalInstance = new window.bootstrap.Modal(habitModalRef.value);
-      }
     });
 
     const isHabitDone = (habit, dateStr) => {
@@ -207,7 +246,6 @@ export default {
       let streak = 0;
       const today = new Date();
 
-      // Check if today is completed
       const todayDateStr = today.toISOString().split('T')[0];
       const yesterday = new Date(today);
       yesterday.setDate(yesterday.getDate() - 1);
@@ -284,53 +322,36 @@ export default {
       return 'bg-light text-muted border';
     };
 
-    const getModal = () => {
-      if (habitModalRef.value && window.bootstrap && window.bootstrap.Modal) {
-        return window.bootstrap.Modal.getOrCreateInstance(habitModalRef.value, { backdrop: true, keyboard: true });
-      }
-      return null;
-    };
-
-    const cleanupBackdrop = () => {
-      setTimeout(() => {
-        const openModals = document.querySelectorAll('.modal.show');
-        if (openModals.length === 0) {
-          document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
-          document.body.classList.remove('modal-open');
-          document.body.style.removeProperty('overflow');
-          document.body.style.removeProperty('padding-right');
-        }
-      }, 300);
-    };
-
-    const openAddModal = () => {
+    const openDrawer = () => {
       form.value = { name: '', category: 'Productivity' };
-      const modal = getModal();
-      if (modal) modal.show();
+      drawerOpen.value = true;
     };
 
-    const closeModal = () => {
-      const modal = getModal();
-      if (modal) modal.hide();
-      cleanupBackdrop();
+    const closeDrawer = () => {
+      drawerOpen.value = false;
     };
 
     const saveHabit = () => {
+      if (!form.value.name || !form.value.name.trim()) {
+        showToast('Nama kebiasaan tidak boleh kosong.');
+        return;
+      }
       store.dispatch('addHabit', form.value);
-      closeModal();
+      showToast('Habit baru berhasil ditambahkan!');
+      closeDrawer();
     };
 
-    const deleteHabit = (id) => {
-      if (confirm('Hapus habit ini?')) {
-        store.dispatch('deleteHabit', id);
-      }
+    const deleteHabitDirect = (id) => {
+      store.dispatch('deleteHabit', id);
+      showToast('Habit berhasil dihapus.');
     };
 
     return {
       habits,
       past7Days,
       form,
-      habitModalRef,
+      drawerOpen,
+      toast,
       isHabitDone,
       toggleHabit,
       calculateStreak,
@@ -339,10 +360,10 @@ export default {
       todayDoneCount,
       bestStreakEver,
       getStreakBadgeClass,
-      openAddModal,
-      closeModal,
+      openDrawer,
+      closeDrawer,
       saveHabit,
-      deleteHabit
+      deleteHabitDirect
     };
   }
 };
@@ -356,5 +377,33 @@ export default {
   align-items: center;
   justify-content: center;
   font-size: 16px;
+}
+
+/* RIGHT SLIDE-OVER DRAWER STYLES */
+.drawer-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(15, 23, 42, 0.5);
+  backdrop-filter: blur(2px);
+  z-index: 1070;
+}
+
+.drawer-panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 440px;
+  max-width: 100vw;
+  height: 100vh;
+  z-index: 1080;
+  transform: translateX(100%);
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.drawer-panel.drawer-show {
+  transform: translateX(0);
 }
 </style>

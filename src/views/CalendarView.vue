@@ -1,5 +1,5 @@
 <template>
-  <div class="container-fluid p-0" data-aos="fade-up">
+  <div class="container-fluid p-0 position-relative" data-aos="fade-up">
     <!-- Header Banner -->
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3 bg-white p-4 rounded-4 shadow-sm border">
       <div>
@@ -13,7 +13,7 @@
         <button class="btn btn-outline-secondary px-3 rounded-3" @click="changeMonth(-1)"><i class="bi bi-chevron-left"></i></button>
         <span class="fw-bold fs-5 text-dark px-2 min-w-160 text-center">{{ monthYearLabel }}</span>
         <button class="btn btn-outline-secondary px-3 rounded-3" @click="changeMonth(1)"><i class="bi bi-chevron-right"></i></button>
-        <button class="btn btn-primary px-3 py-2 rounded-3 fw-semibold ms-2" @click="openAddEventModal()">
+        <button class="btn btn-primary px-3 py-2 rounded-3 fw-semibold ms-2" @click="openAddEventForm()">
           <i class="bi bi-calendar-plus me-1"></i> Tambah Event
         </button>
       </div>
@@ -45,7 +45,7 @@
             cell.currentMonth ? 'cell-active' : 'cell-inactive opacity-50',
             cell.isToday ? 'border-primary border-2 shadow-sm' : ''
           ]"
-          @click="openDayDetailModal(cell)"
+          @click="openDayDetailDrawer(cell)"
         >
           <div class="d-flex justify-content-between align-items-center mb-1">
             <span class="small fw-bold" :class="cell.isToday ? 'text-primary fs-6' : (cell.currentMonth ? 'text-dark' : 'text-muted opacity-50')">
@@ -85,157 +85,177 @@
       </div>
     </div>
 
-    <!-- Modal Form: Add / Edit Timed Event -->
-    <div class="modal fade" id="eventModal" tabindex="-1" ref="eventModalRef" aria-hidden="true">
-      <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content rounded-4 border-0 shadow">
-          <div class="modal-header border-bottom-0 p-4 pb-0">
-            <h5 class="modal-title fw-bold text-dark">
-              {{ isEditingEvent ? '✏️ Edit Event / Agenda' : '⏰ Tambah Event / Agenda Jam' }}
-            </h5>
-            <button type="button" class="btn-close" @click="closeEventModal"></button>
+    <!-- RIGHT SLIDE-OVER DRAWER BACKDROP -->
+    <div
+      v-if="drawerOpen"
+      class="drawer-backdrop"
+      @click="closeDrawer"
+    ></div>
+
+    <!-- RIGHT SLIDE-OVER DRAWER PANEL -->
+    <div
+      class="drawer-panel bg-white shadow-lg border-start transition-all"
+      :class="{ 'drawer-show': drawerOpen }"
+    >
+      <div class="drawer-header p-4 border-bottom d-flex align-items-center justify-content-between bg-light">
+        <div>
+          <span class="badge bg-primary-subtle text-primary fw-bold px-3 py-1.5 rounded-pill mb-1" style="font-size: 11px;">
+            <i class="bi bi-calendar-event me-1"></i> {{ drawerMode === 'form' ? 'Event Form' : 'Agenda Detail' }}
+          </span>
+          <h5 class="fw-bold text-dark mb-0">
+            {{ drawerTitle }}
+          </h5>
+        </div>
+        <button type="button" class="btn btn-light rounded-circle border shadow-sm p-2" @click="closeDrawer" title="Tutup">
+          <i class="bi bi-x-lg fs-5"></i>
+        </button>
+      </div>
+
+      <div class="drawer-body p-4 overflow-y-auto" style="height: calc(100vh - 90px);">
+        <!-- MODE 1: FORM SLIDE (ADD / EDIT EVENT) -->
+        <div v-if="drawerMode === 'form'">
+          <form @submit.prevent="saveEvent" class="row g-3">
+            <div class="col-12">
+              <label class="form-label fw-bold text-dark small">Judul Agenda / Meeting <span class="text-danger">*</span></label>
+              <input type="text" class="form-control form-control-lg border-2 fs-6" v-model="eventForm.title" placeholder="Contoh: Demo Project Klien Q3" required />
+            </div>
+
+            <div class="col-12">
+              <label class="form-label fw-bold text-dark small">Tanggal Agenda <span class="text-danger">*</span></label>
+              <input type="date" class="form-control border-2" v-model="eventForm.date" required />
+            </div>
+
+            <div class="col-6">
+              <label class="form-label fw-bold text-dark small">Jam Mulai</label>
+              <input type="time" class="form-control border-2" v-model="eventForm.startTime" />
+            </div>
+
+            <div class="col-6">
+              <label class="form-label fw-bold text-dark small">Jam Selesai</label>
+              <input type="time" class="form-control border-2" v-model="eventForm.endTime" />
+            </div>
+
+            <div class="col-6">
+              <label class="form-label fw-bold text-dark small">Kategori Agenda</label>
+              <select class="form-select border-2" v-model="eventForm.category">
+                <option value="Meeting">Meeting / Client Call</option>
+                <option value="Milestone">Milestone Proyek</option>
+                <option value="Reminder">Pengingat Penting</option>
+                <option value="Personal">Personal / Rutinitas</option>
+              </select>
+            </div>
+
+            <div class="col-6">
+              <label class="form-label fw-bold text-dark small">Pengingat / Reminder</label>
+              <select class="form-select border-2" v-model="eventForm.reminder">
+                <option value="None">Tanpa Pengingat</option>
+                <option value="15m">15 Menit Sebelum</option>
+                <option value="30m">30 Menit Sebelum</option>
+                <option value="1h">1 Jam Sebelum</option>
+                <option value="1d">1 Hari Sebelum</option>
+              </select>
+            </div>
+
+            <div class="col-12">
+              <label class="form-label fw-bold text-dark small">Catatan / Detail Agenda</label>
+              <textarea class="form-control border-2" rows="3" v-model="eventForm.notes" placeholder="Lokasi, link Zoom, atau catatan pendukung..."></textarea>
+            </div>
+
+            <div class="col-12 d-flex gap-2 pt-3 border-top mt-4">
+              <button type="button" class="btn btn-light rounded-3 px-4 flex-grow-1" @click="closeDrawer">Batal</button>
+              <button type="submit" class="btn btn-primary rounded-3 px-4 py-2 fw-bold flex-grow-1 shadow-sm">
+                <i class="bi bi-check-circle-fill me-1"></i> Simpan Agenda
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- MODE 2: DAY DETAIL SLIDE -->
+        <div v-else-if="drawerMode === 'detail' && selectedCell">
+          <div class="d-flex justify-content-between align-items-center mb-4 bg-light p-3 rounded-3 border">
+            <div>
+              <span class="small text-muted d-block fw-bold">Tanggal Dipilih</span>
+              <strong class="text-dark">{{ formatFullDate(selectedCell.dateStr) }}</strong>
+            </div>
+            <button class="btn btn-sm btn-primary rounded-3 fw-bold" @click="openAddEventForm(selectedCell.dateStr)">
+              <i class="bi bi-plus-lg me-1"></i> Tambah Event
+            </button>
           </div>
-          <div class="modal-body p-4">
-            <form @submit.prevent="saveEvent" class="row g-3">
-              <div class="col-12">
-                <label class="form-label fw-semibold">Judul Agenda / Meeting <span class="text-danger">*</span></label>
-                <input type="text" class="form-control" v-model="eventForm.title" placeholder="Contoh: Client Demo Meeting" required />
-              </div>
 
-              <div class="col-md-6">
-                <label class="form-label fw-semibold">Tanggal <span class="text-danger">*</span></label>
-                <input type="date" class="form-control" v-model="eventForm.date" required />
+          <!-- Timed Events Section -->
+          <div class="mb-4">
+            <span class="fw-bold text-primary small d-block mb-2"><i class="bi bi-clock-fill me-1"></i>TIMED EVENTS & MEETINGS ({{ getEventsForDate(selectedCell.dateStr).length }})</span>
+            <div v-if="getEventsForDate(selectedCell.dateStr).length > 0" class="d-flex flex-column gap-2">
+              <div v-for="e in getEventsForDate(selectedCell.dateStr)" :key="e.id" class="p-3 bg-primary-subtle rounded-3 border border-primary-subtle d-flex justify-content-between align-items-center">
+                <div>
+                  <div class="fw-bold text-dark">
+                    <span class="badge bg-primary me-2">{{ e.startTime || 'All Day' }} <span v-if="e.endTime">- {{ e.endTime }}</span></span>
+                    {{ e.title }}
+                  </div>
+                  <div class="small text-muted mt-1" v-if="e.notes"><i class="bi bi-info-circle me-1"></i>{{ e.notes }}</div>
+                  <div class="small text-primary mt-1" v-if="e.reminder && e.reminder !== 'None'"><i class="bi bi-bell-fill me-1"></i>Reminder: {{ e.reminder }}</div>
+                </div>
+                <div class="d-flex gap-1">
+                  <button class="btn btn-sm btn-light text-primary rounded-circle border" @click="editEvent(e)"><i class="bi bi-pencil"></i></button>
+                  <button class="btn btn-sm btn-light text-danger rounded-circle border" @click="deleteEvent(e.id)"><i class="bi bi-trash"></i></button>
+                </div>
               </div>
+            </div>
+            <div v-else class="small text-muted italic bg-light p-3 rounded-3 border">Tidak ada event jam terjadwal pada tanggal ini.</div>
+          </div>
 
-              <div class="col-md-3">
-                <label class="form-label fw-semibold">Jam Mulai</label>
-                <input type="time" class="form-control" v-model="eventForm.startTime" />
+          <!-- Tasks Section -->
+          <div class="mb-4">
+            <span class="fw-bold text-warning-emphasis small d-block mb-2"><i class="bi bi-check2-square me-1"></i>DEADLINE TUGAS ({{ getTasksForDate(selectedCell.dateStr).length }})</span>
+            <div v-if="getTasksForDate(selectedCell.dateStr).length > 0" class="d-flex flex-column gap-2">
+              <div v-for="t in getTasksForDate(selectedCell.dateStr)" :key="t.id" class="p-3 bg-warning-subtle rounded-3 border border-warning-subtle d-flex justify-content-between align-items-center">
+                <div>
+                  <div class="fw-bold text-dark" :class="{ 'text-decoration-line-through text-muted': t.done }">{{ t.name }}</div>
+                  <small class="text-muted">Eisenhower: {{ t.eisenhower || 'Do First' }} | Priority: {{ t.priority || 'Normal' }}</small>
+                </div>
+                <button class="btn btn-sm rounded-pill px-3" :class="t.done ? 'btn-success' : 'btn-outline-warning'" @click="toggleTask(t.id)">
+                  {{ t.done ? 'Selesai' : 'Tandai Selesai' }}
+                </button>
               </div>
+            </div>
+            <div v-else class="small text-muted italic bg-light p-3 rounded-3 border">Tidak ada deadline tugas pada tanggal ini.</div>
+          </div>
 
-              <div class="col-md-3">
-                <label class="form-label fw-semibold">Jam Selesai</label>
-                <input type="time" class="form-control" v-model="eventForm.endTime" />
+          <!-- Projects & Invoices Section -->
+          <div class="row g-3">
+            <div class="col-12">
+              <span class="fw-bold text-info-emphasis small d-block mb-2"><i class="bi bi-folder me-1"></i>DEADLINE PROYEK</span>
+              <div v-if="getProjectsForDate(selectedCell.dateStr).length > 0">
+                <div v-for="p in getProjectsForDate(selectedCell.dateStr)" :key="p.id" class="p-3 bg-info-subtle rounded-3 border border-info-subtle mb-2 small fw-semibold">
+                  {{ p.projectTitle }} (Klien: {{ p.clientName }})
+                </div>
               </div>
+              <div v-else class="small text-muted italic bg-light p-3 rounded-3 border">Tidak ada deadline proyek.</div>
+            </div>
 
-              <div class="col-md-6">
-                <label class="form-label fw-semibold">Kategori Agenda</label>
-                <select class="form-select" v-model="eventForm.category">
-                  <option value="Meeting">Meeting / Client Call</option>
-                  <option value="Milestone">Milestone Proyek</option>
-                  <option value="Reminder">Pengingat Penting</option>
-                  <option value="Personal">Personal / Rutinitas</option>
-                </select>
+            <div class="col-12">
+              <span class="fw-bold text-danger small d-block mb-2"><i class="bi bi-receipt me-1"></i>JATUH TEMPO INVOICE</span>
+              <div v-if="getInvoicesForDate(selectedCell.dateStr).length > 0">
+                <div v-for="inv in getInvoicesForDate(selectedCell.dateStr)" :key="inv.id" class="p-3 bg-danger-subtle rounded-3 border border-danger-subtle mb-2 small fw-semibold text-danger">
+                  {{ inv.invoiceNumber }} - {{ inv.clientName }}
+                </div>
               </div>
-
-              <div class="col-md-6">
-                <label class="form-label fw-semibold">Pengingat / Reminder</label>
-                <select class="form-select" v-model="eventForm.reminder">
-                  <option value="None">Tanpa Pengingat</option>
-                  <option value="15m">15 Menit Sebelum</option>
-                  <option value="30m">30 Menit Sebelum</option>
-                  <option value="1h">1 Jam Sebelum</option>
-                  <option value="1d">1 Hari Sebelum</option>
-                </select>
-              </div>
-
-              <div class="col-12">
-                <label class="form-label fw-semibold">Catatan / Detail Agenda</label>
-                <textarea class="form-control" rows="2" v-model="eventForm.notes" placeholder="Lokasi, link Zoom, atau catatan pendukung..."></textarea>
-              </div>
-
-              <div class="col-12 text-end pt-3 border-top">
-                <button type="button" class="btn btn-light px-4 me-2 rounded-3" @click="closeEventModal">Batal</button>
-                <button type="submit" class="btn btn-primary px-4 rounded-3 fw-semibold">Simpan Agenda</button>
-              </div>
-            </form>
+              <div v-else class="small text-muted italic bg-light p-3 rounded-3 border">Tidak ada invoice jatuh tempo.</div>
+            </div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Day Detail Modal -->
-    <div class="modal fade" id="dayDetailModal" tabindex="-1" ref="dayDetailModalRef" aria-hidden="true">
-      <div class="modal-dialog modal-dialog-centered modal-lg">
-        <div class="modal-content rounded-4 border-0 shadow" v-if="selectedCell">
-          <div class="modal-header border-bottom p-4">
-            <div>
-              <span class="badge bg-primary-subtle text-primary fw-semibold mb-1">Agenda Detail</span>
-              <h5 class="modal-title fw-bold text-dark">
-                📅 Agenda Tanggal: {{ formatFullDate(selectedCell.dateStr) }}
-              </h5>
-            </div>
-            <button type="button" class="btn-close" @click="closeDayDetailModal"></button>
+    <!-- Sleek Toast Notification -->
+    <div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1090;">
+      <div v-if="toast.show" class="toast align-items-center text-white bg-dark border-0 show shadow-lg rounded-3" role="alert">
+        <div class="d-flex">
+          <div class="toast-body d-flex align-items-center gap-2">
+            <i class="bi bi-check-circle-fill text-success fs-5"></i>
+            <span>{{ toast.message }}</span>
           </div>
-          <div class="modal-body p-4">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-              <h6 class="fw-bold text-dark mb-0">Daftar Kegiatan & Deadline Hari Ini:</h6>
-              <button class="btn btn-sm btn-primary rounded-3" @click="openAddEventModal(selectedCell.dateStr)">
-                <i class="bi bi-plus-lg me-1"></i> Tambah Event di Tanggal Ini
-              </button>
-            </div>
-
-            <!-- Timed Events Section -->
-            <div class="mb-4">
-              <span class="fw-bold text-primary small d-block mb-2"><i class="bi bi-clock-fill me-1"></i>TIMED EVENTS & MEETINGS ({{ getEventsForDate(selectedCell.dateStr).length }})</span>
-              <div v-if="getEventsForDate(selectedCell.dateStr).length > 0" class="d-flex flex-column gap-2">
-                <div v-for="e in getEventsForDate(selectedCell.dateStr)" :key="e.id" class="p-3 bg-primary bg-opacity-10 rounded-3 border border-primary border-opacity-25 d-flex justify-content-between align-items-center">
-                  <div>
-                    <div class="fw-bold text-dark">
-                      <span class="badge bg-primary me-2">{{ e.startTime || 'All Day' }} <span v-if="e.endTime">- {{ e.endTime }}</span></span>
-                      {{ e.title }}
-                    </div>
-                    <div class="small text-muted mt-1" v-if="e.notes"><i class="bi bi-info-circle me-1"></i>{{ e.notes }}</div>
-                    <div class="small text-primary mt-1" v-if="e.reminder && e.reminder !== 'None'"><i class="bi bi-bell-fill me-1"></i>Reminder: {{ e.reminder }}</div>
-                  </div>
-                  <div class="d-flex gap-1">
-                    <button class="btn btn-sm btn-light text-primary rounded-circle" @click="editEvent(e)"><i class="bi bi-pencil"></i></button>
-                    <button class="btn btn-sm btn-light text-danger rounded-circle" @click="deleteEvent(e.id)"><i class="bi bi-trash"></i></button>
-                  </div>
-                </div>
-              </div>
-              <div v-else class="small text-muted italic bg-light p-3 rounded-3 border">Tidak ada event jam terjadwal pada tanggal ini.</div>
-            </div>
-
-            <!-- Tasks Section -->
-            <div class="mb-4">
-              <span class="fw-bold text-warning-emphasis small d-block mb-2"><i class="bi bi-check2-square me-1"></i>DEADLINE TUGAS ({{ getTasksForDate(selectedCell.dateStr).length }})</span>
-              <div v-if="getTasksForDate(selectedCell.dateStr).length > 0" class="d-flex flex-column gap-2">
-                <div v-for="t in getTasksForDate(selectedCell.dateStr)" :key="t.id" class="p-3 bg-warning bg-opacity-10 rounded-3 border border-warning border-opacity-25 d-flex justify-content-between align-items-center">
-                  <div>
-                    <div class="fw-bold text-dark" :class="{ 'text-decoration-line-through text-muted': t.done }">{{ t.name }}</div>
-                    <small class="text-muted">Eisenhower: {{ t.eisenhower || 'Do First' }} | Recurring: {{ t.recurring || 'none' }}</small>
-                  </div>
-                  <button class="btn btn-sm rounded-pill px-3" :class="t.done ? 'btn-success' : 'btn-outline-warning'" @click="toggleTask(t.id)">
-                    {{ t.done ? 'Selesai' : 'Tandai Selesai' }}
-                  </button>
-                </div>
-              </div>
-              <div v-else class="small text-muted italic bg-light p-3 rounded-3 border">Tidak ada deadline tugas pada tanggal ini.</div>
-            </div>
-
-            <!-- Projects & Invoices Section -->
-            <div class="row g-3">
-              <div class="col-md-6">
-                <span class="fw-bold text-info-emphasis small d-block mb-2"><i class="bi bi-folder me-1"></i>DEADLINE PROYEK</span>
-                <div v-if="getProjectsForDate(selectedCell.dateStr).length > 0">
-                  <div v-for="p in getProjectsForDate(selectedCell.dateStr)" :key="p.id" class="p-2 bg-info bg-opacity-10 rounded-3 border border-info border-opacity-25 mb-1 small fw-semibold">
-                    {{ p.projectTitle }} ({{ p.clientName }})
-                  </div>
-                </div>
-                <div v-else class="small text-muted italic bg-light p-2 rounded-3 border">Tidak ada.</div>
-              </div>
-
-              <div class="col-md-6">
-                <span class="fw-bold text-danger small d-block mb-2"><i class="bi bi-receipt me-1"></i>JATUH TEMPO INVOICE</span>
-                <div v-if="getInvoicesForDate(selectedCell.dateStr).length > 0">
-                  <div v-for="inv in getInvoicesForDate(selectedCell.dateStr)" :key="inv.id" class="p-2 bg-danger bg-opacity-10 rounded-3 border border-danger border-opacity-25 mb-1 small fw-semibold text-danger">
-                    {{ inv.invoiceNumber }} - {{ inv.clientName }}
-                  </div>
-                </div>
-                <div v-else class="small text-muted italic bg-light p-2 rounded-3 border">Tidak ada.</div>
-              </div>
-            </div>
-          </div>
+          <button type="button" class="btn-close btn-close-white me-2 m-auto" @click="toast.show = false"></button>
         </div>
       </div>
     </div>
@@ -243,7 +263,7 @@
 </template>
 
 <script>
-import { computed, ref, onMounted } from 'vue';
+import { computed, ref } from 'vue';
 import { useStore } from 'vuex';
 
 export default {
@@ -252,14 +272,19 @@ export default {
     const store = useStore();
     const currentDate = ref(new Date());
 
-    const eventModalRef = ref(null);
-    const dayDetailModalRef = ref(null);
-    let eventModalInstance = null;
-    let dayDetailModalInstance = null;
-
+    const drawerOpen = ref(false);
+    const drawerMode = ref('detail'); // 'detail' or 'form'
     const selectedCell = ref(null);
     const isEditingEvent = ref(false);
     const editingEventId = ref(null);
+
+    const toast = ref({ show: false, message: '' });
+
+    const showToast = (msg) => {
+      toast.value.message = msg;
+      toast.value.show = true;
+      setTimeout(() => (toast.value.show = false), 3000);
+    };
 
     const eventForm = ref({
       title: '',
@@ -277,6 +302,13 @@ export default {
       return currentDate.value.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' });
     });
 
+    const drawerTitle = computed(() => {
+      if (drawerMode.value === 'form') {
+        return isEditingEvent.value ? 'Edit Agenda Meeting' : 'Tambah Agenda Meeting';
+      }
+      return selectedCell.value ? `Agenda ${formatFullDate(selectedCell.value.dateStr)}` : 'Detail Agenda Tanggal';
+    });
+
     const changeMonth = (delta) => {
       currentDate.value = new Date(currentDate.value.getFullYear(), currentDate.value.getMonth() + delta, 1);
     };
@@ -286,95 +318,64 @@ export default {
     const invoices = computed(() => store.getters.getInvoices);
     const events = computed(() => store.getters.getEvents);
 
-    const getEventModal = () => {
-      if (eventModalRef.value && window.bootstrap && window.bootstrap.Modal) {
-        return window.bootstrap.Modal.getOrCreateInstance(eventModalRef.value, { backdrop: true, keyboard: true });
-      }
-      return null;
-    };
-
-    const getDayDetailModal = () => {
-      if (dayDetailModalRef.value && window.bootstrap && window.bootstrap.Modal) {
-        return window.bootstrap.Modal.getOrCreateInstance(dayDetailModalRef.value, { backdrop: true, keyboard: true });
-      }
-      return null;
-    };
-
-    const cleanupBackdrop = () => {
-      setTimeout(() => {
-        const openModals = document.querySelectorAll('.modal.show');
-        if (openModals.length === 0) {
-          document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
-          document.body.classList.remove('modal-open');
-          document.body.style.removeProperty('overflow');
-          document.body.style.removeProperty('padding-right');
-        }
-      }, 300);
-    };
-
-    onMounted(() => {
-      // Lazy init
-    });
-
-    const openAddEventModal = (dateStr = null) => {
+    const openAddEventForm = (dateStr = null) => {
       isEditingEvent.value = false;
       editingEventId.value = null;
       eventForm.value = {
         title: '',
-        date: dateStr || new Date().toISOString().split('T')[0],
+        date: dateStr || (selectedCell.value ? selectedCell.value.dateStr : new Date().toISOString().split('T')[0]),
         startTime: '09:00',
         endTime: '10:00',
         category: 'Meeting',
         reminder: '30m',
         notes: ''
       };
-      const dayModal = getDayDetailModal();
-      if (dayModal) dayModal.hide();
-      const evModal = getEventModal();
-      if (evModal) evModal.show();
+      drawerMode.value = 'form';
+      drawerOpen.value = true;
     };
 
     const editEvent = (ev) => {
       isEditingEvent.value = true;
       editingEventId.value = ev.id;
       eventForm.value = { ...ev };
-      const dayModal = getDayDetailModal();
-      if (dayModal) dayModal.hide();
-      const evModal = getEventModal();
-      if (evModal) evModal.show();
-    };
-
-    const closeEventModal = () => {
-      const evModal = getEventModal();
-      if (evModal) evModal.hide();
-      cleanupBackdrop();
+      drawerMode.value = 'form';
+      drawerOpen.value = true;
     };
 
     const saveEvent = () => {
+      if (!eventForm.value.title || !eventForm.value.title.trim()) {
+        showToast('Judul agenda tidak boleh kosong.');
+        return;
+      }
+
       if (isEditingEvent.value) {
         store.dispatch('updateEvent', { ...eventForm.value, id: editingEventId.value });
+        showToast('Agenda berhasil diperbarui!');
       } else {
         store.dispatch('addEvent', eventForm.value);
+        showToast('Agenda baru berhasil ditambahkan!');
       }
-      closeEventModal();
+
+      if (selectedCell.value) {
+        drawerMode.value = 'detail';
+      } else {
+        drawerOpen.value = false;
+      }
     };
 
     const deleteEvent = (id) => {
-      if (confirm('Hapus agenda/event ini?')) {
-        store.dispatch('deleteEvent', id);
-      }
+      store.dispatch('deleteEvent', id);
+      showToast('Agenda dihapus.');
     };
 
-    const openDayDetailModal = (cell) => {
+    const openDayDetailDrawer = (cell) => {
       selectedCell.value = cell;
-      const dayModal = getDayDetailModal();
-      if (dayModal) dayModal.show();
+      drawerMode.value = 'detail';
+      drawerOpen.value = true;
     };
 
-    const closeDayDetailModal = () => {
-      const dayModal = getDayDetailModal();
-      if (dayModal) dayModal.hide();
-      cleanupBackdrop();
+    const closeDrawer = () => {
+      drawerOpen.value = false;
     };
 
     const calendarCells = computed(() => {
@@ -467,18 +468,19 @@ export default {
       getTasksForDate,
       getProjectsForDate,
       getInvoicesForDate,
-      eventModalRef,
-      dayDetailModalRef,
+      drawerOpen,
+      drawerMode,
+      drawerTitle,
       selectedCell,
       isEditingEvent,
       eventForm,
-      openAddEventModal,
+      toast,
+      openAddEventForm,
       editEvent,
-      closeEventModal,
       saveEvent,
       deleteEvent,
-      openDayDetailModal,
-      closeDayDetailModal,
+      openDayDetailDrawer,
+      closeDrawer,
       toggleTask,
       formatFullDate
     };
@@ -507,14 +509,6 @@ export default {
   background-color: var(--bg-app, #f8fafc);
 }
 
-:deep(.dark-theme) .cell-active {
-  background-color: #1a233a !important;
-}
-
-:deep(.dark-theme) .cell-inactive {
-  background-color: #0f172a !important;
-}
-
 .cell-hover:hover {
   border-color: var(--primary-color) !important;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
@@ -538,5 +532,33 @@ export default {
 
 .min-w-160 {
   min-width: 160px;
+}
+
+/* RIGHT SLIDE-OVER DRAWER STYLES */
+.drawer-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(15, 23, 42, 0.5);
+  backdrop-filter: blur(2px);
+  z-index: 1070;
+}
+
+.drawer-panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 480px;
+  max-width: 100vw;
+  height: 100vh;
+  z-index: 1080;
+  transform: translateX(100%);
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.drawer-panel.drawer-show {
+  transform: translateX(0);
 }
 </style>
