@@ -86,7 +86,17 @@
           </div>
         </div>
 
-        <div class="d-flex align-items-center gap-3">
+        <div class="d-flex align-items-center gap-3 flex-wrap">
+          <div class="d-flex align-items-center gap-2">
+            <span class="small text-white-50"><i class="bi bi-cloud-sun me-1"></i>Cuaca:</span>
+            <select class="form-select form-select-sm bg-dark text-white border-secondary border-opacity-50 style-select" v-model="currentWeather" @change="changeWeather">
+              <option value="cerah">☀️ Cerah</option>
+              <option value="mendung">☁️ Mendung</option>
+              <option value="hujan">🌧️ Hujan Deras</option>
+              <option value="salju">❄️ Salju</option>
+            </select>
+          </div>
+
           <div class="d-flex align-items-center gap-2">
             <span class="small text-white-50">Layar Monitor:</span>
             <select class="form-select form-select-sm bg-dark text-white border-secondary border-opacity-50 style-select" v-model="monitorDisplay">
@@ -120,6 +130,7 @@ export default {
     const isRgbOn = ref(true);
     const currentTheme = ref('dark');
     const monitorDisplay = ref('code');
+    const currentWeather = ref('cerah');
     const fps = ref(60);
 
     let scene, camera, renderer, controls;
@@ -127,6 +138,9 @@ export default {
     let lampLight, ambientLight, directionalLight, rgbLight;
     let monitorScreenMesh, laptopScreenMesh;
     let coffeeMugMesh, steamParticles;
+    let weatherParticles = null;
+    let weatherGeometry = null;
+    const weatherCount = 200;
     let animationFrameId = null;
     let raycaster, mouse;
 
@@ -148,8 +162,8 @@ export default {
 
       // 1. Scene
       scene = new THREE.Scene();
-      scene.background = new THREE.Color(0x1e293b);
-      scene.fog = new THREE.FogExp2(0x1e293b, 0.025);
+      scene.background = new THREE.Color(0x38bdf8);
+      scene.fog = new THREE.Fog(0x38bdf8, 5, 15);
 
       // 2. Camera
       camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 100);
@@ -190,6 +204,7 @@ export default {
       buildLamp();
       buildDecorations();
       buildSteamParticles();
+      applyEnvironment();
 
       // Event listener for window resize
       window.addEventListener('resize', onWindowResize);
@@ -200,13 +215,13 @@ export default {
     };
 
     const setupLights = () => {
-      ambientLight = new THREE.AmbientLight(0xffffff, 1.0);
+      ambientLight = new THREE.AmbientLight(0xffffff, 1.15);
       scene.add(ambientLight);
 
       const hemiLight = new THREE.HemisphereLight(0xffffff, 0x475569, 0.5);
       scene.add(hemiLight);
 
-      directionalLight = new THREE.DirectionalLight(0xfff8e7, 1.8);
+      directionalLight = new THREE.DirectionalLight(0xfff8e7, 1.95);
       directionalLight.position.set(4, 8, 4);
       directionalLight.castShadow = true;
       directionalLight.shadow.mapSize.width = 2048;
@@ -573,6 +588,9 @@ export default {
       // Animate Steam particles
       updateSteam();
 
+      // Animate weather particles
+      updateWeather();
+
       // Render
       if (renderer && scene && camera) {
         renderer.render(scene, camera);
@@ -612,19 +630,162 @@ export default {
       }
     };
 
+    const buildWeatherParticles = () => {
+      if (weatherParticles) {
+        scene.remove(weatherParticles);
+        weatherParticles = null;
+      }
+
+      weatherGeometry = new THREE.BufferGeometry();
+      const positions = new Float32Array(weatherCount * 3);
+      for (let i = 0; i < weatherCount; i++) {
+        positions[i * 3] = (Math.random() - 0.5) * 6;
+        positions[i * 3 + 1] = 1.25 + Math.random() * 3.8;
+        positions[i * 3 + 2] = (Math.random() - 0.5) * 4;
+      }
+
+      weatherGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+
+      let size = 0.055;
+      let color = 0xffffff;
+      let opacity = 0.65;
+
+      if (currentWeather.value === 'hujan') {
+        size = 0.04;
+        color = 0xa5f3fc;
+        opacity = 0.85;
+      } else if (currentWeather.value === 'salju') {
+        size = 0.08;
+        color = 0xffffff;
+        opacity = 0.9;
+      }
+
+      const material = new THREE.PointsMaterial({
+        color: color,
+        size: size,
+        transparent: true,
+        opacity: opacity,
+        depthWrite: false
+      });
+
+      weatherParticles = new THREE.Points(weatherGeometry, material);
+      scene.add(weatherParticles);
+    };
+
+    const updateWeather = () => {
+      if (!weatherParticles || currentWeather.value === 'cerah' || currentWeather.value === 'mendung') {
+        if (weatherParticles) {
+          scene.remove(weatherParticles);
+          weatherParticles = null;
+        }
+        return;
+      }
+
+      const positions = weatherParticles.geometry.attributes.position.array;
+      const count = weatherGeometry.attributes.position.count;
+
+      for (let i = 0; i < count; i++) {
+        if (currentWeather.value === 'hujan') {
+          positions[i * 3 + 1] -= 0.15;
+          positions[i * 3] -= 0.015;
+          if (positions[i * 3 + 1] < 1.25) {
+            positions[i * 3 + 1] = 4.5 + Math.random() * 0.5;
+            positions[i * 3] = (Math.random() - 0.5) * 6;
+          }
+        } else if (currentWeather.value === 'salju') {
+          positions[i * 3 + 1] -= 0.022;
+          const time = Date.now() * 0.001;
+          positions[i * 3] += Math.sin(time + i) * 0.004;
+          if (positions[i * 3 + 1] < 1.25) {
+            positions[i * 3 + 1] = 4.5 + Math.random() * 0.5;
+            positions[i * 3] = (Math.random() - 0.5) * 6;
+          }
+        }
+      }
+      weatherParticles.geometry.attributes.position.needsUpdate = true;
+    };
+
+    const applyEnvironment = () => {
+      if (!scene || !ambientLight || !directionalLight) return;
+
+      let bgColor = 0x38bdf8;
+      let fogNear = 5;
+      let fogFar = 15;
+      let ambColor = 0xffffff;
+      let ambIntensity = 1.15;
+      let dirColor = 0xfff8e7;
+      let dirIntensity = 1.95;
+
+      if (currentWeather.value === 'cerah') {
+        bgColor = 0x38bdf8;
+        fogNear = 5;
+        fogFar = 15;
+        ambColor = 0xffffff;
+        ambIntensity = 1.15;
+        dirColor = 0xfff8e7;
+        dirIntensity = 1.95;
+      } else if (currentWeather.value === 'mendung') {
+        bgColor = 0x475569;
+        fogNear = 3;
+        fogFar = 10;
+        ambColor = 0x94a3b8;
+        ambIntensity = 0.65;
+        dirColor = 0x64748b;
+        dirIntensity = 0.7;
+      } else if (currentWeather.value === 'hujan') {
+        bgColor = 0x1e293b;
+        fogNear = 2.5;
+        fogFar = 8.5;
+        ambColor = 0x64748b;
+        ambIntensity = 0.55;
+        dirColor = 0x475569;
+        dirIntensity = 0.5;
+      } else if (currentWeather.value === 'salju') {
+        bgColor = 0xe2e8f0;
+        fogNear = 3.5;
+        fogFar = 11;
+        ambColor = 0xffffff;
+        ambIntensity = 1.0;
+        dirColor = 0xf1f5f9;
+        dirIntensity = 1.2;
+      }
+
+      if (isNightMode.value) {
+        bgColor = 0x0f172a;
+        fogNear = 2.5;
+        fogFar = 9.0;
+        ambIntensity *= 0.55;
+        dirIntensity *= 0.5;
+      }
+
+      scene.background.setHex(bgColor);
+      if (scene.fog) {
+        scene.fog.color.setHex(bgColor);
+        scene.fog.near = fogNear;
+        scene.fog.far = fogFar;
+      }
+      ambientLight.color.setHex(ambColor);
+      ambientLight.intensity = ambIntensity;
+      directionalLight.color.setHex(dirColor);
+      directionalLight.intensity = dirIntensity;
+
+      if (currentWeather.value === 'hujan' || currentWeather.value === 'salju') {
+        buildWeatherParticles();
+      } else {
+        if (weatherParticles) {
+          scene.remove(weatherParticles);
+          weatherParticles = null;
+        }
+      }
+    };
+
+    const changeWeather = () => {
+      applyEnvironment();
+    };
+
     const toggleNightMode = () => {
       isNightMode.value = !isNightMode.value;
-      if (isNightMode.value) {
-        scene.background.setHex(0x0f172a);
-        scene.fog.color.setHex(0x0f172a);
-        ambientLight.intensity = 0.7;
-        directionalLight.intensity = 1.0;
-      } else {
-        scene.background.setHex(0x1e293b);
-        scene.fog.color.setHex(0x1e293b);
-        ambientLight.intensity = 1.0;
-        directionalLight.intensity = 1.8;
-      }
+      applyEnvironment();
     };
 
     const toggleLamp = () => {
@@ -683,6 +844,10 @@ export default {
     onUnmounted(() => {
       if (animationFrameId) cancelAnimationFrame(animationFrameId);
       window.removeEventListener('resize', onWindowResize);
+      if (weatherParticles) {
+        scene.remove(weatherParticles);
+        weatherParticles = null;
+      }
       if (renderer) {
         renderer.dispose();
       }
@@ -695,13 +860,15 @@ export default {
       isRgbOn,
       currentTheme,
       monitorDisplay,
+      currentWeather,
       fps,
       themes,
       toggleNightMode,
       toggleLamp,
       toggleRgb,
       resetCamera,
-      setTheme
+      setTheme,
+      changeWeather
     };
   }
 };

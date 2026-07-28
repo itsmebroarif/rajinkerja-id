@@ -300,8 +300,10 @@ export default createStore({
         task.done = !task.done;
         if (task.done) {
           task.statusColumn = 'done';
+          task.completedAt = new Date().toISOString().split('T')[0];
         } else {
           task.statusColumn = 'todo';
+          task.completedAt = null;
         }
         saveLocal('ft_tasks', state.tasks);
       }
@@ -311,6 +313,11 @@ export default createStore({
       if (task) {
         task.statusColumn = statusColumn;
         task.done = (statusColumn === 'done');
+        if (task.done) {
+          task.completedAt = new Date().toISOString().split('T')[0];
+        } else {
+          task.completedAt = null;
+        }
         saveLocal('ft_tasks', state.tasks);
       }
     },
