@@ -213,7 +213,7 @@ export default {
     // NPC list & dialogues
     const npcs = ref([
       { name: 'Arif Alexander', x: 2, z: 8, message: 'Selamat datang di area perkotaan RajinKerja! Silakan kelilingi distrik kantor kami yang rapih ini.', mesh: null },
-      { name: 'Nyx Sayang', x: 28, z: 4, message: 'Oh sayang, udara pantai ini segar banget ya! Kapan-kapan kita liburan ke sini lagi ya unch unch.', mesh: null },
+      { name: 'Black Matcha', x: 28, z: 4, message: 'Oh sayang, udara pantai ini segar banget ya! Kapan-kapan kita liburan ke sini lagi ya unch unch.', mesh: null },
       { name: 'Developer Yuki', x: -5, z: -8, message: 'Halo programmer hebat! Jangan lupa cek To-Do list dan commit project-mu hari ini!', mesh: null },
       { name: 'Staff Keuangan', x: 8, z: -10, message: 'Ingat untuk tagih invoice ke klien VIP minggu ini agar kas tetap surplus!', mesh: null },
       { name: 'Ranger Gunung', x: -22, z: 2, message: 'Hati-hati mendaki gunung di sebelah barat, pastikan kamu menggunakan lompat ganda (tombol E) untuk mendaki!', mesh: null }

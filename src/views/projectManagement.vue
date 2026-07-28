@@ -296,6 +296,10 @@ import { useStore } from 'vuex';
 import { useRouter, useRoute } from 'vue-router';
 import * as XLSX from 'xlsx';
 
+const getLocalDateString = (d = new Date()) => {
+  return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().split('T')[0];
+};
+
 export default {
   name: 'ProjectManagement',
   setup() {
@@ -318,7 +322,7 @@ export default {
       clientEmail: '',
       clientPhone: '',
       projectTitle: '',
-      deadline: new Date().toISOString().split('T')[0],
+      deadline: getLocalDateString(),
       rate: 0,
       status: 'In Progress',
       progress: 0,
@@ -329,7 +333,7 @@ export default {
     const bulkText = ref('');
     const bulkError = ref('');
     const bulkDefault = ref({
-      deadline: new Date().toISOString().split('T')[0],
+      deadline: getLocalDateString(),
       status: 'In Progress'
     });
 
@@ -381,7 +385,7 @@ export default {
         clientEmail: '',
         clientPhone: '',
         projectTitle: '',
-        deadline: new Date().toISOString().split('T')[0],
+        deadline: getLocalDateString(),
         rate: 0,
         status: 'In Progress',
         progress: 0,

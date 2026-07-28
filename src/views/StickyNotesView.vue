@@ -1,5 +1,5 @@
 <template>
-  <div class="container-fluid p-0" data-aos="fade-up">
+  <div class="container-fluid p-3 p-md-4" data-aos="fade-up">
     <!-- Header Banner -->
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3 bg-white p-4 rounded-4 shadow-sm border">
       <div>
@@ -49,7 +49,10 @@
           </h5>
           <small class="text-muted">Tulis ide cepat, nomor kontak, atau snippet. Otomatis tersimpan ke browser (localStorage) setiap 2 detik.</small>
         </div>
-        <div class="d-flex align-items-center gap-3">
+        <div class="d-flex align-items-center gap-2">
+          <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3" @click="toggleScratchpadWidescreen">
+            <i class="bi" :class="isScratchpadWidescreen ? 'bi-fullscreen-exit' : 'bi-fullscreen'"></i> {{ isScratchpadWidescreen ? 'Tampilan Standar' : 'Preview Luas' }}
+          </button>
           <div class="d-flex align-items-center gap-2 px-3 py-1 bg-light rounded-pill border small">
             <i class="bi bi-floppy-fill text-success" :class="{ 'spin-icon': isAutoSavingScratchpad }"></i>
             <span class="fw-semibold text-dark">{{ scratchpadSaveStatus }}</span>
@@ -64,19 +67,19 @@
       </div>
 
       <div class="row g-3">
-        <div class="col-md-7">
+        <div :class="isScratchpadWidescreen ? 'col-md-6' : 'col-md-7'">
           <textarea
             class="form-control font-monospace border-2 p-3 rounded-3"
-            rows="8"
+            :rows="isScratchpadWidescreen ? 16 : 8"
             v-model="scratchpadContent"
             @input="handleScratchpadInput"
             placeholder="Tulis coretan sementara di sini...&#10;- Ide produk baru&#10;- No WA Klien: 0812-3456-xxxx&#10;- Script SQL / Command terminal&#10;&#10;Isi ini tersimpan otomatis tanpa perlu tombol simpan!"
           ></textarea>
         </div>
-        <div class="col-md-5">
+        <div :class="isScratchpadWidescreen ? 'col-md-6' : 'col-md-5'">
           <div class="card p-3 rounded-3 border bg-light h-100">
             <h6 class="fw-bold text-dark mb-2"><i class="bi bi-eye me-1"></i> Live Markdown Preview</h6>
-            <div class="markdown-preview small text-dark overflow-auto flex-grow-1" style="max-height: 180px;" v-html="renderMarkdown(scratchpadContent)"></div>
+            <div class="markdown-preview small text-dark overflow-auto flex-grow-1" :style="{ maxHeight: isScratchpadWidescreen ? '360px' : '180px' }" v-html="renderMarkdown(scratchpadContent)"></div>
             <div class="border-top pt-2 mt-2 d-flex justify-content-between align-items-center">
               <span class="small text-muted">{{ scratchpadContent.length }} karakter</span>
               <button class="btn btn-xs btn-primary rounded-pill px-3" @click="convertScratchpadToNote" v-if="scratchpadContent.trim()">
@@ -101,6 +104,9 @@
           </span>
         </div>
         <div class="d-flex align-items-center gap-2">
+          <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3" @click="toggleEditorWidescreen">
+            <i class="bi" :class="isEditorWidescreen ? 'bi-fullscreen-exit' : 'bi-fullscreen'"></i> {{ isEditorWidescreen ? 'Tampilan Standar' : 'Preview Luas' }}
+          </button>
           <button v-if="form.title || form.content" type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3" @click="resetEditorForm">
             <i class="bi bi-x-circle me-1"></i> Bersihkan Draft
           </button>
@@ -149,7 +155,7 @@
           </div>
           <textarea
             class="form-control font-monospace border-2 p-3"
-            rows="9"
+            :rows="isEditorWidescreen ? 18 : 9"
             v-model="form.content"
             @input="onFormInput"
             placeholder="Ketik dengan format Markdown...&#10;# Judul Sesi&#10;- [x] Tugas 1&#10;- [ ] Tugas 2&#10;**Penting:** Target selesai hari ini."
@@ -158,7 +164,7 @@
 
         <div class="col-md-6">
           <label class="form-label small fw-bold text-dark mb-1">Live Preview Markdown</label>
-          <div class="card p-3 rounded-3 border-2 bg-light h-100 overflow-auto preview-box" style="max-height: 230px;">
+          <div class="card p-3 rounded-3 border-2 bg-light h-100 overflow-auto preview-box" :style="{ maxHeight: isEditorWidescreen ? '430px' : '230px' }">
             <div class="markdown-preview small text-dark" v-html="renderMarkdown(form.content)"></div>
           </div>
         </div>
@@ -359,6 +365,9 @@
               <h5 class="fw-bold text-dark mb-0 text-break">{{ note.title || 'Untitled Note' }}</h5>
             </div>
             <div class="d-flex gap-1">
+              <button class="btn btn-xs btn-light rounded-circle shadow-sm" @click="openWidePreview(note)" title="Preview Luas">
+                <i class="bi bi-arrows-angle-expand"></i>
+              </button>
               <button class="btn btn-xs btn-light rounded-circle shadow-sm" @click="copyNoteContent(note.content)" title="Salin Isi Catatan">
                 <i class="bi bi-clipboard"></i>
               </button>
@@ -397,6 +406,78 @@
       </div>
     </div>
 
+    <!-- WIDE PREVIEW MODAL FOR STICKY NOTES -->
+    <transition name="overlay-fade">
+      <div v-if="selectedPreviewNote" class="wide-preview-backdrop" @click="closeWidePreview">
+        <div class="wide-preview-modal bg-white shadow-lg rounded-4 border p-4" :style="{ borderTop: '8px solid ' + (selectedPreviewNote.color || '#fef08a') + ' !important' }" @click.stop>
+          <div class="d-flex justify-content-between align-items-start mb-3 pb-2 border-bottom">
+            <div>
+              <span class="badge bg-secondary text-white rounded-pill px-3 py-1 small mb-1">
+                <i class="bi bi-file-earmark-text me-1"></i> Preview Detail Catatan
+              </span>
+              <h3 class="fw-bold text-dark mb-0">{{ selectedPreviewNote.title || 'Untitled Note' }}</h3>
+            </div>
+            <div class="d-flex gap-2">
+              <button class="btn btn-sm btn-light border px-3 rounded-pill" @click="copyNoteContent(selectedPreviewNote.content)">
+                <i class="bi bi-clipboard me-1"></i> Salin Teks
+              </button>
+              <button class="btn btn-sm btn-light text-primary border px-3 rounded-pill" @click="editNoteFromPreview(selectedPreviewNote)">
+                <i class="bi bi-pencil-fill me-1"></i> Edit
+              </button>
+              <button class="btn btn-sm btn-light rounded-circle p-2" @click="closeWidePreview" title="Tutup">
+                <i class="bi bi-x-lg"></i>
+              </button>
+            </div>
+          </div>
+
+          <div class="row g-4 flex-grow-1 overflow-hidden" style="max-height: calc(80vh - 120px);">
+            <!-- Left Side: Rendered Markdown -->
+            <div class="col-md-7 d-flex flex-column h-100">
+              <span class="fw-bold text-muted small mb-2"><i class="bi bi-eye-fill text-primary"></i> Live Rendered Markdown</span>
+              <div class="card p-4 rounded-3 bg-light overflow-auto flex-grow-1 border-0" style="max-height: 480px; min-height: 350px;">
+                <div class="markdown-preview text-dark" v-html="renderMarkdown(selectedPreviewNote.content)"></div>
+              </div>
+            </div>
+            <!-- Right Side: Metadata & Statistics -->
+            <div class="col-md-5 d-flex flex-column justify-content-between h-100">
+              <div>
+                <span class="fw-bold text-muted small d-block mb-2"><i class="bi bi-info-circle-fill text-info"></i> Informasi Catatan</span>
+                <div class="p-3 bg-light rounded-3 mb-3 border">
+                  <div class="d-flex justify-content-between mb-2 pb-1 border-bottom">
+                    <span class="text-muted">Karakter</span>
+                    <strong class="text-dark">{{ selectedPreviewNote.content ? selectedPreviewNote.content.length : 0 }}</strong>
+                  </div>
+                  <div class="d-flex justify-content-between mb-2 pb-1 border-bottom">
+                    <span class="text-muted">Kata</span>
+                    <strong class="text-dark">{{ getWordCount(selectedPreviewNote.content) }}</strong>
+                  </div>
+                  <div class="d-flex justify-content-between mb-2 pb-1 border-bottom">
+                    <span class="text-muted">Terakhir Diperbarui</span>
+                    <strong class="text-dark">{{ formatDate(selectedPreviewNote.updatedAt) }}</strong>
+                  </div>
+                  <div class="d-flex justify-content-between align-items-center">
+                    <span class="text-muted">Warna Sticky Note</span>
+                    <span class="badge px-3 py-1.5 rounded-pill border" :style="{ backgroundColor: selectedPreviewNote.color || '#fef08a', color: '#000' }">
+                      {{ getColorName(selectedPreviewNote.color) }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="d-flex gap-2 border-top pt-3">
+                <button class="btn btn-outline-danger w-100 py-2.5 rounded-3 fw-bold" @click="deleteNoteFromPreview(selectedPreviewNote.id)">
+                  <i class="bi bi-trash-fill me-1"></i> Hapus Catatan
+                </button>
+                <button class="btn btn-secondary w-100 py-2.5 rounded-3 fw-bold" @click="closeWidePreview">
+                  Tutup Preview
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </transition>
+
     <!-- Sleek Toast Notification -->
     <div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1090;">
       <div v-if="toast.show" class="toast align-items-center text-white bg-dark border-0 show shadow-lg rounded-3" role="alert">
@@ -431,6 +512,9 @@ export default {
     const draftSaved = ref(false);
     const lastSavedTime = ref('');
     const selectedIds = ref([]);
+    const selectedPreviewNote = ref(null);
+    const isScratchpadWidescreen = ref(false);
+    const isEditorWidescreen = ref(false);
 
     // Quick Scratchpad Auto-save state
     const scratchpadContent = ref('');
@@ -539,10 +623,12 @@ export default {
     };
 
     const clearScratchpad = () => {
-      scratchpadContent.value = '';
-      localStorage.removeItem(SCRATCHPAD_KEY);
-      scratchpadSaveStatus.value = 'Scratchpad dibersihkan';
-      showToast('Quick Scratchpad berhasil dibersihkan.');
+      if (confirm('Apakah Anda yakin ingin membersihkan seluruh coretan scratchpad? Coretan yang dihapus tidak dapat dikembalikan.')) {
+        scratchpadContent.value = '';
+        localStorage.removeItem(SCRATCHPAD_KEY);
+        scratchpadSaveStatus.value = 'Scratchpad dibersihkan';
+        showToast('Quick Scratchpad berhasil dibersihkan.');
+      }
     };
 
     const convertScratchpadToNote = () => {
@@ -637,15 +723,19 @@ export default {
     };
 
     const deleteNoteDirect = (id) => {
-      store.dispatch('deleteNote', id);
-      showToast('Catatan berhasil dihapus.');
+      if (confirm('Apakah Anda yakin ingin menghapus catatan ini?')) {
+        store.dispatch('deleteNote', id);
+        showToast('Catatan berhasil dihapus.');
+      }
     };
 
     const bulkDeleteSelected = () => {
       if (selectedIds.value.length === 0) return;
-      store.dispatch('deleteNotesBulk', selectedIds.value);
-      showToast(`${selectedIds.value.length} catatan dihapus.`);
-      selectedIds.value = [];
+      if (confirm(`Apakah Anda yakin ingin menghapus ${selectedIds.value.length} catatan terpilih?`)) {
+        store.dispatch('deleteNotesBulk', selectedIds.value);
+        showToast(`${selectedIds.value.length} catatan dihapus.`);
+        selectedIds.value = [];
+      }
     };
 
     // Bulk Rows Logic
@@ -755,6 +845,37 @@ export default {
       }
     };
 
+    const openWidePreview = (note) => {
+      selectedPreviewNote.value = note;
+    };
+
+    const closeWidePreview = () => {
+      selectedPreviewNote.value = null;
+    };
+
+    const toggleScratchpadWidescreen = () => {
+      isScratchpadWidescreen.value = !isScratchpadWidescreen.value;
+    };
+
+    const toggleEditorWidescreen = () => {
+      isEditorWidescreen.value = !isEditorWidescreen.value;
+    };
+
+    const editNoteFromPreview = (note) => {
+      closeWidePreview();
+      editNoteInline(note);
+    };
+
+    const deleteNoteFromPreview = (id) => {
+      closeWidePreview();
+      deleteNoteDirect(id);
+    };
+
+    const getColorName = (code) => {
+      const found = colorOptions.find(c => c.code === code);
+      return found ? found.name : 'Kuning';
+    };
+
     return {
       notes,
       filteredNotes,
@@ -795,7 +916,17 @@ export default {
       renderMarkdown,
       getWordCount,
       getNotesCountByColor,
-      formatDate
+      formatDate,
+      selectedPreviewNote,
+      isScratchpadWidescreen,
+      isEditorWidescreen,
+      openWidePreview,
+      closeWidePreview,
+      toggleScratchpadWidescreen,
+      toggleEditorWidescreen,
+      editNoteFromPreview,
+      deleteNoteFromPreview,
+      getColorName
     };
   }
 };
@@ -870,5 +1001,50 @@ export default {
 .markdown-preview :deep(ul), .markdown-preview :deep(ol) {
   padding-left: 1.2rem;
   margin-bottom: 0.4rem;
+}
+
+/* WIDE PREVIEW MODAL STYLES */
+.wide-preview-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(8px);
+  z-index: 1070;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.wide-preview-modal {
+  width: 960px;
+  max-width: 95vw;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--bg-surface, #ffffff) !important;
+  color: var(--text-main, #0f172a) !important;
+  border-color: var(--border-color, #e2e8f0) !important;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  animation: modalScaleIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.dark-theme .wide-preview-modal {
+  background-color: var(--bg-surface, #131b2e) !important;
+  border-color: var(--border-color, #1e293b) !important;
+}
+
+@keyframes modalScaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 </style>

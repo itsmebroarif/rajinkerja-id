@@ -569,6 +569,10 @@ import { computed, ref } from 'vue';
 import { useStore } from 'vuex';
 import * as XLSX from 'xlsx';
 
+const getLocalDateString = (d = new Date()) => {
+  return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().split('T')[0];
+};
+
 export default {
   name: 'TodoList',
   setup() {
@@ -590,7 +594,7 @@ export default {
       category: 'Work',
       level: 'Menengah',
       projectTag: 'Umum',
-      deadline: new Date().toISOString().split('T')[0],
+      deadline: getLocalDateString(),
       notes: '',
       recurring: 'none',
       statusColumn: 'todo',
@@ -606,7 +610,7 @@ export default {
       category: 'Work',
       projectTag: 'Umum',
       level: 'Menengah',
-      deadline: new Date().toISOString().split('T')[0]
+      deadline: getLocalDateString()
     });
 
     const kanbanColumns = [
@@ -694,7 +698,7 @@ export default {
         name: '',
         level: 'Menengah',
         projectTag: 'Umum',
-        deadline: new Date().toISOString().split('T')[0],
+        deadline: getLocalDateString(),
         notes: '',
         recurring: 'none',
         statusColumn: 'todo',
@@ -757,7 +761,7 @@ export default {
         name,
         projectTag: bulkDefault.value.projectTag || 'Umum',
         level: bulkDefault.value.level || 'Menengah',
-        deadline: bulkDefault.value.deadline || new Date().toISOString().split('T')[0],
+        deadline: bulkDefault.value.deadline || getLocalDateString(),
         statusColumn: 'todo',
         done: false
       }));

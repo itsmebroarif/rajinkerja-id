@@ -362,6 +362,8 @@ body {
   margin: 0;
   padding: 0;
   transition: background-color 0.3s ease, color 0.3s ease;
+  overflow-x: hidden;
+  max-width: 100%;
 }
 
 .dark-theme .bg-white,
@@ -485,6 +487,8 @@ body {
   min-height: 100vh;
   background-color: var(--bg-app);
   color: var(--text-main);
+  overflow-x: hidden;
+  max-width: 100%;
 }
 
 /* Material Design Sidebar Drawer */

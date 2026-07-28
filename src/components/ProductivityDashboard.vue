@@ -230,6 +230,10 @@
 import { ref, computed } from 'vue';
 import { useStore } from 'vuex';
 
+const getLocalDateString = (d = new Date()) => {
+  return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().split('T')[0];
+};
+
 export default {
   name: 'ProductivityDashboard',
   setup() {
@@ -248,7 +252,7 @@ export default {
       for (let i = 29; i >= 0; i--) {
         const d = new Date(now);
         d.setDate(d.getDate() - i);
-        const isoKey = d.toISOString().split('T')[0];
+        const isoKey = getLocalDateString(d);
         const dayOfWeek = d.toLocaleDateString('id-ID', { weekday: 'short' });
         const shortDate = `${d.getDate()}/${d.getMonth() + 1}`;
         const fullDate = d.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });

@@ -348,6 +348,10 @@
 import { computed, ref, onMounted } from 'vue';
 import { useStore } from 'vuex';
 
+const getLocalDateString = (d = new Date()) => {
+  return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().split('T')[0];
+};
+
 export default {
   name: 'HabitTrackerView',
   setup() {
@@ -382,14 +386,14 @@ export default {
       setTimeout(() => (toast.value.show = false), 3000);
     };
 
-    const todayStr = computed(() => new Date().toISOString().split('T')[0]);
+    const todayStr = computed(() => getLocalDateString());
 
     const past7Days = computed(() => {
       const days = [];
       for (let i = 6; i >= 0; i--) {
         const d = new Date();
         d.setDate(d.getDate() - i);
-        const dateStr = d.toISOString().split('T')[0];
+        const dateStr = getLocalDateString(d);
         const dayName = d.toLocaleDateString('id-ID', { weekday: 'short' });
         const shortDate = `${d.getDate()}/${d.getMonth() + 1}`;
         days.push({ dateStr, dayName, shortDate });
@@ -402,7 +406,7 @@ export default {
       for (let i = 29; i >= 0; i--) {
         const d = new Date();
         d.setDate(d.getDate() - i);
-        const dateStr = d.toISOString().split('T')[0];
+        const dateStr = getLocalDateString(d);
         const shortDate = `${d.getDate()}/${d.getMonth() + 1}`;
         days.push({ dateStr, shortDate });
       }
@@ -447,10 +451,10 @@ export default {
       let streak = 0;
       const today = new Date();
 
-      const todayDateStr = today.toISOString().split('T')[0];
+      const todayDateStr = getLocalDateString(today);
       const yesterday = new Date(today);
       yesterday.setDate(yesterday.getDate() - 1);
-      const yesterdayDateStr = yesterday.toISOString().split('T')[0];
+      const yesterdayDateStr = getLocalDateString(yesterday);
 
       let startOffset = 0;
       if (habit.history[todayDateStr]) {
@@ -464,7 +468,7 @@ export default {
       for (let i = startOffset; i < 365; i++) {
         const d = new Date(today);
         d.setDate(d.getDate() - i);
-        const dateStr = d.toISOString().split('T')[0];
+        const dateStr = getLocalDateString(d);
         if (habit.history[dateStr]) {
           streak++;
         } else {
