@@ -67,7 +67,7 @@ export default {
       const height = 450;
 
       scene = new THREE.Scene();
-      scene.background = new THREE.Color(0x0f172a);
+      scene.background = new THREE.Color(0x1e293b);
 
       camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 100);
       camera.position.set(0, 7.5, 8.5);
@@ -90,12 +90,18 @@ export default {
       mouse = new THREE.Vector2();
 
       // Lights
-      const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
+      const ambientLight = new THREE.AmbientLight(0xffffff, 0.85);
       scene.add(ambientLight);
 
-      const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+      const hemiLight = new THREE.HemisphereLight(0xffffff, 0x475569, 0.65);
+      scene.add(hemiLight);
+
+      const dirLight = new THREE.DirectionalLight(0xffffff, 1.45);
       dirLight.position.set(5, 12, 5);
       dirLight.castShadow = true;
+      dirLight.shadow.mapSize.width = 1024;
+      dirLight.shadow.mapSize.height = 1024;
+      dirLight.shadow.bias = -0.0005;
       scene.add(dirLight);
 
       // Build checkerboard mesh and setup initial state

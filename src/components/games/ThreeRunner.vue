@@ -86,8 +86,8 @@ export default {
       const height = 450;
 
       rScene = new THREE.Scene();
-      rScene.background = new THREE.Color(0x0a0a16);
-      rScene.fog = new THREE.Fog(0x0a0a16, 10, 30);
+      rScene.background = new THREE.Color(0x1e293b);
+      rScene.fog = new THREE.Fog(0x1e293b, 10, 35);
 
       rCamera = new THREE.PerspectiveCamera(60, width / height, 0.1, 100);
       rCamera.position.set(0, 3.2, 5.5);
@@ -101,10 +101,13 @@ export default {
       runnerCanvasHolder.value.appendChild(rRenderer.domElement);
 
       // Lights
-      const amb = new THREE.AmbientLight(0xffffff, 0.7);
+      const amb = new THREE.AmbientLight(0xffffff, 1.0);
       rScene.add(amb);
 
-      const dir = new THREE.DirectionalLight(0xffb703, 1.2);
+      const hemi = new THREE.HemisphereLight(0xffffff, 0x475569, 0.65);
+      rScene.add(hemi);
+
+      const dir = new THREE.DirectionalLight(0xffb703, 1.85);
       dir.position.set(5, 10, 5);
       rScene.add(dir);
 

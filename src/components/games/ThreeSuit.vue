@@ -78,7 +78,7 @@ export default {
       const height = 450;
 
       scene = new THREE.Scene();
-      scene.background = new THREE.Color(0x0a0f1d); // Deep cosmic dark blue
+      scene.background = new THREE.Color(0x1e293b);
 
       camera = new THREE.PerspectiveCamera(40, width / height, 0.1, 100);
       camera.position.set(0, 3, 7.5);
@@ -91,15 +91,20 @@ export default {
       canvasContainer.value.appendChild(renderer.domElement);
 
       // Lights
-      const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
+      const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
       scene.add(ambientLight);
 
-      const light1 = new THREE.DirectionalLight(0xffffff, 0.8);
+      const hemiLight = new THREE.HemisphereLight(0xffffff, 0x475569, 0.6);
+      scene.add(hemiLight);
+
+      const light1 = new THREE.DirectionalLight(0xffffff, 1.4);
       light1.position.set(-3, 8, 3);
       light1.castShadow = true;
+      light1.shadow.mapSize.width = 1024;
+      light1.shadow.mapSize.height = 1024;
       scene.add(light1);
 
-      const light2 = new THREE.DirectionalLight(0xffffff, 0.4);
+      const light2 = new THREE.DirectionalLight(0xffffff, 0.7);
       light2.position.set(3, 8, -3);
       scene.add(light2);
 

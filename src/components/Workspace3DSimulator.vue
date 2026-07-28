@@ -148,8 +148,8 @@ export default {
 
       // 1. Scene
       scene = new THREE.Scene();
-      scene.background = new THREE.Color(0x0f172a);
-      scene.fog = new THREE.FogExp2(0x0f172a, 0.025);
+      scene.background = new THREE.Color(0x1e293b);
+      scene.fog = new THREE.FogExp2(0x1e293b, 0.025);
 
       // 2. Camera
       camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 100);
@@ -200,10 +200,13 @@ export default {
     };
 
     const setupLights = () => {
-      ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+      ambientLight = new THREE.AmbientLight(0xffffff, 1.0);
       scene.add(ambientLight);
 
-      directionalLight = new THREE.DirectionalLight(0xfff8e7, 1.2);
+      const hemiLight = new THREE.HemisphereLight(0xffffff, 0x475569, 0.5);
+      scene.add(hemiLight);
+
+      directionalLight = new THREE.DirectionalLight(0xfff8e7, 1.8);
       directionalLight.position.set(4, 8, 4);
       directionalLight.castShadow = true;
       directionalLight.shadow.mapSize.width = 2048;
@@ -612,15 +615,15 @@ export default {
     const toggleNightMode = () => {
       isNightMode.value = !isNightMode.value;
       if (isNightMode.value) {
-        scene.background.setHex(0x020617);
-        scene.fog.color.setHex(0x020617);
-        ambientLight.intensity = 0.2;
-        directionalLight.intensity = 0.3;
+        scene.background.setHex(0x0a0f1d);
+        scene.fog.color.setHex(0x0a0f1d);
+        ambientLight.intensity = 0.4;
+        directionalLight.intensity = 0.6;
       } else {
-        scene.background.setHex(0x0f172a);
-        scene.fog.color.setHex(0x0f172a);
-        ambientLight.intensity = 0.6;
-        directionalLight.intensity = 1.2;
+        scene.background.setHex(0x1e293b);
+        scene.fog.color.setHex(0x1e293b);
+        ambientLight.intensity = 1.0;
+        directionalLight.intensity = 1.8;
       }
     };
 

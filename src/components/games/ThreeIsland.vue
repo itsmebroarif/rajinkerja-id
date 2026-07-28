@@ -125,14 +125,14 @@ export default {
       controls.maxDistance = 25;
 
       // 5. Lights
-      const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+      const ambientLight = new THREE.AmbientLight(0xffffff, 0.95);
       scene.add(ambientLight);
 
-      const hemiLight = new THREE.HemisphereLight(0xffffff, 0xffe4e1, 0.4);
+      const hemiLight = new THREE.HemisphereLight(0xffffff, 0xffe4e1, 0.85);
       hemiLight.position.set(0, 50, 0);
       scene.add(hemiLight);
 
-      const dirLight = new THREE.DirectionalLight(0xfff8dc, 1.2);
+      const dirLight = new THREE.DirectionalLight(0xfff8dc, 1.85);
       dirLight.position.set(20, 40, 20);
       dirLight.castShadow = true;
       dirLight.shadow.mapSize.width = 1024;
