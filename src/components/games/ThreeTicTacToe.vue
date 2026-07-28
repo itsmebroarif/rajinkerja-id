@@ -65,7 +65,7 @@ export default {
       const height = 450;
 
       scene = new THREE.Scene();
-      scene.background = new THREE.Color(0x0f172a); // dark indigo
+      scene.background = new THREE.Color(0x1e293b); // Lighter slate grey
 
       // Camera positioned looking down slightly at an angle
       camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 100);
@@ -76,26 +76,39 @@ export default {
       renderer.setSize(width, height);
       renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
       renderer.shadowMap.enabled = true;
+      renderer.shadowMap.type = THREE.PCFSoftShadowMap;
       canvasContainer.value.appendChild(renderer.domElement);
 
       raycaster = new THREE.Raycaster();
       mouse = new THREE.Vector2();
 
       // Lights
-      const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+      const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
       scene.add(ambientLight);
 
-      const dirLight = new THREE.DirectionalLight(0xffffff, 1.0);
-      dirLight.position.set(5, 10, 5);
+      const hemiLight = new THREE.HemisphereLight(0xffffff, 0x475569, 0.7);
+      scene.add(hemiLight);
+
+      const dirLight = new THREE.DirectionalLight(0xffffff, 1.4);
+      dirLight.position.set(6, 12, 6);
       dirLight.castShadow = true;
+      dirLight.shadow.mapSize.width = 1024;
+      dirLight.shadow.mapSize.height = 1024;
+      dirLight.shadow.camera.near = 0.5;
+      dirLight.shadow.camera.far = 25;
+      dirLight.shadow.camera.left = -4;
+      dirLight.shadow.camera.right = 4;
+      dirLight.shadow.camera.top = 4;
+      dirLight.shadow.camera.bottom = -4;
+      dirLight.shadow.bias = -0.0005;
       scene.add(dirLight);
 
-      const pointLight1 = new THREE.PointLight(0x0ea5e9, 2, 10);
-      pointLight1.position.set(-3, 2, -3);
+      const pointLight1 = new THREE.PointLight(0x0ea5e9, 3.5, 12);
+      pointLight1.position.set(-4, 3, -4);
       scene.add(pointLight1);
 
-      const pointLight2 = new THREE.PointLight(0xec4899, 2, 10);
-      pointLight2.position.set(3, 2, 3);
+      const pointLight2 = new THREE.PointLight(0xec4899, 3.5, 12);
+      pointLight2.position.set(4, 3, 4);
       scene.add(pointLight2);
 
       // Build Board Grid lines
@@ -113,14 +126,14 @@ export default {
     const buildGridLines = () => {
       // Create a nice metallic main board platform
       const baseGeo = new THREE.BoxGeometry(4.8, 0.1, 4.8);
-      const baseMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.4, metalness: 0.6 });
+      const baseMat = new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.25, metalness: 0.6 });
       const baseMesh = new THREE.Mesh(baseGeo, baseMat);
       baseMesh.position.y = -0.05;
       baseMesh.receiveShadow = true;
       scene.add(baseMesh);
 
       // Grid dividers
-      const dividerMat = new THREE.MeshStandardMaterial({ color: 0x475569, metalness: 0.8, roughness: 0.1 });
+      const dividerMat = new THREE.MeshStandardMaterial({ color: 0xcbd5e1, metalness: 0.85, roughness: 0.1 });
       const linePositions = [
         [-0.8, 0.05, 0], [0.8, 0.05, 0], // vertical
         [0, 0.05, -0.8], [0, 0.05, 0.8]  // horizontal
