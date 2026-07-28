@@ -438,7 +438,6 @@ export default {
         renderer.domElement.removeEventListener('pointerdown', onCanvasClick);
         renderer.domElement.removeEventListener('pointermove', onMouseMove);
         renderer.dispose();
-        if (renderer.domElement) renderer.domElement.remove();
       }
     });
 

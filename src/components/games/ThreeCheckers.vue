@@ -512,7 +512,6 @@ export default {
       if (renderer) {
         renderer.domElement.removeEventListener('pointerdown', onCanvasClick);
         renderer.dispose();
-        if (renderer.domElement) renderer.domElement.remove();
       }
     });
 

@@ -685,7 +685,6 @@ export default {
       window.removeEventListener('resize', onWindowResize);
       if (renderer) {
         renderer.dispose();
-        if (renderer.domElement) renderer.domElement.remove();
       }
     });
 

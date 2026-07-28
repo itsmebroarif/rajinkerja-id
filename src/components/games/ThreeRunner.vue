@@ -262,7 +262,6 @@ export default {
       if (rAnimationFrame) cancelAnimationFrame(rAnimationFrame);
       if (rRenderer) {
         rRenderer.dispose();
-        if (rRenderer.domElement) rRenderer.domElement.remove();
       }
     });
 
