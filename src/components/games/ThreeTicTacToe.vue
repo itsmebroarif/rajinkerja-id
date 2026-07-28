@@ -209,7 +209,7 @@ export default {
 
       if (playerCode === 'X') {
         // Redrawn cyan metallic 'X'
-        const mat = new THREE.MeshStandardMaterial({ color: 0x06b6d4, roughness: 0.2, metalness: 0.9 });
+        const mat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.25, metalness: 0.8 });
         
         const stickGeo = new THREE.CylinderGeometry(0.12, 0.12, 1.1, 12);
         

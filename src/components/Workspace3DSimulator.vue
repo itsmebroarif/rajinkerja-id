@@ -615,10 +615,10 @@ export default {
     const toggleNightMode = () => {
       isNightMode.value = !isNightMode.value;
       if (isNightMode.value) {
-        scene.background.setHex(0x0a0f1d);
-        scene.fog.color.setHex(0x0a0f1d);
-        ambientLight.intensity = 0.4;
-        directionalLight.intensity = 0.6;
+        scene.background.setHex(0x0f172a);
+        scene.fog.color.setHex(0x0f172a);
+        ambientLight.intensity = 0.7;
+        directionalLight.intensity = 1.0;
       } else {
         scene.background.setHex(0x1e293b);
         scene.fog.color.setHex(0x1e293b);
@@ -733,6 +733,7 @@ export default {
   padding: 2px 24px 2px 8px;
 }
 </style>
+
 
 
 

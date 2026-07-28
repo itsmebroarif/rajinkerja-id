@@ -22,16 +22,16 @@
     </div>
 
     <div ref="runnerCanvasHolder" class="runner-canvas-holder w-100 position-relative" style="height: 450px;">
-      <!-- Overlay Game Controls / Start Screen -->
+      <!-- Overlay Game Controls / Start Screen / Game Over -->
       <div v-if="!runnerPlaying" class="position-absolute top-0 start-0 w-100 h-100 d-flex flex-column align-items-center justify-content-center bg-black bg-opacity-75 backdrop-blur text-center p-4" style="z-index: 20;">
-        <div class="display-3 mb-2">🚀</div>
-        <h2 class="fw-extrabold text-white mb-2">3D Task Runner</h2>
+        <div class="display-3 mb-2">{{ isGameOver ? '💥' : '🚀' }}</div>
+        <h2 class="fw-extrabold text-white mb-2">{{ isGameOver ? 'Game Over!' : '3D Task Runner' }}</h2>
         <p class="text-white-50 mb-4" style="max-width: 440px;">
-          Gunakan tombol <kbd class="bg-secondary text-white">A / D</kbd> atau <kbd class="bg-secondary text-white">Left / Right</kbd> untuk pindah jalur, dan <kbd class="bg-secondary text-white">Space / Up</kbd> untuk Lompat!
+          {{ isGameOver ? `Skor Akhir Anda: ${runnerScore}.` : 'Gunakan tombol A / D atau Left / Right untuk pindah jalur, dan Space / Up untuk Lompat!' }}
         </p>
         <button class="btn btn-warning btn-lg px-5 py-3 rounded-pill fw-bold shadow-lg d-flex align-items-center gap-2 fs-5 text-dark" @click="startRunnerGame">
           <i class="bi bi-play-fill fs-3"></i>
-          <span>MULAI MAIN</span>
+          <span>{{ isGameOver ? 'MAIN LAGI' : 'MULAI MAIN' }}</span>
         </button>
       </div>
 
@@ -63,6 +63,7 @@ export default {
   setup() {
     const runnerCanvasHolder = ref(null);
     const runnerPlaying = ref(false);
+    const isGameOver = ref(false);
     const runnerScore = ref(0);
     const runnerHighScore = ref(parseInt(localStorage.getItem('ft_runner_highscore') || '0', 10));
 
@@ -75,6 +76,7 @@ export default {
     const startRunnerGame = () => {
       runnerScore.value = 0;
       runnerPlaying.value = true;
+      isGameOver.value = false;
       rCurrentLane = 0;
       initRunnerThree();
     };
@@ -196,8 +198,8 @@ export default {
             rPlayer.position.y < 0.9) {
           // Game Over!
           runnerPlaying.value = false;
+          isGameOver.value = true;
           cancelAnimationFrame(rAnimationFrame);
-          alert(`Game Over! Skor Akhir Anda: ${runnerScore.value}`);
           return;
         }
 
@@ -268,6 +270,7 @@ export default {
     return {
       runnerCanvasHolder,
       runnerPlaying,
+      isGameOver,
       runnerScore,
       runnerHighScore,
       startRunnerGame,

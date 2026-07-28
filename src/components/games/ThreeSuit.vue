@@ -91,31 +91,31 @@ export default {
       canvasContainer.value.appendChild(renderer.domElement);
 
       // Lights
-      const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
+      const ambientLight = new THREE.AmbientLight(0xffffff, 1.25);
       scene.add(ambientLight);
 
-      const hemiLight = new THREE.HemisphereLight(0xffffff, 0x475569, 0.6);
+      const hemiLight = new THREE.HemisphereLight(0xffffff, 0x475569, 0.95);
       scene.add(hemiLight);
 
-      const light1 = new THREE.DirectionalLight(0xffffff, 1.4);
+      const light1 = new THREE.DirectionalLight(0xffffff, 2.2);
       light1.position.set(-3, 8, 3);
       light1.castShadow = true;
       light1.shadow.mapSize.width = 1024;
       light1.shadow.mapSize.height = 1024;
       scene.add(light1);
 
-      const light2 = new THREE.DirectionalLight(0xffffff, 0.7);
+      const light2 = new THREE.DirectionalLight(0xffffff, 1.25);
       light2.position.set(3, 8, -3);
       scene.add(light2);
 
       // Colored spotlights onto pedestals
-      const playerSpot = new THREE.SpotLight(0x06b6d4, 5, 8, Math.PI / 6, 0.5);
+      const playerSpot = new THREE.SpotLight(0x06b6d4, 9, 10, Math.PI / 6, 0.5);
       playerSpot.position.set(-1.8, 4, 1);
       playerSpot.target.position.set(-1.8, 0.8, 0);
       scene.add(playerSpot);
       scene.add(playerSpot.target);
 
-      const aiSpot = new THREE.SpotLight(0xec4899, 5, 8, Math.PI / 6, 0.5);
+      const aiSpot = new THREE.SpotLight(0xec4899, 9, 10, Math.PI / 6, 0.5);
       aiSpot.position.set(1.8, 4, 1);
       aiSpot.target.position.set(1.8, 0.8, 0);
       scene.add(aiSpot);

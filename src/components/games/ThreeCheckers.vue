@@ -157,7 +157,7 @@ export default {
 
       const pieceGeo = new THREE.CylinderGeometry(0.36, 0.38, 0.16, 24);
       const playerMat = new THREE.MeshStandardMaterial({ color: 0xef4444, metalness: 0.5, roughness: 0.2 }); // Red
-      const aiMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, metalness: 0.5, roughness: 0.2 }); // Black/Dark Grey
+      const aiMat = new THREE.MeshStandardMaterial({ color: 0x888888, metalness: 0.5, roughness: 0.2 }); // Grey
 
       for (let row = 0; row < 8; row++) {
         for (let col = 0; col < 8; col++) {
