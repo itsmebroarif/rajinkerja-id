@@ -59,19 +59,19 @@ npx cap open android
 
 ## 📝 Daftar Tugas Pengembangan Mobile (TODO Checklist)
 
-- [ ] **Langkah 1: Setup Core & CLI**
-  - [ ] Pasang dependensi `@capacitor/core` dan `@capacitor/cli`
-  - [ ] Jalankan perintah inisialisasi `npx cap init`
+- [x] **Langkah 1: Setup Core & CLI**
+  - [x] Pasang dependensi `@capacitor/core` dan `@capacitor/cli`
+  - [x] Jalankan perintah inisialisasi `npx cap init`
 - [ ] **Langkah 2: Optimasi Responsivitas UI**
-  - [ ] Tambahkan component Bottom Navigation Bar khusus untuk viewport `< 768px`
+  - [ ] Tambahkan component Bottom Navigation Bar khusus untuk viewport `< 768px` (Sudah ada default di App.vue, tinggal verifikasi dan kustomisasi)
   - [ ] Terapkan CSS `env(safe-area-inset-top)` di `App.vue`
   - [ ] Ubah tombol-tombol kecil agar memiliki minimal padding sentuh 10px
 - [ ] **Langkah 3: Integrasi Plugin Native**
   - [ ] Pasang `@capacitor/status-bar` agar status bar HP sewarna dengan tema aplikasi
   - [ ] Pasang `@capacitor/screen-orientation` khusus untuk mengunci landscape layar game 3D
 - [ ] **Langkah 4: Pengujian & Build APK**
-  - [ ] Jalankan build produksi dan lakukan `npx cap sync android`
+  - [x] Jalankan build produksi dan lakukan `npx cap sync android`
   - [ ] Jalankan debugging di HP android asli untuk memantau performa render 3D Three.js
-  - [ ] Ekspor file menjadi format `.apk` / `.aab` siap rilis
+  - [ ] Ekspor file menjadi format `.apk` / `.aab` siap rilis (Gunakan Android Studio untuk compile native via gradlew karena local terminal tidak terpasang JDK)
 
 
