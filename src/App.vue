@@ -85,6 +85,11 @@
           <span v-if="!isCollapsed" class="nav-label">Notes & Scratchpad</span>
         </router-link>
 
+        <router-link to="/games" class="material-nav-link" title="Mini Games & 3D Simulator">
+          <i class="bi bi-controller me-3 fs-5 nav-icon text-purple"></i>
+          <span v-if="!isCollapsed" class="nav-label">3D Games & Simulator</span>
+        </router-link>
+
         <div class="sidebar-divider my-2"></div>
 
         <!-- GROUP 4: SISTEM & PANDUAN -->
@@ -186,6 +191,7 @@
             <div class="sidebar-section-header px-1">PRODUKTIVITAS & AGENDA</div>
             <router-link to="/calendar" class="material-nav-link"><i class="bi bi-calendar3 me-3 text-warning"></i>Kalender & Agenda</router-link>
             <router-link to="/notes" class="material-nav-link"><i class="bi bi-journal-text me-3 text-secondary"></i>Notes & Scratchpad</router-link>
+            <router-link to="/games" class="material-nav-link"><i class="bi bi-controller me-3 text-purple"></i>3D Games & Simulator</router-link>
 
             <div class="sidebar-divider my-2"></div>
             <div class="sidebar-section-header px-1">SISTEM & PANDUAN</div>

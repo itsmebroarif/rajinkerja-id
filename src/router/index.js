@@ -37,6 +37,11 @@ const routes = [
     component: () => import("../views/moneyTracker.vue"),
   },
   {
+    path: "/games",
+    name: "games",
+    component: () => import("../views/MiniGamesView.vue"),
+  },
+  {
     path: "/habits",
     redirect: "/",
   },

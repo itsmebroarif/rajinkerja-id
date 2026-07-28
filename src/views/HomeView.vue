@@ -176,10 +176,21 @@
                 <small class="text-muted">Lihat seluruh jadwal deadline dan jatuh tempo invoice</small>
               </div>
             </router-link>
+
+            <router-link to="/games" class="p-3 bg-light rounded-3 border text-decoration-none d-flex align-items-center gap-3 hover-card">
+              <div class="p-3 bg-purple text-white rounded-3 fs-4"><i class="bi bi-controller"></i></div>
+              <div>
+                <h6 class="fw-bold text-dark mb-0">3D Mini Games & Office Simulator</h6>
+                <small class="text-muted">Mainkan 3D Task Runner, Stacker & 3D Setup Desk</small>
+              </div>
+            </router-link>
           </div>
         </div>
       </div>
     </div>
+
+    <!-- 3D WORKSPACE SETUP SIMULATOR AT BOTTOM OF DASHBOARD -->
+    <Workspace3DSimulator />
   </div>
 </template>
 
@@ -187,11 +198,13 @@
 import { computed } from 'vue';
 import { useStore } from 'vuex';
 import ProductivityDashboard from '@/components/ProductivityDashboard.vue';
+import Workspace3DSimulator from '@/components/Workspace3DSimulator.vue';
 
 export default {
   name: 'HomeView',
   components: {
-    ProductivityDashboard
+    ProductivityDashboard,
+    Workspace3DSimulator
   },
   setup() {
     const store = useStore();
