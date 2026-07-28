@@ -40,8 +40,6 @@ npx cap init RajinKerja id.rajinkerja.app --web-dir=dist
 ```bash
 npm install @capacitor/android @capacitor/ios
 npx cap add android
-# jika menggunakan Mac, jalankan juga:
-npx cap add ios
 ```
 
 ### 4. Compile & Sinkronisasi Kode
@@ -75,3 +73,5 @@ npx cap open android
   - [ ] Jalankan build produksi dan lakukan `npx cap sync android`
   - [ ] Jalankan debugging di HP android asli untuk memantau performa render 3D Three.js
   - [ ] Ekspor file menjadi format `.apk` / `.aab` siap rilis
+
+
