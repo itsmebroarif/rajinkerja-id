@@ -1,11 +1,5 @@
 import { createStore } from 'vuex';
 
-// Helper to get local date string YYYY-MM-DD without timezone shifting
-const getLocalDateString = (d = new Date()) => {
-  return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().split('T')[0];
-};
-
-
 // Default empty datasets as requested: "buat semuanya dari raw dan kosong tanpa ada data apa apa"
 const DEFAULT_CONTACTS = [];
 const DEFAULT_PROJECTS = [];
@@ -306,10 +300,8 @@ export default createStore({
         task.done = !task.done;
         if (task.done) {
           task.statusColumn = 'done';
-          task.completedAt = getLocalDateString();
         } else {
           task.statusColumn = 'todo';
-          task.completedAt = null;
         }
         saveLocal('ft_tasks', state.tasks);
       }
@@ -319,11 +311,6 @@ export default createStore({
       if (task) {
         task.statusColumn = statusColumn;
         task.done = (statusColumn === 'done');
-        if (task.done) {
-          task.completedAt = getLocalDateString();
-        } else {
-          task.completedAt = null;
-        }
         saveLocal('ft_tasks', state.tasks);
       }
     },
@@ -587,7 +574,7 @@ export default createStore({
         eisenhower: 'do_first',
         level: 'Menengah',
         projectTag: 'Umum',
-        deadline: getLocalDateString(),
+        deadline: new Date().toISOString().split('T')[0],
         done: false,
         ...t,
         id: 't_' + (Date.now() + i) + Math.random().toString(36).substr(2, 4)

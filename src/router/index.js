@@ -27,6 +27,19 @@ const routes = [
     component: () => import("../views/todoList.vue"),
   },
   {
+    path: "/tasks",
+    redirect: "/todo",
+  },
+  {
+    path: "/tasks/:id",
+    name: "task-detail",
+    component: () => import("../views/TaskDetailView.vue"),
+  },
+  {
+    path: "/todo/:id",
+    redirect: to => `/tasks/${to.params.id}`,
+  },
+  {
     path: "/project",
     name: "project",
     component: () => import("../views/projectManagement.vue"),
@@ -54,6 +67,11 @@ const routes = [
     path: "/notes",
     name: "notes",
     component: () => import("../views/StickyNotesView.vue"),
+  },
+  {
+    path: "/notes/:id",
+    name: "note-detail",
+    component: () => import("../views/NoteDetailView.vue"),
   },
   {
     path: "/settings",

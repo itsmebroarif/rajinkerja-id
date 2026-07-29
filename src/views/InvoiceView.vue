@@ -339,10 +339,6 @@ import { useRoute } from 'vue-router';
 import { jsPDF } from 'jspdf';
 import * as XLSX from 'xlsx';
 
-const getLocalDateString = (d = new Date()) => {
-  return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().split('T')[0];
-};
-
 export default {
   name: 'InvoiceView',
   setup() {
@@ -360,8 +356,8 @@ export default {
 
     const invoice = ref({
       invoiceNumber: 'INV-' + new Date().getFullYear() + '-001',
-      issueDate: getLocalDateString(),
-      dueDate: getLocalDateString(new Date(Date.now() + 14 * 86400000)),
+      issueDate: new Date().toISOString().split('T')[0],
+      dueDate: new Date(Date.now() + 14 * 86400000).toISOString().split('T')[0],
       clientName: '',
       clientEmail: '',
       clientAddress: '',

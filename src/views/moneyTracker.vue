@@ -489,10 +489,6 @@ import { computed, ref, onMounted } from 'vue';
 import { useStore } from 'vuex';
 import * as XLSX from 'xlsx';
 
-const getLocalDateString = (d = new Date()) => {
-  return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().split('T')[0];
-};
-
 export default {
   name: 'MoneyTracker',
   setup() {
@@ -515,7 +511,7 @@ export default {
       item: '',
       amount: '',
       type: 'income',
-      date: getLocalDateString(),
+      date: new Date().toISOString().split('T')[0],
       category: 'Web Development',
       method: 'Bank Transfer',
       track: ''
@@ -526,8 +522,7 @@ export default {
     const bulkError = ref('');
     const bulkDefault = ref({
       type: 'income',
-      type: 'income',
-      date: getLocalDateString()
+      date: new Date().toISOString().split('T')[0]
     });
 
     const transactions = computed(() => store.getters.getTransactions);
@@ -629,7 +624,7 @@ export default {
         item: '',
         amount: '',
         type: 'income',
-        date: getLocalDateString(),
+        date: new Date().toISOString().split('T')[0],
         category: 'Web Development',
         method: 'Bank Transfer',
         track: ''

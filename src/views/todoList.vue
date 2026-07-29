@@ -1,24 +1,23 @@
 <template>
   <div class="container-fluid p-0" data-aos="fade-up">
     <!-- Header Banner -->
-    <div
-      class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3 bg-white p-4 rounded-4 shadow-sm border">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3 bg-white p-4 rounded-4 shadow-sm border">
       <div>
         <div class="d-flex align-items-center gap-2 mb-1">
-          <span class="badge bg-warning-subtle text-warning-emphasis fw-semibold px-3 py-2 rounded-pill">Task Manager
-            Pro</span>
+          <span class="badge bg-warning-subtle text-warning-emphasis fw-semibold px-3 py-2 rounded-pill">Task Manager Pro</span>
           <span class="badge bg-light text-dark border px-3 py-2 rounded-pill">5 View Modes</span>
         </div>
         <h2 class="fw-bold mb-1 text-dark">📝 To-Do & Activity Tracker</h2>
-        <p class="text-muted mb-0">Atur prioritas, tugas berulang (recurring), papan Kanban, matriks Eisenhower, dan
-          timeline deadline.</p>
+        <p class="text-muted mb-0">Atur prioritas, tugas berulang (recurring), papan Kanban, matriks Eisenhower, dan timeline deadline.</p>
       </div>
       <div class="d-flex flex-wrap gap-2">
         <button class="btn btn-outline-success px-3 py-2 rounded-3 fw-semibold" @click="exportToExcel">
           <i class="bi bi-file-earmark-excel-fill me-1 text-success"></i> Export Excel
         </button>
-        <button class="btn btn-primary px-4 py-2 rounded-3 fw-semibold d-flex align-items-center gap-2 shadow-sm"
-          @click="toggleShowForm">
+        <button
+          class="btn btn-primary px-4 py-2 rounded-3 fw-semibold d-flex align-items-center gap-2 shadow-sm"
+          @click="toggleShowForm"
+        >
           <i :class="showForm ? 'bi bi-x-lg' : 'bi bi-plus-lg'" class="fs-5"></i>
           <span>{{ showForm ? 'Tutup Form' : 'Tambah / Bulk Input' }}</span>
         </button>
@@ -30,12 +29,19 @@
       <div class="card-header bg-transparent border-bottom p-4 d-flex justify-content-between align-items-center">
         <div class="d-flex align-items-center gap-3">
           <div class="btn-group" role="group">
-            <button class="btn btn-sm px-3 py-1 fw-semibold"
-              :class="formTab === 'single' ? 'btn-primary' : 'btn-outline-primary'" @click="formTab = 'single'">
+            <button
+              class="btn btn-sm px-3 py-1 fw-semibold"
+              :class="formTab === 'single' ? 'btn-primary' : 'btn-outline-primary'"
+              @click="formTab = 'single'"
+            >
               <i class="bi bi-pencil-square me-1"></i> Input Tunggal {{ isEditing ? '(Edit)' : '' }}
             </button>
-            <button v-if="!isEditing" class="btn btn-sm px-3 py-1 fw-semibold"
-              :class="formTab === 'bulk' ? 'btn-primary' : 'btn-outline-primary'" @click="formTab = 'bulk'">
+            <button
+              v-if="!isEditing"
+              class="btn btn-sm px-3 py-1 fw-semibold"
+              :class="formTab === 'bulk' ? 'btn-primary' : 'btn-outline-primary'"
+              @click="formTab = 'bulk'"
+            >
               <i class="bi bi-stack me-1"></i> Input Bulk (Banyak Task)
             </button>
           </div>
@@ -49,8 +55,13 @@
           <div class="row g-3">
             <div class="col-md-8">
               <label class="form-label fw-semibold">Nama Tugas / Activity <span class="text-danger">*</span></label>
-              <input type="text" class="form-control" :class="{ 'is-invalid': formErrors.name }"
-                placeholder="Contoh: Selesaikan Wireframe UI Landing Page" v-model="form.name" />
+              <input
+                type="text"
+                class="form-control"
+                :class="{ 'is-invalid': formErrors.name }"
+                placeholder="Contoh: Selesaikan Wireframe UI Landing Page"
+                v-model="form.name"
+              />
               <div class="invalid-feedback" v-if="formErrors.name">{{ formErrors.name }}</div>
             </div>
 
@@ -76,8 +87,7 @@
 
             <div class="col-md-4">
               <label class="form-label fw-semibold">Proyek / Tag</label>
-              <input type="text" class="form-control" placeholder="Contoh: Mobile App, Design"
-                v-model="form.projectTag" />
+              <input type="text" class="form-control" placeholder="Contoh: Mobile App, Design" v-model="form.projectTag" />
             </div>
 
             <div class="col-md-4">
@@ -92,8 +102,12 @@
 
             <div class="col-md-4">
               <label class="form-label fw-semibold">Target Deadline <span class="text-danger">*</span></label>
-              <input type="date" class="form-control" :class="{ 'is-invalid': formErrors.deadline }"
-                v-model="form.deadline" />
+              <input
+                type="date"
+                class="form-control"
+                :class="{ 'is-invalid': formErrors.deadline }"
+                v-model="form.deadline"
+              />
               <div class="invalid-feedback" v-if="formErrors.deadline">{{ formErrors.deadline }}</div>
             </div>
 
@@ -119,8 +133,7 @@
 
             <div class="col-12">
               <label class="form-label fw-semibold">Catatan / Detail Pekerjaan</label>
-              <textarea class="form-control" rows="2" placeholder="Detail petunjuk atau link..."
-                v-model="form.notes"></textarea>
+              <textarea class="form-control" rows="2" placeholder="Detail petunjuk atau link..." v-model="form.notes"></textarea>
             </div>
 
             <div class="col-12 text-end pt-3 border-top">
@@ -138,14 +151,16 @@
             <div class="col-12">
               <div class="alert alert-info py-2 small mb-2 d-flex align-items-center gap-2">
                 <i class="bi bi-info-circle-fill fs-5"></i>
-                <span>Tulis atau paste daftar nama tugas (1 nama tugas per baris). Semua akan dimasukkan sekaligus
-                  secara otomatis!</span>
+                <span>Tulis atau paste daftar nama tugas (1 nama tugas per baris). Semua akan dimasukkan sekaligus secara otomatis!</span>
               </div>
-              <label class="form-label fw-semibold">Daftar Task (Satu per baris) <span
-                  class="text-danger">*</span></label>
-              <textarea class="form-control font-monospace" rows="5"
+              <label class="form-label fw-semibold">Daftar Task (Satu per baris) <span class="text-danger">*</span></label>
+              <textarea
+                class="form-control font-monospace"
+                rows="5"
                 placeholder="Design logo landing page&#10;Kirim email penawaran ke Pak Budi&#10;Selesaikan skema database PostgreSQL"
-                v-model="bulkText" :class="{ 'is-invalid': bulkError }"></textarea>
+                v-model="bulkText"
+                :class="{ 'is-invalid': bulkError }"
+              ></textarea>
               <div class="invalid-feedback" v-if="bulkError">{{ bulkError }}</div>
             </div>
 
@@ -184,20 +199,20 @@
       <div class="row align-items-center">
         <div class="col-md-8">
           <div class="d-flex align-items-center justify-content-between mb-2">
-            <h6 class="fw-bold text-dark mb-0"><i class="bi bi-bar-chart-line-fill text-primary me-2"></i>Kemajuan Tugas
-              Keseluruhan</h6>
+            <h6 class="fw-bold text-dark mb-0"><i class="bi bi-bar-chart-line-fill text-primary me-2"></i>Kemajuan Tugas Keseluruhan</h6>
             <span class="fw-bold text-primary fs-5">{{ completionPercent }}% Selesai</span>
           </div>
           <div class="progress rounded-pill style-progress" style="height: 12px;">
-            <div class="progress-bar bg-success progress-bar-striped progress-bar-animated" role="progressbar"
-              :style="{ width: completionPercent + '%' }"></div>
+            <div
+              class="progress-bar bg-success progress-bar-striped progress-bar-animated"
+              role="progressbar"
+              :style="{ width: completionPercent + '%' }"
+            ></div>
           </div>
           <div class="d-flex flex-wrap gap-4 mt-3 small text-muted">
             <div><i class="bi bi-list-task text-primary me-1"></i> Total: <strong>{{ tasks.length }}</strong></div>
-            <div><i class="bi bi-check-circle-fill text-success me-1"></i> Selesai: <strong>{{ completedCount
-            }}</strong></div>
-            <div><i class="bi bi-clock-history text-warning me-1"></i> Pending: <strong>{{ pendingCount }}</strong>
-            </div>
+            <div><i class="bi bi-check-circle-fill text-success me-1"></i> Selesai: <strong>{{ completedCount }}</strong></div>
+            <div><i class="bi bi-clock-history text-warning me-1"></i> Pending: <strong>{{ pendingCount }}</strong></div>
           </div>
         </div>
         <div class="col-md-4 text-md-end mt-3 mt-md-0" v-if="completedCount > 0">
@@ -213,24 +228,39 @@
       <div class="card-body p-3 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
         <!-- 5 View Modes Buttons -->
         <div class="btn-group flex-wrap" role="group">
-          <button class="btn btn-outline-primary px-3 py-2 fw-semibold" :class="{ active: currentViewMode === 'list' }"
-            @click="currentViewMode = 'list'">
+          <button
+            class="btn btn-outline-primary px-3 py-2 fw-semibold"
+            :class="{ active: currentViewMode === 'list' }"
+            @click="currentViewMode = 'list'"
+          >
             <i class="bi bi-list-ul me-1"></i> 1. Standard List
           </button>
-          <button class="btn btn-outline-primary px-3 py-2 fw-semibold"
-            :class="{ active: currentViewMode === 'kanban' }" @click="currentViewMode = 'kanban'">
+          <button
+            class="btn btn-outline-primary px-3 py-2 fw-semibold"
+            :class="{ active: currentViewMode === 'kanban' }"
+            @click="currentViewMode = 'kanban'"
+          >
             <i class="bi bi-kanban me-1"></i> 2. Kanban Board
           </button>
-          <button class="btn btn-outline-primary px-3 py-2 fw-semibold"
-            :class="{ active: currentViewMode === 'eisenhower' }" @click="currentViewMode = 'eisenhower'">
+          <button
+            class="btn btn-outline-primary px-3 py-2 fw-semibold"
+            :class="{ active: currentViewMode === 'eisenhower' }"
+            @click="currentViewMode = 'eisenhower'"
+          >
             <i class="bi bi-grid-fill me-1"></i> 3. Matriks Eisenhower
           </button>
-          <button class="btn btn-outline-primary px-3 py-2 fw-semibold"
-            :class="{ active: currentViewMode === 'timeline' }" @click="currentViewMode = 'timeline'">
+          <button
+            class="btn btn-outline-primary px-3 py-2 fw-semibold"
+            :class="{ active: currentViewMode === 'timeline' }"
+            @click="currentViewMode = 'timeline'"
+          >
             <i class="bi bi-calendar-range me-1"></i> 4. Timeline Deadline
           </button>
-          <button class="btn btn-outline-primary px-3 py-2 fw-semibold"
-            :class="{ active: currentViewMode === 'compact' }" @click="currentViewMode = 'compact'">
+          <button
+            class="btn btn-outline-primary px-3 py-2 fw-semibold"
+            :class="{ active: currentViewMode === 'compact' }"
+            @click="currentViewMode = 'compact'"
+          >
             <i class="bi bi-check-square me-1"></i> 5. Checklist Ringkas
           </button>
         </div>
@@ -247,16 +277,14 @@
           </select>
           <div class="input-group" style="max-width: 240px;">
             <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-search"></i></span>
-            <input type="text" class="form-control bg-light border-start-0" placeholder="Cari task..."
-              v-model="searchQuery" />
+            <input type="text" class="form-control bg-light border-start-0" placeholder="Cari task..." v-model="searchQuery" />
           </div>
         </div>
       </div>
     </div>
 
     <!-- Bulk Action Toolbar (When 1 or more items selected) -->
-    <div v-if="selectedIds.length > 0"
-      class="alert alert-primary d-flex flex-wrap justify-content-between align-items-center rounded-4 shadow-sm mb-4 py-2 px-3">
+    <div v-if="selectedIds.length > 0" class="alert alert-primary d-flex flex-wrap justify-content-between align-items-center rounded-4 shadow-sm mb-4 py-2 px-3">
       <div class="d-flex align-items-center gap-2">
         <i class="bi bi-check2-square fs-5"></i>
         <span class="fw-bold">{{ selectedIds.length }} task terpilih</span>
@@ -302,18 +330,23 @@
                 </td>
                 <td class="text-center text-muted fw-bold">{{ index + 1 }}</td>
                 <td>
-                  <input type="checkbox" class="form-check-input style-checkbox" :checked="task.done"
-                    @change="toggleTaskDone(task.id)" />
+                  <input
+                    type="checkbox"
+                    class="form-check-input style-checkbox"
+                    :checked="task.done"
+                    @change="toggleTaskDone(task.id)"
+                  />
                 </td>
                 <td>
-                  <div class="fw-bold" :class="task.done ? 'text-decoration-line-through text-muted' : 'text-dark'">
-                    {{ task.name }}
-                  </div>
-                  <small class="text-muted d-block" v-if="task.notes">{{ task.notes }}</small>
+                  <router-link :to="'/tasks/' + task.id" class="text-decoration-none">
+                    <div class="fw-bold hover-primary text-dark" :class="{ 'text-decoration-line-through text-muted': task.done }">
+                      {{ task.name }}
+                    </div>
+                  </router-link>
+                  <small class="text-muted d-block text-truncate" style="max-width: 320px;" v-if="task.notes">{{ task.notes }}</small>
                 </td>
                 <td>
-                  <span class="badge rounded-pill px-2.5 py-1.5 fw-semibold"
-                    :class="getCategoryBadgeClass(task.category)">
+                  <span class="badge rounded-pill px-2.5 py-1.5 fw-semibold" :class="getCategoryBadgeClass(task.category)">
                     {{ getCategoryLabel(task.category) }}
                   </span>
                 </td>
@@ -328,26 +361,25 @@
                   </span>
                 </td>
                 <td>
-                  <span v-if="task.recurring && task.recurring !== 'none'"
-                    class="badge bg-info-subtle text-info fw-semibold px-2 py-1 rounded-pill small">
+                  <span v-if="task.recurring && task.recurring !== 'none'" class="badge bg-info-subtle text-info fw-semibold px-2 py-1 rounded-pill small">
                     <i class="bi bi-repeat me-1"></i>{{ task.recurring }}
                   </span>
                   <span v-else class="text-muted small">-</span>
                 </td>
                 <td>
-                  <div class="small fw-semibold"
-                    :class="isOverdue(task.deadline, task.done) ? 'text-danger' : 'text-dark'">
+                  <div class="small fw-semibold" :class="isOverdue(task.deadline, task.done) ? 'text-danger' : 'text-dark'">
                     <i class="bi bi-calendar-event me-1"></i>{{ formatDate(task.deadline) }}
                   </div>
                 </td>
                 <td class="text-end pe-4">
                   <div class="d-flex justify-content-end gap-1">
-                    <button class="btn btn-sm btn-light text-primary rounded-circle" @click="editTask(task)"
-                      title="Edit Tugas">
+                    <router-link :to="'/tasks/' + task.id" class="btn btn-sm btn-light text-info rounded-circle" title="Detail Preview Tugas">
+                      <i class="bi bi-eye-fill"></i>
+                    </router-link>
+                    <button class="btn btn-sm btn-light text-primary rounded-circle" @click="editTask(task)" title="Edit Tugas">
                       <i class="bi bi-pencil-fill"></i>
                     </button>
-                    <button class="btn btn-sm btn-light text-danger rounded-circle" @click="removeTask(task.id)"
-                      title="Hapus Tugas">
+                    <button class="btn btn-sm btn-light text-danger rounded-circle" @click="removeTask(task.id)" title="Hapus Tugas">
                       <i class="bi bi-trash-fill"></i>
                     </button>
                   </div>
@@ -371,21 +403,26 @@
               <span class="badge rounded-pill px-3 py-2" :class="col.badgeBg">{{ col.title }}</span>
               <span class="fw-bold small text-muted">({{ getTaskCountInCol(col.id) }})</span>
             </div>
-            <button class="btn btn-sm btn-light rounded-circle" @click="openAddForCol(col.id)"
-              title="Tambah di kolom ini">
+            <button class="btn btn-sm btn-light rounded-circle" @click="openAddForCol(col.id)" title="Tambah di kolom ini">
               <i class="bi bi-plus-lg"></i>
             </button>
           </div>
           <div class="card-body p-2 min-vh-25">
-            <div v-for="task in getTasksInCol(col.id)" :key="task.id"
+            <div
+              v-for="task in getTasksInCol(col.id)"
+              :key="task.id"
               class="card border shadow-sm rounded-3 mb-2 p-3 hover-card"
-              :class="{ 'border-success bg-success-subtle opacity-75': task.done }">
+              :class="{ 'border-success bg-success-subtle opacity-75': task.done }"
+            >
               <div class="d-flex justify-content-between align-items-start mb-2">
                 <div class="form-check">
-                  <input type="checkbox" class="form-check-input style-checkbox" :checked="task.done"
-                    @change="toggleTaskDone(task.id)" />
-                  <label class="form-check-label fw-bold ms-1"
-                    :class="{ 'text-decoration-line-through text-muted': task.done }">
+                  <input
+                    type="checkbox"
+                    class="form-check-input style-checkbox"
+                    :checked="task.done"
+                    @change="toggleTaskDone(task.id)"
+                  />
+                  <label class="form-check-label fw-bold ms-1" :class="{ 'text-decoration-line-through text-muted': task.done }">
                     {{ task.name }}
                   </label>
                 </div>
@@ -401,20 +438,31 @@
               </div>
               <div class="d-flex justify-content-between align-items-center mt-2 pt-2 border-top">
                 <div class="btn-group btn-group-sm">
-                  <button class="btn btn-light btn-sm px-2" v-if="getPrevCol(col.id)"
-                    @click="moveTaskCol(task, getPrevCol(col.id))" title="Mundur Kolom">
+                  <button
+                    class="btn btn-light btn-sm px-2"
+                    v-if="getPrevCol(col.id)"
+                    @click="moveTaskCol(task, getPrevCol(col.id))"
+                    title="Mundur Kolom"
+                  >
                     <i class="bi bi-arrow-left"></i>
                   </button>
-                  <button class="btn btn-light btn-sm px-2" v-if="getNextCol(col.id)"
-                    @click="moveTaskCol(task, getNextCol(col.id))" title="Maju Kolom">
+                  <button
+                    class="btn btn-light btn-sm px-2"
+                    v-if="getNextCol(col.id)"
+                    @click="moveTaskCol(task, getNextCol(col.id))"
+                    title="Maju Kolom"
+                  >
                     <i class="bi bi-arrow-right"></i>
                   </button>
                 </div>
                 <div class="d-flex gap-1">
-                  <button class="btn btn-sm btn-light text-primary px-2" @click="editTask(task)">
+                  <router-link :to="'/tasks/' + task.id" class="btn btn-sm btn-light text-info px-2" title="Detail Preview">
+                    <i class="bi bi-eye-fill"></i>
+                  </router-link>
+                  <button class="btn btn-sm btn-light text-primary px-2" @click="editTask(task)" title="Edit">
                     <i class="bi bi-pencil-fill"></i>
                   </button>
-                  <button class="btn btn-sm btn-light text-danger px-2" @click="removeTask(task.id)">
+                  <button class="btn btn-sm btn-light text-danger px-2" @click="removeTask(task.id)" title="Hapus">
                     <i class="bi bi-trash-fill"></i>
                   </button>
                 </div>
@@ -432,8 +480,11 @@
           <h6 class="fw-bold text-danger"><i class="bi bi-fire me-2"></i>🔥 1. Kerjakan Sekarang (Do First)</h6>
           <p class="text-muted small mb-2">Penting & Mendesak</p>
           <div class="list-group list-group-flush">
-            <div v-for="t in getEisenhowerTasks('do_first')" :key="t.id"
-              class="list-group-item d-flex justify-content-between align-items-center border-bottom py-2 bg-transparent">
+            <div
+              v-for="t in getEisenhowerTasks('do_first')"
+              :key="t.id"
+              class="list-group-item d-flex justify-content-between align-items-center border-bottom py-2 bg-transparent"
+            >
               <div>
                 <input type="checkbox" class="form-check-input me-2" :checked="t.done" @change="toggleTaskDone(t.id)" />
                 <span :class="{ 'text-decoration-line-through text-muted': t.done }">{{ t.name }}</span>
@@ -448,8 +499,11 @@
           <h6 class="fw-bold text-primary"><i class="bi bi-calendar-event me-2"></i>📅 2. Jadwalkan (Schedule)</h6>
           <p class="text-muted small mb-2">Penting, Tidak Mendesak</p>
           <div class="list-group list-group-flush">
-            <div v-for="t in getEisenhowerTasks('schedule')" :key="t.id"
-              class="list-group-item d-flex justify-content-between align-items-center border-bottom py-2 bg-transparent">
+            <div
+              v-for="t in getEisenhowerTasks('schedule')"
+              :key="t.id"
+              class="list-group-item d-flex justify-content-between align-items-center border-bottom py-2 bg-transparent"
+            >
               <div>
                 <input type="checkbox" class="form-check-input me-2" :checked="t.done" @change="toggleTaskDone(t.id)" />
                 <span :class="{ 'text-decoration-line-through text-muted': t.done }">{{ t.name }}</span>
@@ -464,8 +518,11 @@
           <h6 class="fw-bold text-warning"><i class="bi bi-people me-2"></i>👥 3. Delegasikan (Delegate)</h6>
           <p class="text-muted small mb-2">Mendesak, Tidak Penting</p>
           <div class="list-group list-group-flush">
-            <div v-for="t in getEisenhowerTasks('delegate')" :key="t.id"
-              class="list-group-item d-flex justify-content-between align-items-center border-bottom py-2 bg-transparent">
+            <div
+              v-for="t in getEisenhowerTasks('delegate')"
+              :key="t.id"
+              class="list-group-item d-flex justify-content-between align-items-center border-bottom py-2 bg-transparent"
+            >
               <div>
                 <input type="checkbox" class="form-check-input me-2" :checked="t.done" @change="toggleTaskDone(t.id)" />
                 <span :class="{ 'text-decoration-line-through text-muted': t.done }">{{ t.name }}</span>
@@ -480,8 +537,11 @@
           <h6 class="fw-bold text-secondary"><i class="bi bi-trash me-2"></i>🧹 4. Eliminasi (Eliminate)</h6>
           <p class="text-muted small mb-2">Tidak Penting & Tidak Mendesak</p>
           <div class="list-group list-group-flush">
-            <div v-for="t in getEisenhowerTasks('eliminate')" :key="t.id"
-              class="list-group-item d-flex justify-content-between align-items-center border-bottom py-2 bg-transparent">
+            <div
+              v-for="t in getEisenhowerTasks('eliminate')"
+              :key="t.id"
+              class="list-group-item d-flex justify-content-between align-items-center border-bottom py-2 bg-transparent"
+            >
               <div>
                 <input type="checkbox" class="form-check-input me-2" :checked="t.done" @change="toggleTaskDone(t.id)" />
                 <span :class="{ 'text-decoration-line-through text-muted': t.done }">{{ t.name }}</span>
@@ -495,20 +555,17 @@
 
     <!-- VIEW MODE 4: Timeline Deadline -->
     <div v-else-if="currentViewMode === 'timeline'" class="card border-0 shadow-sm rounded-4 bg-white p-4">
-      <h6 class="fw-bold text-dark mb-3"><i class="bi bi-clock-history me-2 text-primary"></i>Timeline Deadline
-        Pekerjaan</h6>
+      <h6 class="fw-bold text-dark mb-3"><i class="bi bi-clock-history me-2 text-primary"></i>Timeline Deadline Pekerjaan</h6>
       <div v-for="(groupTasks, dateStr) in timelineGroupedTasks" :key="dateStr" class="mb-4">
         <div class="d-flex align-items-center gap-2 mb-2">
-          <span class="badge bg-primary px-3 py-2 rounded-pill"><i class="bi bi-calendar3 me-1"></i>{{
-            formatDate(dateStr) }}</span>
+          <span class="badge bg-primary px-3 py-2 rounded-pill"><i class="bi bi-calendar3 me-1"></i>{{ formatDate(dateStr) }}</span>
           <span class="text-muted small">({{ groupTasks.length }} task)</span>
         </div>
         <div class="row g-2 ps-3 border-start border-2 border-primary ms-2">
           <div v-for="t in groupTasks" :key="t.id" class="col-md-6">
             <div class="p-3 border rounded-3 bg-light d-flex justify-content-between align-items-center">
               <div>
-                <span class="fw-bold d-block" :class="{ 'text-decoration-line-through text-muted': t.done }">{{ t.name
-                }}</span>
+                <span class="fw-bold d-block" :class="{ 'text-decoration-line-through text-muted': t.done }">{{ t.name }}</span>
                 <div class="d-flex align-items-center gap-1 mt-1">
                   <span class="badge rounded-pill px-2 py-0.5" :class="getCategoryBadgeClass(t.category)">
                     {{ getCategoryLabel(t.category) }}
@@ -527,14 +584,15 @@
 
     <!-- VIEW MODE 5: Checklist Ringkas -->
     <div v-else-if="currentViewMode === 'compact'" class="card border-0 shadow-sm rounded-4 bg-white p-4">
-      <h6 class="fw-bold text-dark mb-3"><i class="bi bi-check-square-fill text-success me-2"></i>Checklist Pekerjaan
-        Ringkas</h6>
+      <h6 class="fw-bold text-dark mb-3"><i class="bi bi-check-square-fill text-success me-2"></i>Checklist Pekerjaan Ringkas</h6>
       <div class="list-group list-group-flush">
-        <div v-for="t in filteredTasks" :key="t.id"
-          class="list-group-item d-flex justify-content-between align-items-center border-bottom py-2 bg-transparent">
+        <div
+          v-for="t in filteredTasks"
+          :key="t.id"
+          class="list-group-item d-flex justify-content-between align-items-center border-bottom py-2 bg-transparent"
+        >
           <div class="d-flex align-items-center gap-2">
-            <input type="checkbox" class="form-check-input style-checkbox" :checked="t.done"
-              @change="toggleTaskDone(t.id)" />
+            <input type="checkbox" class="form-check-input style-checkbox" :checked="t.done" @change="toggleTaskDone(t.id)" />
             <span class="fw-semibold" :class="{ 'text-decoration-line-through text-muted': t.done }">{{ t.name }}</span>
           </div>
           <div class="d-flex align-items-center gap-2">
@@ -550,8 +608,7 @@
 
     <!-- Toast Notification -->
     <div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1090;">
-      <div v-if="toast.show" class="toast align-items-center text-white bg-success border-0 show shadow-lg rounded-3"
-        role="alert">
+      <div v-if="toast.show" class="toast align-items-center text-white bg-success border-0 show shadow-lg rounded-3" role="alert">
         <div class="d-flex">
           <div class="toast-body d-flex align-items-center gap-2">
             <i class="bi bi-check-circle-fill fs-5"></i>
@@ -568,10 +625,6 @@
 import { computed, ref } from 'vue';
 import { useStore } from 'vuex';
 import * as XLSX from 'xlsx';
-
-const getLocalDateString = (d = new Date()) => {
-  return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().split('T')[0];
-};
 
 export default {
   name: 'TodoList',
@@ -594,7 +647,7 @@ export default {
       category: 'Work',
       level: 'Menengah',
       projectTag: 'Umum',
-      deadline: getLocalDateString(),
+      deadline: new Date().toISOString().split('T')[0],
       notes: '',
       recurring: 'none',
       statusColumn: 'todo',
@@ -610,7 +663,7 @@ export default {
       category: 'Work',
       projectTag: 'Umum',
       level: 'Menengah',
-      deadline: getLocalDateString()
+      deadline: new Date().toISOString().split('T')[0]
     });
 
     const kanbanColumns = [
@@ -698,7 +751,7 @@ export default {
         name: '',
         level: 'Menengah',
         projectTag: 'Umum',
-        deadline: getLocalDateString(),
+        deadline: new Date().toISOString().split('T')[0],
         notes: '',
         recurring: 'none',
         statusColumn: 'todo',
@@ -761,7 +814,7 @@ export default {
         name,
         projectTag: bulkDefault.value.projectTag || 'Umum',
         level: bulkDefault.value.level || 'Menengah',
-        deadline: bulkDefault.value.deadline || getLocalDateString(),
+        deadline: bulkDefault.value.deadline || new Date().toISOString().split('T')[0],
         statusColumn: 'todo',
         done: false
       }));
