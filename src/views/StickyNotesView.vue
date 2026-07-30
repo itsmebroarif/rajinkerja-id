@@ -159,7 +159,7 @@
         <div class="col-md-6">
           <label class="form-label small fw-bold text-dark mb-1">Live Preview Markdown</label>
           <div class="card p-3 rounded-3 border-2 bg-light h-100 overflow-auto preview-box" style="max-height: 230px;">
-            <div class="markdown-preview small text-dark" v-html="renderMarkdown(form.content)"></div>
+            <div class="markdown-preview small" v-html="renderMarkdown(form.content)"></div>
           </div>
         </div>
 
@@ -352,38 +352,39 @@
     <!-- NOTES GRID -->
     <div class="row g-3" v-if="filteredNotes.length > 0">
       <div v-for="note in filteredNotes" :key="note.id" class="col-md-6 col-lg-4">
-        <div class="card border-0 shadow-sm rounded-4 h-100 p-4 hover-card position-relative" :style="{ backgroundColor: note.color || '#fef08a' }">
+        <div class="card border-0 shadow-sm rounded-4 h-100 p-4 hover-card position-relative sticky-note-card" :style="{ '--note-accent': note.color || '#fef08a' }">
+          <div class="note-color-stripe" :style="{ backgroundColor: note.color || '#fef08a' }"></div>
           <div class="d-flex justify-content-between align-items-start mb-2">
             <div class="d-flex align-items-center gap-2">
               <input type="checkbox" class="form-check-input mt-0 cursor-pointer" :value="note.id" v-model="selectedIds" />
               <router-link :to="'/notes/' + note.id" class="text-decoration-none">
-                <h5 class="fw-bold text-dark mb-0 text-break hover-title">{{ note.title || 'Untitled Note' }}</h5>
+                <h5 class="fw-bold mb-0 text-break hover-title note-card-title">{{ note.title || 'Untitled Note' }}</h5>
               </router-link>
             </div>
             <div class="d-flex gap-1">
-              <router-link :to="'/notes/' + note.id" class="btn btn-xs btn-dark rounded-circle shadow-sm" title="Buka Detail Preview Halaman Baru">
+              <router-link :to="'/notes/' + note.id" class="btn btn-xs btn-action-icon rounded-circle shadow-sm" title="Buka Detail Preview Halaman Baru">
                 <i class="bi bi-arrows-angle-expand"></i>
               </router-link>
-              <button class="btn btn-xs btn-light rounded-circle shadow-sm" @click="copyNoteContent(note.content)" title="Salin Isi Catatan">
+              <button class="btn btn-xs btn-action-icon rounded-circle shadow-sm" @click="copyNoteContent(note.content)" title="Salin Isi Catatan">
                 <i class="bi bi-clipboard"></i>
               </button>
-              <button class="btn btn-xs btn-light rounded-circle shadow-sm" @click="editNoteInline(note)" title="Edit Note">
+              <button class="btn btn-xs btn-action-icon rounded-circle shadow-sm" @click="editNoteInline(note)" title="Edit Note">
                 <i class="bi bi-pencil-fill"></i>
               </button>
-              <button class="btn btn-xs btn-light text-danger rounded-circle shadow-sm" @click="deleteNoteDirect(note.id)" title="Hapus Note">
+              <button class="btn btn-xs btn-action-icon text-danger rounded-circle shadow-sm" @click="deleteNoteDirect(note.id)" title="Hapus Note">
                 <i class="bi bi-trash-fill"></i>
               </button>
             </div>
           </div>
 
           <!-- Live Rendered Markdown Content -->
-          <router-link :to="'/notes/' + note.id" class="text-decoration-none text-dark d-block">
-            <div class="markdown-preview text-dark small flex-grow-1 my-2 border-top border-bottom py-2 overflow-hidden" style="max-height: 200px;" v-html="renderMarkdown(note.content)"></div>
+          <router-link :to="'/notes/' + note.id" class="text-decoration-none d-block">
+            <div class="markdown-preview note-card-preview small flex-grow-1 my-2 border-top border-bottom py-2 overflow-hidden" style="max-height: 200px;" v-html="renderMarkdown(note.content)"></div>
           </router-link>
 
-          <div class="d-flex justify-content-between align-items-center mt-2 pt-2 text-muted style-footer">
+          <div class="d-flex justify-content-between align-items-center mt-2 pt-2 note-card-footer">
             <span><i class="bi bi-clock me-1"></i>{{ formatDate(note.updatedAt) }}</span>
-            <router-link :to="'/notes/' + note.id" class="btn btn-xs btn-outline-dark bg-white rounded-pill px-2.5 py-1 fw-semibold text-decoration-none">
+            <router-link :to="'/notes/' + note.id" class="btn btn-xs btn-preview-badge rounded-pill px-2.5 py-1 fw-semibold text-decoration-none">
               <i class="bi bi-eye me-1"></i> Detail Preview
             </router-link>
           </div>
@@ -861,8 +862,57 @@ export default {
   box-shadow: 0 8px 24px rgba(0,0,0,0.08) !important;
 }
 
-.style-footer {
+/* STICKY NOTE CARD STYLING */
+.sticky-note-card {
+  background-color: var(--note-accent, #fef08a);
+  color: #0f172a;
+}
+
+.note-color-stripe {
+  height: 5px;
+  width: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  border-radius: 1rem 1rem 0 0;
+}
+
+.note-card-title {
+  color: #0f172a;
+}
+
+.note-card-preview {
+  color: #1e293b;
+  border-color: rgba(15, 23, 42, 0.15) !important;
+}
+
+.note-card-footer {
   font-size: 11px;
+  color: #475569;
+}
+
+.btn-action-icon {
+  background-color: rgba(255, 255, 255, 0.85);
+  color: #0f172a;
+  border: 1px solid rgba(15, 23, 42, 0.1);
+  transition: all 0.15s ease;
+}
+
+.btn-action-icon:hover {
+  background-color: #ffffff;
+  color: #2563eb;
+}
+
+.btn-preview-badge {
+  background-color: #ffffff;
+  color: #0f172a;
+  border: 1px solid #0f172a;
+  transition: all 0.2s ease;
+}
+
+.btn-preview-badge:hover {
+  background-color: #0f172a;
+  color: #ffffff;
 }
 
 .cursor-pointer {
@@ -879,5 +929,80 @@ export default {
 .markdown-preview :deep(ul), .markdown-preview :deep(ol) {
   padding-left: 1.2rem;
   margin-bottom: 0.4rem;
+}
+
+/* DARK MODE SPECIFIC OVERRIDES FOR STICKY NOTES */
+:global(.dark-theme) .sticky-note-card {
+  background-color: #1e293b !important;
+  color: #f8fafc !important;
+  border: 1px solid #334155 !important;
+}
+
+:global(.dark-theme) .note-card-title {
+  color: #f8fafc !important;
+}
+
+:global(.dark-theme) .note-card-preview {
+  color: #e2e8f0 !important;
+  border-color: #334155 !important;
+}
+
+:global(.dark-theme) .note-card-footer {
+  color: #94a3b8 !important;
+}
+
+:global(.dark-theme) .btn-action-icon {
+  background-color: #0f172a !important;
+  color: #cbd5e1 !important;
+  border-color: #334155 !important;
+}
+
+:global(.dark-theme) .btn-action-icon:hover {
+  background-color: #334155 !important;
+  color: #60a5fa !important;
+}
+
+:global(.dark-theme) .btn-preview-badge {
+  background-color: #131b2e !important;
+  color: #60a5fa !important;
+  border-color: #334155 !important;
+}
+
+:global(.dark-theme) .btn-preview-badge:hover {
+  background-color: #2563eb !important;
+  color: #ffffff !important;
+}
+
+:global(.dark-theme) .preview-box {
+  background-color: #060911 !important;
+  border-color: #1e293b !important;
+  box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.5);
+}
+
+:global(.dark-theme) .preview-box .markdown-preview,
+:global(.dark-theme) .markdown-preview {
+  font-family: 'Fira Code', 'JetBrains Mono', 'Source Code Pro', 'Cascadia Code', Menlo, Monaco, Consolas, monospace !important;
+  color: #f8fafc !important;
+}
+
+:global(.dark-theme) .preview-box .markdown-preview *,
+:global(.dark-theme) .markdown-preview * {
+  font-family: 'Fira Code', 'JetBrains Mono', 'Source Code Pro', 'Cascadia Code', Menlo, Monaco, Consolas, monospace !important;
+  color: #f1f5f9 !important;
+}
+
+:global(.dark-theme) .markdown-preview :deep(h1),
+:global(.dark-theme) .markdown-preview :deep(h2),
+:global(.dark-theme) .markdown-preview :deep(h3),
+:global(.dark-theme) .markdown-preview :deep(h4),
+:global(.dark-theme) .markdown-preview :deep(h5),
+:global(.dark-theme) .markdown-preview :deep(h6) {
+  color: #38bdf8 !important;
+}
+
+:global(.dark-theme) .markdown-preview :deep(code) {
+  background-color: #111827 !important;
+  color: #f472b6 !important;
+  border: 1px solid #374151 !important;
 }
 </style>

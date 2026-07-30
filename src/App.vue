@@ -18,16 +18,16 @@
       <!-- Navigation Links -->
       <nav class="sidebar-links p-2 flex-grow-1">
         <!-- GROUP 1: WORKFLOW & PROYEK -->
-        <div v-if="!isCollapsed" class="sidebar-section-header">WORKFLOW & PROYEK</div>
+        <div v-if="!isCollapsed" class="sidebar-section-header">📌 WORKFLOW & PROYEK</div>
         <div v-else class="sidebar-divider my-1"></div>
 
         <router-link to="/" class="material-nav-link" title="Dashboard">
-          <i class="bi bi-grid-1x2-fill me-3 fs-5 nav-icon"></i>
+          <i class="bi bi-grid-1x2-fill me-3 fs-5 nav-icon text-primary"></i>
           <span v-if="!isCollapsed" class="nav-label">Dashboard</span>
         </router-link>
 
         <router-link to="/todo" class="material-nav-link" title="To-Do & Kanban">
-          <i class="bi bi-kanban-fill me-3 fs-5 nav-icon"></i>
+          <i class="bi bi-kanban-fill me-3 fs-5 nav-icon text-warning"></i>
           <span v-if="!isCollapsed" class="nav-label">To-Do & Kanban</span>
           <span v-if="!isCollapsed && pendingTasksCount > 0" class="badge rounded-pill bg-warning text-dark ms-auto small fw-bold">
             {{ pendingTasksCount }}
@@ -35,8 +35,8 @@
         </router-link>
 
         <router-link to="/project" class="material-nav-link" title="Proyek & Kontrak">
-          <i class="bi bi-folder-fill me-3 fs-5 nav-icon"></i>
-          <span v-if="!isCollapsed" class="nav-label">Proyek</span>
+          <i class="bi bi-folder-fill me-3 fs-5 nav-icon text-info"></i>
+          <span v-if="!isCollapsed" class="nav-label">Proyek & Kontrak</span>
           <span v-if="!isCollapsed && activeProjectsCount > 0" class="badge rounded-pill bg-info text-dark ms-auto small fw-bold">
             {{ activeProjectsCount }}
           </span>
@@ -44,12 +44,26 @@
 
         <div class="sidebar-divider my-2"></div>
 
-        <!-- GROUP 2: KEUANGAN & KLIEN -->
-        <div v-if="!isCollapsed" class="sidebar-section-header">KEUANGAN & KLIEN</div>
+        <!-- GROUP 2: TIM & KOMUNIKASI -->
+        <div v-if="!isCollapsed" class="sidebar-section-header">👥 TIM & KOMUNIKASI</div>
+        <div v-else class="sidebar-divider my-1"></div>
+
+        <router-link to="/contacts" class="material-nav-link" title="Kontak Tim & Broadcast WA">
+          <i class="bi bi-person-lines-fill me-3 fs-5 nav-icon text-success"></i>
+          <span v-if="!isCollapsed" class="nav-label">Kontak Tim & WA</span>
+          <span v-if="!isCollapsed && totalClientsCount > 0" class="badge rounded-pill bg-success text-white ms-auto small fw-bold">
+            {{ totalClientsCount }}
+          </span>
+        </router-link>
+
+        <div class="sidebar-divider my-2"></div>
+
+        <!-- GROUP 3: KEUANGAN & KLIEN -->
+        <div v-if="!isCollapsed" class="sidebar-section-header">💰 KEUANGAN & KLIEN</div>
         <div v-else class="sidebar-divider my-1"></div>
 
         <router-link to="/finance" class="material-nav-link" title="Keuangan & Tracker">
-          <i class="bi bi-wallet2 me-3 fs-5 nav-icon"></i>
+          <i class="bi bi-wallet2 me-3 fs-5 nav-icon text-primary"></i>
           <span v-if="!isCollapsed" class="nav-label">Keuangan</span>
           <span v-if="!isCollapsed && isBudgetExceeded" class="badge rounded-pill bg-danger text-white ms-auto small fw-bold">
             Over Budget
@@ -57,31 +71,23 @@
         </router-link>
 
         <router-link to="/invoice" class="material-nav-link" title="Invoice Generator (PDF)">
-          <i class="bi bi-receipt me-3 fs-5 nav-icon"></i>
+          <i class="bi bi-receipt me-3 fs-5 nav-icon text-indigo"></i>
           <span v-if="!isCollapsed" class="nav-label">Invoice Generator</span>
-        </router-link>
-
-        <router-link to="/contacts" class="material-nav-link" title="Kontak Klien">
-          <i class="bi bi-person-lines-fill me-3 fs-5 nav-icon"></i>
-          <span v-if="!isCollapsed" class="nav-label">Kontak Klien</span>
-          <span v-if="!isCollapsed && totalClientsCount > 0" class="badge rounded-pill bg-secondary text-white ms-auto small fw-bold">
-            {{ totalClientsCount }}
-          </span>
         </router-link>
 
         <div class="sidebar-divider my-2"></div>
 
-        <!-- GROUP 3: PRODUKTIVITAS & AGENDA -->
-        <div v-if="!isCollapsed" class="sidebar-section-header">PRODUKTIVITAS & AGENDA</div>
+        <!-- GROUP 4: PRODUKTIVITAS & AGENDA -->
+        <div v-if="!isCollapsed" class="sidebar-section-header">📅 AGENDA & PRODUKTIVITAS</div>
         <div v-else class="sidebar-divider my-1"></div>
 
         <router-link to="/calendar" class="material-nav-link" title="Kalender Agenda & Timed Events">
-          <i class="bi bi-calendar3 me-3 fs-5 nav-icon"></i>
+          <i class="bi bi-calendar3 me-3 fs-5 nav-icon text-warning"></i>
           <span v-if="!isCollapsed" class="nav-label">Kalender & Agenda</span>
         </router-link>
 
         <router-link to="/notes" class="material-nav-link" title="Sticky Notes & Scratchpad">
-          <i class="bi bi-journal-text me-3 fs-5 nav-icon"></i>
+          <i class="bi bi-journal-text me-3 fs-5 nav-icon text-secondary"></i>
           <span v-if="!isCollapsed" class="nav-label">Notes & Scratchpad</span>
         </router-link>
 
@@ -92,17 +98,17 @@
 
         <div class="sidebar-divider my-2"></div>
 
-        <!-- GROUP 4: SISTEM & PANDUAN -->
-        <div v-if="!isCollapsed" class="sidebar-section-header">SISTEM & PANDUAN</div>
+        <!-- GROUP 5: SISTEM & PANDUAN -->
+        <div v-if="!isCollapsed" class="sidebar-section-header">⚙️ SISTEM & PANDUAN</div>
         <div v-else class="sidebar-divider my-1"></div>
 
         <router-link to="/preferences" class="material-nav-link" title="Preferences, Theme & Backup">
-          <i class="bi bi-sliders me-3 fs-5 nav-icon"></i>
+          <i class="bi bi-sliders me-3 fs-5 nav-icon text-primary"></i>
           <span v-if="!isCollapsed" class="nav-label">Preferences</span>
         </router-link>
 
         <router-link to="/faq" class="material-nav-link" title="FAQ, Panduan & Tentang App">
-          <i class="bi bi-question-circle-fill me-3 fs-5 nav-icon"></i>
+          <i class="bi bi-question-circle-fill me-3 fs-5 nav-icon text-info"></i>
           <span v-if="!isCollapsed" class="nav-label">FAQ & About App</span>
         </router-link>
       </nav>
@@ -141,17 +147,6 @@
             <span class="d-none d-sm-inline">Pengeluaran Melebihi Anggaran!</span>
           </div>
 
-          <!-- Quick Theme Toggle -->
-          <button
-            class="btn btn-sm rounded-pill px-3 py-2 fw-semibold d-flex align-items-center gap-2 border"
-            :class="themeMode === 'dark' ? 'btn-dark' : 'btn-light'"
-            @click="toggleThemeMode"
-            :title="themeMode === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'"
-          >
-            <i :class="themeMode === 'dark' ? 'bi bi-sun-fill text-warning' : 'bi bi-moon-stars-fill text-primary'"></i>
-            <span class="d-none d-sm-inline">{{ themeMode === 'dark' ? 'Light' : 'Dark' }}</span>
-          </button>
-
           <!-- Preferences Link -->
           <router-link to="/preferences" class="btn btn-sm btn-outline-primary rounded-pill px-3 py-2 fw-semibold d-flex align-items-center gap-1">
             <i class="bi bi-gear-fill me-1"></i> Preferences
@@ -176,25 +171,28 @@
             </button>
           </div>
           <nav class="d-flex flex-column gap-1" @click="mobileDrawer = false">
-            <div class="sidebar-section-header px-1 pt-1">WORKFLOW & PROYEK</div>
+            <div class="sidebar-section-header px-1 pt-1">📌 WORKFLOW & PROYEK</div>
             <router-link to="/" class="material-nav-link"><i class="bi bi-grid-1x2-fill me-3 text-primary"></i>Dashboard</router-link>
             <router-link to="/todo" class="material-nav-link"><i class="bi bi-kanban-fill me-3 text-warning"></i>To-Do & Kanban</router-link>
-            <router-link to="/project" class="material-nav-link"><i class="bi bi-folder-fill me-3 text-info"></i>Proyek</router-link>
+            <router-link to="/project" class="material-nav-link"><i class="bi bi-folder-fill me-3 text-info"></i>Proyek & Kontrak</router-link>
 
             <div class="sidebar-divider my-2"></div>
-            <div class="sidebar-section-header px-1">KEUANGAN & KLIEN</div>
-            <router-link to="/finance" class="material-nav-link"><i class="bi bi-wallet2 me-3 text-success"></i>Keuangan</router-link>
-            <router-link to="/invoice" class="material-nav-link"><i class="bi bi-receipt me-3 text-primary"></i>Invoice Generator</router-link>
-            <router-link to="/contacts" class="material-nav-link"><i class="bi bi-person-lines-fill me-3 text-info"></i>Kontak Klien</router-link>
+            <div class="sidebar-section-header px-1">👥 TIM & KOMUNIKASI</div>
+            <router-link to="/contacts" class="material-nav-link"><i class="bi bi-person-lines-fill me-3 text-success"></i>Kontak Tim & WA</router-link>
 
             <div class="sidebar-divider my-2"></div>
-            <div class="sidebar-section-header px-1">PRODUKTIVITAS & AGENDA</div>
+            <div class="sidebar-section-header px-1">💰 KEUANGAN & KLIEN</div>
+            <router-link to="/finance" class="material-nav-link"><i class="bi bi-wallet2 me-3 text-primary"></i>Keuangan</router-link>
+            <router-link to="/invoice" class="material-nav-link"><i class="bi bi-receipt me-3 text-info"></i>Invoice Generator</router-link>
+
+            <div class="sidebar-divider my-2"></div>
+            <div class="sidebar-section-header px-1">📅 AGENDA & PRODUKTIVITAS</div>
             <router-link to="/calendar" class="material-nav-link"><i class="bi bi-calendar3 me-3 text-warning"></i>Kalender & Agenda</router-link>
             <router-link to="/notes" class="material-nav-link"><i class="bi bi-journal-text me-3 text-secondary"></i>Notes & Scratchpad</router-link>
             <router-link to="/games" class="material-nav-link"><i class="bi bi-controller me-3 text-purple"></i>3D Games & Simulator</router-link>
 
             <div class="sidebar-divider my-2"></div>
-            <div class="sidebar-section-header px-1">SISTEM & PANDUAN</div>
+            <div class="sidebar-section-header px-1">⚙️ SISTEM & PANDUAN</div>
             <router-link to="/preferences" class="material-nav-link"><i class="bi bi-sliders me-3 text-primary"></i>Preferences</router-link>
             <router-link to="/faq" class="material-nav-link"><i class="bi bi-question-circle-fill me-3 text-info"></i>FAQ & About App</router-link>
           </nav>

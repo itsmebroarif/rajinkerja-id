@@ -27,26 +27,12 @@
             <!-- Dark / Light Mode Selector -->
             <div class="col-md-6">
               <label class="form-label fw-bold text-dark mb-2">Mode Tema Layar</label>
-              <div class="d-flex gap-3">
-                <button
-                  class="btn flex-fill py-3 rounded-3 d-flex flex-column align-items-center gap-2 border-2 transition-all"
-                  :class="themeMode === 'light' ? 'btn-primary shadow' : 'btn-outline-secondary'"
-                  @click="setTheme('light')"
-                >
-                  <i class="bi bi-sun-fill fs-3"></i>
-                  <span class="fw-bold">Light Mode</span>
-                  <small class="text-opacity-75">Tampilan terang, bersih & tajam</small>
-                </button>
-
-                <button
-                  class="btn flex-fill py-3 rounded-3 d-flex flex-column align-items-center gap-2 border-2 transition-all"
-                  :class="themeMode === 'dark' ? 'btn-dark shadow' : 'btn-outline-secondary'"
-                  @click="setTheme('dark')"
-                >
-                  <i class="bi bi-moon-stars-fill fs-3"></i>
-                  <span class="fw-bold">Dark Mode</span>
-                  <small class="text-opacity-75">Tampilan gelap ramah mata malam hari</small>
-                </button>
+              <div class="p-3 bg-light rounded-3 border d-flex align-items-center gap-3">
+                <i class="bi bi-sun-fill fs-3 text-warning"></i>
+                <div>
+                  <div class="fw-bold text-dark">Light Mode (Standar Sistem)</div>
+                  <small class="text-muted">Tampilan terang, bersih & tajam aktif sebagai tema default.</small>
+                </div>
               </div>
             </div>
 

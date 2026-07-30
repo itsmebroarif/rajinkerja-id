@@ -4,11 +4,11 @@
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3 bg-white p-4 rounded-4 shadow-sm border">
       <div>
         <div class="d-flex align-items-center gap-2 mb-1">
-          <span class="badge bg-warning-subtle text-warning-emphasis fw-semibold px-3 py-2 rounded-pill">Task Manager Pro</span>
-          <span class="badge bg-light text-dark border px-3 py-2 rounded-pill">5 View Modes</span>
+          <span class="badge bg-warning-subtle text-warning-emphasis fw-bold px-3 py-2 rounded-pill">Task Manager Pro</span>
+          <span class="badge bg-light text-dark border px-3 py-2 rounded-pill">6 View Modes</span>
         </div>
-        <h2 class="fw-bold mb-1 text-dark">📝 To-Do & Activity Tracker</h2>
-        <p class="text-muted mb-0">Atur prioritas, tugas berulang (recurring), papan Kanban, matriks Eisenhower, dan timeline deadline.</p>
+        <h2 class="fw-bold mb-1 text-dark">📝 To-Do & Daily Productivity Tracker</h2>
+        <p class="text-muted mb-0">Kelola tugas harian, kelompokkan ke folder/proyek, pantau deadline & tingkat produktivitas harian Anda.</p>
       </div>
       <div class="d-flex flex-wrap gap-2">
         <button class="btn btn-outline-success px-3 py-2 rounded-3 fw-semibold" @click="exportToExcel">
@@ -21,6 +21,73 @@
           <i :class="showForm ? 'bi bi-x-lg' : 'bi bi-plus-lg'" class="fs-5"></i>
           <span>{{ showForm ? 'Tutup Form' : 'Tambah / Bulk Input' }}</span>
         </button>
+      </div>
+    </div>
+
+    <!-- DAILY PRODUCTIVITY & TASK SUMMARY HEADER -->
+    <div class="card border-0 shadow-sm rounded-4 mb-4 bg-white overflow-hidden border-start border-4 border-primary">
+      <div class="card-body p-4">
+        <div class="row align-items-center g-4">
+          <!-- Left: Big Counter Display -->
+          <div class="col-lg-5 col-md-6 border-end-md">
+            <div class="d-flex align-items-center gap-3">
+              <div class="p-3 bg-primary-subtle text-primary rounded-4 d-flex align-items-center justify-content-center" style="width: 64px; height: 64px;">
+                <i class="bi bi-check2-circle fs-1 fw-bold"></i>
+              </div>
+              <div>
+                <span class="text-uppercase text-muted fw-bold small tracking-wide">Daily Productivity Ratio</span>
+                <div class="d-flex align-items-baseline gap-2">
+                  <span class="display-5 fw-extrabold text-primary mb-0">{{ completedCount }}</span>
+                  <span class="fs-4 text-muted fw-bold">/ {{ tasks.length }}</span>
+                  <span class="badge rounded-pill ms-2 px-3 py-1.5 fw-bold" :class="productivityBadge.class">
+                    {{ productivityBadge.label }}
+                  </span>
+                </div>
+                <div class="small text-muted mt-1 fw-medium">
+                  <strong>{{ completedCount }} task selesai</strong> dari total {{ tasks.length }} tugas harian Anda.
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Middle: Progress Meter -->
+          <div class="col-lg-4 col-md-6">
+            <div class="d-flex align-items-center justify-content-between mb-2">
+              <span class="fw-bold text-dark small"><i class="bi bi-speedometer2 text-primary me-1"></i> % Pencapaian Hari Ini</span>
+              <span class="fw-extrabold text-primary fs-6">{{ completionPercent }}% Selesai</span>
+            </div>
+            <div class="progress rounded-pill shadow-inner" style="height: 14px; background-color: #f1f5f9;">
+              <div
+                class="progress-bar bg-gradient-success progress-bar-striped progress-bar-animated rounded-pill"
+                role="progressbar"
+                :style="{ width: completionPercent + '%' }"
+              ></div>
+            </div>
+            <div class="d-flex justify-content-between align-items-center mt-2 small">
+              <span class="text-muted"><i class="bi bi-check-circle-fill text-success me-1"></i> {{ completedCount }} Selesai</span>
+              <span class="text-muted"><i class="bi bi-hourglass-split text-warning me-1"></i> {{ pendingCount }} Pending</span>
+            </div>
+          </div>
+
+          <!-- Right: Urgent / Overdue & Clear Action -->
+          <div class="col-lg-3 col-md-12 text-lg-end bg-light-subtle p-3 rounded-3 border">
+            <div class="d-flex align-items-center justify-content-lg-end gap-2 mb-2">
+              <i class="bi bi-exclamation-triangle-fill text-danger fs-5"></i>
+              <span class="fw-bold text-danger">Status Deadline:</span>
+            </div>
+            <div class="fw-extrabold fs-5" :class="urgentOrOverdueCount > 0 ? 'text-danger' : 'text-success'">
+              <span v-if="urgentOrOverdueCount > 0">🚨 {{ urgentOrOverdueCount }} Task Perlu Perhatian!</span>
+              <span v-else>✅ Semua Deadline Aman</span>
+            </div>
+            <small class="text-muted d-block mt-1">
+              {{ urgentOverdueLabel }}
+            </small>
+
+            <button v-if="completedCount > 0" class="btn btn-sm btn-outline-danger rounded-pill px-3 mt-3 w-100" @click="clearCompleted">
+              <i class="bi bi-trash me-1"></i> Bersihkan {{ completedCount }} Task Selesai
+            </button>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -53,8 +120,8 @@
         <!-- SINGLE ITEM FORM -->
         <form v-if="formTab === 'single'" @submit.prevent="saveTask">
           <div class="row g-3">
-            <div class="col-md-8">
-              <label class="form-label fw-semibold">Nama Tugas / Activity <span class="text-danger">*</span></label>
+            <div class="col-md-7">
+              <label class="form-label fw-bold">Nama Tugas / Activity <span class="text-danger">*</span></label>
               <input
                 type="text"
                 class="form-control"
@@ -65,19 +132,32 @@
               <div class="invalid-feedback" v-if="formErrors.name">{{ formErrors.name }}</div>
             </div>
 
-            <div class="col-md-4">
-              <label class="form-label fw-semibold">Kategori Organisasi</label>
-              <select class="form-select" v-model="form.category">
-                <option value="Work">💼 Work / Pekerjaan</option>
-                <option value="Personal">🏠 Personal / Pribadi</option>
-                <option value="Urgent">🔥 Urgent / Mendesak</option>
-                <option value="Client">🤝 Client Project</option>
-                <option value="Routine">🔄 Routine / Rutinitas</option>
-              </select>
+            <!-- Custom Project Folder / Category Selector -->
+            <div class="col-md-5">
+              <div class="d-flex justify-content-between align-items-center mb-1">
+                <label class="form-label fw-bold mb-0">📁 Project Folder / Kategori</label>
+                <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none fw-bold" @click="promptAddCustomFolder">
+                  <i class="bi bi-folder-plus me-1"></i>+ Folder Baru
+                </button>
+              </div>
+              <div class="input-group">
+                <select class="form-select" v-model="form.category">
+                  <option v-for="folder in projectFolders" :key="folder" :value="folder">
+                    📁 {{ folder }}
+                  </option>
+                </select>
+                <input
+                  type="text"
+                  class="form-control"
+                  placeholder="Atau ketik folder baru..."
+                  v-model="form.customCategoryInput"
+                  @input="onCustomFolderInput"
+                />
+              </div>
             </div>
 
             <div class="col-md-4">
-              <label class="form-label fw-semibold">Tingkat Prioritas</label>
+              <label class="form-label fw-bold">Tingkat Prioritas</label>
               <select class="form-select" v-model="form.level">
                 <option value="Menengah">Menengah (Sedang)</option>
                 <option value="Penting">🔥 Penting / Urgent</option>
@@ -86,12 +166,12 @@
             </div>
 
             <div class="col-md-4">
-              <label class="form-label fw-semibold">Proyek / Tag</label>
-              <input type="text" class="form-control" placeholder="Contoh: Mobile App, Design" v-model="form.projectTag" />
+              <label class="form-label fw-bold">Sub-Tag / Label Tambahan</label>
+              <input type="text" class="form-control" placeholder="Contoh: Mobile, UI/UX" v-model="form.projectTag" />
             </div>
 
             <div class="col-md-4">
-              <label class="form-label fw-semibold">Status / Kolom</label>
+              <label class="form-label fw-bold">Status Kolom Kanban</label>
               <select class="form-select" v-model="form.statusColumn">
                 <option value="backlog">Backlog</option>
                 <option value="todo">To Do</option>
@@ -100,29 +180,47 @@
               </select>
             </div>
 
-            <div class="col-md-4">
-              <label class="form-label fw-semibold">Target Deadline <span class="text-danger">*</span></label>
+            <!-- Due Date Picker with Presets -->
+            <div class="col-md-6">
+              <div class="d-flex justify-content-between align-items-center mb-1">
+                <label class="form-label fw-bold mb-0">Target Deadline / Due Date <span class="text-danger">*</span></label>
+                <span class="small text-muted">Tanggal Penyelesaian</span>
+              </div>
               <input
                 type="date"
-                class="form-control"
+                class="form-control form-control-lg border-2 fs-6 mb-2"
                 :class="{ 'is-invalid': formErrors.deadline }"
                 v-model="form.deadline"
               />
               <div class="invalid-feedback" v-if="formErrors.deadline">{{ formErrors.deadline }}</div>
+
+              <!-- Quick Due Date Presets -->
+              <div class="d-flex flex-wrap gap-1">
+                <button type="button" class="btn btn-xs btn-outline-secondary rounded-pill px-2 py-1" @click="setFormDeadline('today')">
+                  📅 Hari Ini
+                </button>
+                <button type="button" class="btn btn-xs btn-outline-secondary rounded-pill px-2 py-1" @click="setFormDeadline('tomorrow')">
+                  ⏰ Besok
+                </button>
+                <button type="button" class="btn btn-xs btn-outline-secondary rounded-pill px-2 py-1" @click="setFormDeadline('in3days')">
+                  📆 +3 Hari
+                </button>
+                <button type="button" class="btn btn-xs btn-outline-secondary rounded-pill px-2 py-1" @click="setFormDeadline('nextweek')">
+                  🗓️ Minggu Depan
+                </button>
+              </div>
             </div>
 
             <div class="col-md-6">
-              <label class="form-label fw-semibold">Frekuensi Berulang (Recurring)</label>
-              <select class="form-select" v-model="form.recurring">
+              <label class="form-label fw-bold">Frekuensi Berulang (Recurring)</label>
+              <select class="form-select mb-2" v-model="form.recurring">
                 <option value="none">Tidak Berulang (Sekali)</option>
                 <option value="daily">Harian (Daily)</option>
                 <option value="weekly">Mingguan (Weekly)</option>
                 <option value="monthly">Bulanan (Monthly)</option>
               </select>
-            </div>
 
-            <div class="col-md-6">
-              <label class="form-label fw-semibold">Kategori Matriks Eisenhower</label>
+              <label class="form-label fw-bold small mb-1">Kategori Matriks Eisenhower</label>
               <select class="form-select" v-model="form.eisenhower">
                 <option value="do_first">🔥 Kerjakan Sekarang (Penting & Mendesak)</option>
                 <option value="schedule">📅 Jadwalkan (Penting, Tidak Mendesak)</option>
@@ -132,13 +230,13 @@
             </div>
 
             <div class="col-12">
-              <label class="form-label fw-semibold">Catatan / Detail Pekerjaan</label>
-              <textarea class="form-control" rows="2" placeholder="Detail petunjuk atau link..." v-model="form.notes"></textarea>
+              <label class="form-label fw-bold">Catatan / Detail Pekerjaan</label>
+              <textarea class="form-control" rows="2" placeholder="Detail petunjuk, tautan, atau syarat pekerjaan..." v-model="form.notes"></textarea>
             </div>
 
             <div class="col-12 text-end pt-3 border-top">
               <button type="button" class="btn btn-light px-4 me-2 rounded-3" @click="showForm = false">Batal</button>
-              <button type="submit" class="btn btn-primary px-4 rounded-3 fw-semibold">
+              <button type="submit" class="btn btn-primary px-4 rounded-3 fw-semibold shadow-sm">
                 {{ isEditing ? 'Simpan Perubahan' : 'Tambah Tugas' }}
               </button>
             </div>
@@ -151,7 +249,7 @@
             <div class="col-12">
               <div class="alert alert-info py-2 small mb-2 d-flex align-items-center gap-2">
                 <i class="bi bi-info-circle-fill fs-5"></i>
-                <span>Tulis atau paste daftar nama tugas (1 nama tugas per baris). Semua akan dimasukkan sekaligus secara otomatis!</span>
+                <span>Tulis atau paste daftar nama tugas (1 nama tugas per baris). Semua akan dimasukkan sekaligus!</span>
               </div>
               <label class="form-label fw-semibold">Daftar Task (Satu per baris) <span class="text-danger">*</span></label>
               <textarea
@@ -165,8 +263,12 @@
             </div>
 
             <div class="col-md-4">
-              <label class="form-label fw-semibold">Proyek / Tag Default</label>
-              <input type="text" class="form-control" placeholder="Umum" v-model="bulkDefault.projectTag" />
+              <label class="form-label fw-semibold">📁 Project Folder Default</label>
+              <select class="form-select" v-model="bulkDefault.category">
+                <option v-for="folder in projectFolders" :key="folder" :value="folder">
+                  📁 {{ folder }}
+                </option>
+              </select>
             </div>
 
             <div class="col-md-4">
@@ -179,13 +281,13 @@
             </div>
 
             <div class="col-md-4">
-              <label class="form-label fw-semibold">Deadline Default</label>
+              <label class="form-label fw-semibold">Target Deadline Default</label>
               <input type="date" class="form-control" v-model="bulkDefault.deadline" />
             </div>
 
             <div class="col-12 text-end pt-3 border-top">
               <button type="button" class="btn btn-light px-4 me-2 rounded-3" @click="showForm = false">Batal</button>
-              <button type="submit" class="btn btn-success px-4 rounded-3 fw-semibold">
+              <button type="submit" class="btn btn-success px-4 rounded-3 fw-semibold shadow-sm">
                 <i class="bi bi-stack me-1"></i> Simpan Semua Task (Bulk)
               </button>
             </div>
@@ -194,91 +296,91 @@
       </div>
     </div>
 
-    <!-- Progress Card -->
-    <div class="card border-0 shadow-sm rounded-4 mb-4 bg-white p-4">
-      <div class="row align-items-center">
-        <div class="col-md-8">
-          <div class="d-flex align-items-center justify-content-between mb-2">
-            <h6 class="fw-bold text-dark mb-0"><i class="bi bi-bar-chart-line-fill text-primary me-2"></i>Kemajuan Tugas Keseluruhan</h6>
-            <span class="fw-bold text-primary fs-5">{{ completionPercent }}% Selesai</span>
-          </div>
-          <div class="progress rounded-pill style-progress" style="height: 12px;">
-            <div
-              class="progress-bar bg-success progress-bar-striped progress-bar-animated"
-              role="progressbar"
-              :style="{ width: completionPercent + '%' }"
-            ></div>
-          </div>
-          <div class="d-flex flex-wrap gap-4 mt-3 small text-muted">
-            <div><i class="bi bi-list-task text-primary me-1"></i> Total: <strong>{{ tasks.length }}</strong></div>
-            <div><i class="bi bi-check-circle-fill text-success me-1"></i> Selesai: <strong>{{ completedCount }}</strong></div>
-            <div><i class="bi bi-clock-history text-warning me-1"></i> Pending: <strong>{{ pendingCount }}</strong></div>
-          </div>
-        </div>
-        <div class="col-md-4 text-md-end mt-3 mt-md-0" v-if="completedCount > 0">
-          <button class="btn btn-sm btn-outline-danger rounded-pill px-3" @click="clearCompleted">
-            <i class="bi bi-trash me-1"></i> Bersihkan Selesai
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <!-- View Mode Switcher & Bulk Actions Toolbar -->
+    <!-- VIEW MODE SWITCHER & CUSTOM FOLDER CATEGORY TOOLBAR -->
     <div class="card border-0 shadow-sm rounded-4 mb-4 bg-white">
-      <div class="card-body p-3 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
-        <!-- 5 View Modes Buttons -->
-        <div class="btn-group flex-wrap" role="group">
-          <button
-            class="btn btn-outline-primary px-3 py-2 fw-semibold"
-            :class="{ active: currentViewMode === 'list' }"
-            @click="currentViewMode = 'list'"
-          >
-            <i class="bi bi-list-ul me-1"></i> 1. Standard List
-          </button>
-          <button
-            class="btn btn-outline-primary px-3 py-2 fw-semibold"
-            :class="{ active: currentViewMode === 'kanban' }"
-            @click="currentViewMode = 'kanban'"
-          >
-            <i class="bi bi-kanban me-1"></i> 2. Kanban Board
-          </button>
-          <button
-            class="btn btn-outline-primary px-3 py-2 fw-semibold"
-            :class="{ active: currentViewMode === 'eisenhower' }"
-            @click="currentViewMode = 'eisenhower'"
-          >
-            <i class="bi bi-grid-fill me-1"></i> 3. Matriks Eisenhower
-          </button>
-          <button
-            class="btn btn-outline-primary px-3 py-2 fw-semibold"
-            :class="{ active: currentViewMode === 'timeline' }"
-            @click="currentViewMode = 'timeline'"
-          >
-            <i class="bi bi-calendar-range me-1"></i> 4. Timeline Deadline
-          </button>
-          <button
-            class="btn btn-outline-primary px-3 py-2 fw-semibold"
-            :class="{ active: currentViewMode === 'compact' }"
-            @click="currentViewMode = 'compact'"
-          >
-            <i class="bi bi-check-square me-1"></i> 5. Checklist Ringkas
-          </button>
+      <div class="card-body p-3">
+        <!-- View Mode Navigation Tabs -->
+        <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3 mb-3 pb-3 border-bottom">
+          <div class="btn-group flex-wrap" role="group">
+            <button
+              class="btn btn-outline-primary px-3 py-2 fw-semibold"
+              :class="{ active: currentViewMode === 'list' }"
+              @click="currentViewMode = 'list'"
+            >
+              <i class="bi bi-list-ul me-1"></i> 1. Standard List
+            </button>
+            <button
+              class="btn btn-outline-primary px-3 py-2 fw-semibold"
+              :class="{ active: currentViewMode === 'kanban' }"
+              @click="currentViewMode = 'kanban'"
+            >
+              <i class="bi bi-kanban me-1"></i> 2. Kanban Board
+            </button>
+            <button
+              class="btn btn-outline-primary px-3 py-2 fw-semibold"
+              :class="{ active: currentViewMode === 'eisenhower' }"
+              @click="currentViewMode = 'eisenhower'"
+            >
+              <i class="bi bi-grid-fill me-1"></i> 3. Matriks Eisenhower
+            </button>
+            <button
+              class="btn btn-outline-primary px-3 py-2 fw-semibold"
+              :class="{ active: currentViewMode === 'timeline' }"
+              @click="currentViewMode = 'timeline'"
+            >
+              <i class="bi bi-calendar-range me-1"></i> 4. Timeline Deadline
+            </button>
+
+            <!-- NEW VIEW MODE 5: FOLDER & CATEGORY GROUP -->
+            <button
+              class="btn btn-outline-primary px-3 py-2 fw-semibold"
+              :class="{ active: currentViewMode === 'folder' }"
+              @click="currentViewMode = 'folder'"
+            >
+              <i class="bi bi-folder-fill me-1"></i> 5. Kelompok Folder
+            </button>
+
+            <button
+              class="btn btn-outline-primary px-3 py-2 fw-semibold"
+              :class="{ active: currentViewMode === 'compact' }"
+              @click="currentViewMode = 'compact'"
+            >
+              <i class="bi bi-check-square me-1"></i> 6. Checklist Ringkas
+            </button>
+          </div>
+
+          <!-- Search Box -->
+          <div class="input-group" style="max-width: 260px;">
+            <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-search"></i></span>
+            <input type="text" class="form-control bg-light border-start-0" placeholder="Cari task / tag..." v-model="searchQuery" />
+          </div>
         </div>
 
-        <!-- Category Filter & Search input -->
-        <div class="d-flex align-items-center gap-2">
-          <select class="form-select bg-light border" style="width: 160px;" v-model="selectedCategory">
-            <option value="all">Semua Kategori</option>
-            <option value="Work">💼 Work</option>
-            <option value="Personal">🏠 Personal</option>
-            <option value="Urgent">🔥 Urgent</option>
-            <option value="Client">🤝 Client</option>
-            <option value="Routine">🔄 Routine</option>
-          </select>
-          <div class="input-group" style="max-width: 240px;">
-            <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-search"></i></span>
-            <input type="text" class="form-control bg-light border-start-0" placeholder="Cari task..." v-model="searchQuery" />
+        <!-- Custom Project Folder / Category Pill Switcher Bar -->
+        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+          <div class="d-flex align-items-center gap-1 overflow-x-auto py-1 flex-grow-1 style-scroll-horizontal">
+            <span class="small fw-bold text-muted me-2 text-nowrap"><i class="bi bi-folder2 me-1"></i>Filter Folder:</span>
+            <button
+              class="btn btn-xs rounded-pill px-3 py-1 fw-bold text-nowrap transition-all"
+              :class="selectedCategory === 'all' ? 'btn-primary shadow-sm' : 'btn-light border text-dark'"
+              @click="selectedCategory = 'all'"
+            >
+              📁 Semua Folder ({{ tasks.length }})
+            </button>
+            <button
+              v-for="folder in projectFolders"
+              :key="folder"
+              class="btn btn-xs rounded-pill px-3 py-1 fw-bold text-nowrap transition-all"
+              :class="selectedCategory === folder ? 'btn-primary shadow-sm' : 'btn-light border text-dark'"
+              @click="selectedCategory = folder"
+            >
+              📁 {{ folder }} ({{ getTaskCountInFolder(folder) }})
+            </button>
           </div>
+
+          <button class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-bold text-nowrap ms-auto" @click="promptAddCustomFolder">
+            <i class="bi bi-folder-plus me-1"></i>+ Tambah Folder Custom
+          </button>
         </div>
       </div>
     </div>
@@ -315,11 +417,11 @@
                 <th style="width: 50px;" class="text-center">#</th>
                 <th style="width: 50px;">Status</th>
                 <th>Nama Kegiatan / Tugas</th>
-                <th>Kategori</th>
-                <th>Proyek / Tag</th>
+                <th>Project Folder</th>
+                <th>Tag</th>
                 <th>Prioritas</th>
-                <th>Frekuensi Recurring</th>
-                <th>Deadline</th>
+                <th>Recurring</th>
+                <th>Target Deadline</th>
                 <th class="text-end pe-4" style="width: 140px;">Aksi</th>
               </tr>
             </thead>
@@ -347,7 +449,7 @@
                 </td>
                 <td>
                   <span class="badge rounded-pill px-2.5 py-1.5 fw-semibold" :class="getCategoryBadgeClass(task.category)">
-                    {{ getCategoryLabel(task.category) }}
+                    📁 {{ task.category || 'Work' }}
                   </span>
                 </td>
                 <td>
@@ -356,7 +458,7 @@
                   </span>
                 </td>
                 <td>
-                  <span :class="badgeClass(task.level)" class="px-3 py-1 rounded-pill small">
+                  <span :class="badgeClass(task.level)" class="px-3 py-1 rounded-pill small fw-bold">
                     {{ task.level }}
                   </span>
                 </td>
@@ -367,8 +469,10 @@
                   <span v-else class="text-muted small">-</span>
                 </td>
                 <td>
-                  <div class="small fw-semibold" :class="isOverdue(task.deadline, task.done) ? 'text-danger' : 'text-dark'">
-                    <i class="bi bi-calendar-event me-1"></i>{{ formatDate(task.deadline) }}
+                  <!-- Due Date Visual Indicator with RED TEXT for Overdue or Approaching -->
+                  <div :class="getDeadlineInfo(task.deadline, task.done).textClass" class="small">
+                    <i class="bi bi-calendar-event me-1"></i>
+                    <span>{{ getDeadlineInfo(task.deadline, task.done).label }}</span>
                   </div>
                 </td>
                 <td class="text-end pe-4">
@@ -389,7 +493,8 @@
           </table>
         </div>
         <div v-else class="text-center py-5">
-          <p class="text-muted">Tidak ada tugas ditemukan.</p>
+          <i class="bi bi-inbox fs-1 text-muted d-block mb-2"></i>
+          <p class="text-muted mb-0">Tidak ada tugas ditemukan pada filter ini.</p>
         </div>
       </div>
     </div>
@@ -412,7 +517,7 @@
               v-for="task in getTasksInCol(col.id)"
               :key="task.id"
               class="card border shadow-sm rounded-3 mb-2 p-3 hover-card"
-              :class="{ 'border-success bg-success-subtle opacity-75': task.done }"
+              :class="{ 'border-success bg-success-subtle opacity-75': task.done, 'border-danger border-2': getDeadlineInfo(task.deadline, task.done).isDanger }"
             >
               <div class="d-flex justify-content-between align-items-start mb-2">
                 <div class="form-check">
@@ -428,14 +533,22 @@
                 </div>
               </div>
               <p class="text-muted small mb-2" v-if="task.notes">{{ task.notes }}</p>
+              
               <div class="d-flex flex-wrap justify-content-between align-items-center pt-2 border-top gap-1 style-mini">
                 <span class="badge rounded-pill px-2 py-0.5" :class="getCategoryBadgeClass(task.category)">
-                  {{ getCategoryLabel(task.category) }}
+                  📁 {{ task.category || 'Work' }}
                 </span>
                 <span class="badge bg-light text-dark border">{{ task.projectTag || 'Umum' }}</span>
-                <span :class="badgeClass(task.level)" class="px-2 py-0.5 rounded-pill">{{ task.level }}</span>
-                <span class="text-muted"><i class="bi bi-clock me-1"></i>{{ formatDate(task.deadline) }}</span>
+                <span :class="badgeClass(task.level)" class="px-2 py-0.5 rounded-pill fw-bold">{{ task.level }}</span>
               </div>
+
+              <!-- Kanban Deadline Pill with RED TEXT if overdue or approaching -->
+              <div class="mt-2 pt-2 border-top d-flex justify-content-between align-items-center">
+                <span class="badge" :class="getDeadlineInfo(task.deadline, task.done).badgeClass">
+                  <i class="bi bi-clock me-1"></i>{{ getDeadlineInfo(task.deadline, task.done).label }}
+                </span>
+              </div>
+
               <div class="d-flex justify-content-between align-items-center mt-2 pt-2 border-top">
                 <div class="btn-group btn-group-sm">
                   <button
@@ -485,15 +598,20 @@
               :key="t.id"
               class="list-group-item d-flex justify-content-between align-items-center border-bottom py-2 bg-transparent"
             >
-              <div>
-                <input type="checkbox" class="form-check-input me-2" :checked="t.done" @change="toggleTaskDone(t.id)" />
-                <span :class="{ 'text-decoration-line-through text-muted': t.done }">{{ t.name }}</span>
+              <div class="d-flex align-items-center gap-2">
+                <input type="checkbox" class="form-check-input" :checked="t.done" @change="toggleTaskDone(t.id)" />
+                <span :class="{ 'text-decoration-line-through text-muted': t.done, 'text-danger fw-bold': getDeadlineInfo(t.deadline, t.done).isDanger }">
+                  {{ t.name }}
+                </span>
               </div>
-              <span class="badge bg-danger-subtle text-danger rounded-pill">{{ formatDate(t.deadline) }}</span>
+              <span class="badge" :class="getDeadlineInfo(t.deadline, t.done).badgeClass">
+                {{ getDeadlineInfo(t.deadline, t.done).label }}
+              </span>
             </div>
           </div>
         </div>
       </div>
+
       <div class="col-md-6">
         <div class="card border-0 border-start border-4 border-primary shadow-sm rounded-4 bg-white p-3 h-100">
           <h6 class="fw-bold text-primary"><i class="bi bi-calendar-event me-2"></i>📅 2. Jadwalkan (Schedule)</h6>
@@ -504,15 +622,20 @@
               :key="t.id"
               class="list-group-item d-flex justify-content-between align-items-center border-bottom py-2 bg-transparent"
             >
-              <div>
-                <input type="checkbox" class="form-check-input me-2" :checked="t.done" @change="toggleTaskDone(t.id)" />
-                <span :class="{ 'text-decoration-line-through text-muted': t.done }">{{ t.name }}</span>
+              <div class="d-flex align-items-center gap-2">
+                <input type="checkbox" class="form-check-input" :checked="t.done" @change="toggleTaskDone(t.id)" />
+                <span :class="{ 'text-decoration-line-through text-muted': t.done, 'text-danger fw-bold': getDeadlineInfo(t.deadline, t.done).isDanger }">
+                  {{ t.name }}
+                </span>
               </div>
-              <span class="badge bg-primary-subtle text-primary rounded-pill">{{ formatDate(t.deadline) }}</span>
+              <span class="badge" :class="getDeadlineInfo(t.deadline, t.done).badgeClass">
+                {{ getDeadlineInfo(t.deadline, t.done).label }}
+              </span>
             </div>
           </div>
         </div>
       </div>
+
       <div class="col-md-6">
         <div class="card border-0 border-start border-4 border-warning shadow-sm rounded-4 bg-white p-3 h-100">
           <h6 class="fw-bold text-warning"><i class="bi bi-people me-2"></i>👥 3. Delegasikan (Delegate)</h6>
@@ -523,15 +646,20 @@
               :key="t.id"
               class="list-group-item d-flex justify-content-between align-items-center border-bottom py-2 bg-transparent"
             >
-              <div>
-                <input type="checkbox" class="form-check-input me-2" :checked="t.done" @change="toggleTaskDone(t.id)" />
-                <span :class="{ 'text-decoration-line-through text-muted': t.done }">{{ t.name }}</span>
+              <div class="d-flex align-items-center gap-2">
+                <input type="checkbox" class="form-check-input" :checked="t.done" @change="toggleTaskDone(t.id)" />
+                <span :class="{ 'text-decoration-line-through text-muted': t.done, 'text-danger fw-bold': getDeadlineInfo(t.deadline, t.done).isDanger }">
+                  {{ t.name }}
+                </span>
               </div>
-              <span class="badge bg-warning-subtle text-warning rounded-pill">{{ formatDate(t.deadline) }}</span>
+              <span class="badge" :class="getDeadlineInfo(t.deadline, t.done).badgeClass">
+                {{ getDeadlineInfo(t.deadline, t.done).label }}
+              </span>
             </div>
           </div>
         </div>
       </div>
+
       <div class="col-md-6">
         <div class="card border-0 border-start border-4 border-secondary shadow-sm rounded-4 bg-white p-3 h-100">
           <h6 class="fw-bold text-secondary"><i class="bi bi-trash me-2"></i>🧹 4. Eliminasi (Eliminate)</h6>
@@ -542,11 +670,15 @@
               :key="t.id"
               class="list-group-item d-flex justify-content-between align-items-center border-bottom py-2 bg-transparent"
             >
-              <div>
-                <input type="checkbox" class="form-check-input me-2" :checked="t.done" @change="toggleTaskDone(t.id)" />
-                <span :class="{ 'text-decoration-line-through text-muted': t.done }">{{ t.name }}</span>
+              <div class="d-flex align-items-center gap-2">
+                <input type="checkbox" class="form-check-input" :checked="t.done" @change="toggleTaskDone(t.id)" />
+                <span :class="{ 'text-decoration-line-through text-muted': t.done, 'text-danger fw-bold': getDeadlineInfo(t.deadline, t.done).isDanger }">
+                  {{ t.name }}
+                </span>
               </div>
-              <span class="badge bg-secondary-subtle text-secondary rounded-pill">{{ formatDate(t.deadline) }}</span>
+              <span class="badge" :class="getDeadlineInfo(t.deadline, t.done).badgeClass">
+                {{ getDeadlineInfo(t.deadline, t.done).label }}
+              </span>
             </div>
           </div>
         </div>
@@ -558,22 +690,28 @@
       <h6 class="fw-bold text-dark mb-3"><i class="bi bi-clock-history me-2 text-primary"></i>Timeline Deadline Pekerjaan</h6>
       <div v-for="(groupTasks, dateStr) in timelineGroupedTasks" :key="dateStr" class="mb-4">
         <div class="d-flex align-items-center gap-2 mb-2">
-          <span class="badge bg-primary px-3 py-2 rounded-pill"><i class="bi bi-calendar3 me-1"></i>{{ formatDate(dateStr) }}</span>
-          <span class="text-muted small">({{ groupTasks.length }} task)</span>
+          <span class="badge px-3 py-2 rounded-pill" :class="getDeadlineInfo(dateStr, false).isDanger ? 'bg-danger text-white fw-bold' : 'bg-primary text-white'">
+            <i class="bi bi-calendar3 me-1"></i>{{ formatDate(dateStr) }}
+          </span>
+          <span class="small fw-bold" :class="getDeadlineInfo(dateStr, false).textClass">
+            ({{ groupTasks.length }} task) - {{ getDeadlineInfo(dateStr, false).label }}
+          </span>
         </div>
-        <div class="row g-2 ps-3 border-start border-2 border-primary ms-2">
+        <div class="row g-2 ps-3 border-start border-3 ms-2" :class="getDeadlineInfo(dateStr, false).isDanger ? 'border-danger' : 'border-primary'">
           <div v-for="t in groupTasks" :key="t.id" class="col-md-6">
             <div class="p-3 border rounded-3 bg-light d-flex justify-content-between align-items-center">
               <div>
-                <span class="fw-bold d-block" :class="{ 'text-decoration-line-through text-muted': t.done }">{{ t.name }}</span>
+                <span class="fw-bold d-block" :class="{ 'text-decoration-line-through text-muted': t.done, 'text-danger': getDeadlineInfo(t.deadline, t.done).isDanger }">
+                  {{ t.name }}
+                </span>
                 <div class="d-flex align-items-center gap-1 mt-1">
                   <span class="badge rounded-pill px-2 py-0.5" :class="getCategoryBadgeClass(t.category)">
-                    {{ getCategoryLabel(t.category) }}
+                    📁 {{ t.category || 'Work' }}
                   </span>
                   <span class="badge bg-white text-dark border small">{{ t.projectTag || 'Umum' }}</span>
                 </div>
               </div>
-              <button class="btn btn-sm btn-outline-success rounded-circle" @click="toggleTaskDone(t.id)">
+              <button class="btn btn-sm rounded-circle" :class="t.done ? 'btn-success' : 'btn-outline-secondary'" @click="toggleTaskDone(t.id)">
                 <i :class="t.done ? 'bi bi-check-circle-fill' : 'bi bi-circle'"></i>
               </button>
             </div>
@@ -582,7 +720,67 @@
       </div>
     </div>
 
-    <!-- VIEW MODE 5: Checklist Ringkas -->
+    <!-- NEW VIEW MODE 5: CUSTOM PROJECT FOLDER & CATEGORY GROUP -->
+    <div v-else-if="currentViewMode === 'folder'" class="row g-4">
+      <div v-for="folder in projectFolders" :key="folder" class="col-lg-6">
+        <div class="card border-0 shadow-sm rounded-4 bg-white h-100 overflow-hidden border-top border-4 border-primary">
+          <div class="card-header bg-transparent border-bottom p-3 d-flex justify-content-between align-items-center">
+            <div class="d-flex align-items-center gap-2">
+              <div class="p-2 bg-primary-subtle text-primary rounded-3">
+                <i class="bi bi-folder-fill fs-5"></i>
+              </div>
+              <div>
+                <h6 class="fw-bold mb-0 text-dark">📁 {{ folder }}</h6>
+                <small class="text-muted">{{ getTasksInFolder(folder).length }} Tugas Terdaftar</small>
+              </div>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+              <span class="badge bg-success-subtle text-success fw-bold rounded-pill px-3 py-1">
+                {{ getFolderCompletedCount(folder) }} / {{ getTasksInFolder(folder).length }} Selesai
+              </span>
+            </div>
+          </div>
+
+          <div class="card-body p-3">
+            <div v-if="getTasksInFolder(folder).length > 0" class="list-group list-group-flush">
+              <div
+                v-for="t in getTasksInFolder(folder)"
+                :key="t.id"
+                class="list-group-item px-2 py-2.5 d-flex justify-content-between align-items-center border-bottom bg-transparent"
+              >
+                <div class="d-flex align-items-center gap-2">
+                  <input type="checkbox" class="form-check-input style-checkbox" :checked="t.done" @change="toggleTaskDone(t.id)" />
+                  <div>
+                    <span class="fw-semibold text-dark d-block" :class="{ 'text-decoration-line-through text-muted': t.done }">
+                      {{ t.name }}
+                    </span>
+                    <span class="small text-muted" v-if="t.projectTag">
+                      <i class="bi bi-tag-fill text-primary me-1"></i>{{ t.projectTag }}
+                    </span>
+                  </div>
+                </div>
+
+                <div class="text-end">
+                  <span class="badge d-block mb-1" :class="getDeadlineInfo(t.deadline, t.done).badgeClass">
+                    {{ getDeadlineInfo(t.deadline, t.done).label }}
+                  </span>
+                  <div class="d-flex justify-content-end gap-1">
+                    <button class="btn btn-xs btn-light text-primary" @click="editTask(t)"><i class="bi bi-pencil"></i></button>
+                    <button class="btn btn-xs btn-light text-danger" @click="removeTask(t.id)"><i class="bi bi-trash"></i></button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div v-else class="text-center py-4 text-muted small">
+              <i class="bi bi-folder2-open fs-3 d-block mb-1 opacity-50"></i>
+              Belum ada tugas di folder ini.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- VIEW MODE 6: Checklist Ringkas -->
     <div v-else-if="currentViewMode === 'compact'" class="card border-0 shadow-sm rounded-4 bg-white p-4">
       <h6 class="fw-bold text-dark mb-3"><i class="bi bi-check-square-fill text-success me-2"></i>Checklist Pekerjaan Ringkas</h6>
       <div class="list-group list-group-flush">
@@ -597,10 +795,12 @@
           </div>
           <div class="d-flex align-items-center gap-2">
             <span class="badge rounded-pill px-2 py-0.5" :class="getCategoryBadgeClass(t.category)">
-              {{ getCategoryLabel(t.category) }}
+              📁 {{ t.category || 'Work' }}
             </span>
             <span class="badge bg-light text-dark border small">{{ t.projectTag }}</span>
-            <span class="text-muted small">{{ formatDate(t.deadline) }}</span>
+            <span :class="getDeadlineInfo(t.deadline, t.done).textClass" class="small fw-bold">
+              {{ getDeadlineInfo(t.deadline, t.done).label }}
+            </span>
           </div>
         </div>
       </div>
@@ -618,11 +818,71 @@
         </div>
       </div>
     </div>
+
+    <!-- DELETE CONFIRMATION MODAL DIALOG -->
+    <div v-if="deleteModal.show" class="modal-backdrop fade show" style="z-index: 1080;" @click="closeDeleteModal"></div>
+    <div v-if="deleteModal.show" class="modal d-block fade show" style="z-index: 1085;" tabindex="-1" role="dialog" aria-modal="true">
+      <div class="modal-dialog modal-dialog-centered" style="max-width: 460px;">
+        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+          <div class="modal-header border-0 bg-danger-subtle text-danger p-4 pb-0">
+            <div class="d-flex align-items-center gap-3">
+              <div class="p-3 bg-danger text-white rounded-circle d-flex align-items-center justify-content-center shadow-sm" style="width: 52px; height: 52px;">
+                <i class="bi bi-exclamation-triangle-fill fs-3"></i>
+              </div>
+              <div>
+                <h5 class="modal-title fw-bold text-danger mb-0">Konfirmasi Hapus</h5>
+                <small class="text-danger-emphasis fw-medium">Peringatan: Data akan dihapus permanen</small>
+              </div>
+            </div>
+            <button type="button" class="btn-close" @click="closeDeleteModal" aria-label="Close"></button>
+          </div>
+
+          <div class="modal-body p-4 text-dark">
+            <div v-if="deleteModal.type === 'single'" class="mb-3">
+              <p class="mb-2">Apakah Anda yakin ingin menghapus tugas berikut secara permanen?</p>
+              <div class="p-3 bg-light rounded-3 border border-danger-subtle text-dark fw-bold text-break d-flex align-items-center gap-2">
+                <i class="bi bi-file-earmark-text text-danger fs-5"></i>
+                <span>{{ deleteModal.targetTitle }}</span>
+              </div>
+            </div>
+
+            <div v-else-if="deleteModal.type === 'bulk'" class="mb-3">
+              <p class="mb-2">Apakah Anda yakin ingin menghapus <strong>{{ deleteModal.count }} tugas terpilih</strong> secara permanen?</p>
+              <div class="p-3 bg-light rounded-3 border border-danger-subtle text-muted small">
+                Semua {{ deleteModal.count }} tugas yang telah Anda centang di daftar akan dihapus dari sistem.
+              </div>
+            </div>
+
+            <div v-else-if="deleteModal.type === 'clear_completed'" class="mb-3">
+              <p class="mb-2">Apakah Anda yakin ingin membersihkan <strong>{{ deleteModal.count }} tugas selesai</strong>?</p>
+              <div class="p-3 bg-light rounded-3 border border-danger-subtle text-muted small">
+                Seluruh tugas yang sudah selesai dikerjakan akan dibersihkan secara permanen.
+              </div>
+            </div>
+
+            <div class="alert alert-warning border-warning-subtle py-2 px-3 small d-flex align-items-center gap-2 mb-0 rounded-3">
+              <i class="bi bi-shield-exclamation text-warning fs-5"></i>
+              <span>Tindakan ini untuk mencegah kehilangan data secara tidak sengaja.</span>
+            </div>
+          </div>
+
+          <div class="modal-footer border-0 p-4 pt-0 gap-2">
+            <button type="button" class="btn btn-light px-4 py-2 rounded-3 fw-bold flex-grow-1 border" @click="closeDeleteModal">
+              Batal
+            </button>
+            <button type="button" class="btn btn-danger px-4 py-2 rounded-3 fw-bold flex-grow-1 shadow-sm d-flex align-items-center justify-content-center gap-2" @click="executeDelete">
+              <i class="bi bi-trash-fill"></i>
+              <span>Ya, Hapus Permanen</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script>
-import { computed, ref } from 'vue';
+import { computed, ref, onMounted } from 'vue';
 import { useStore } from 'vuex';
 import * as XLSX from 'xlsx';
 
@@ -642,9 +902,130 @@ export default {
 
     const toast = ref({ show: false, message: '' });
 
+    // Confirmation Modal State for Task Deletion
+    const deleteModal = ref({
+      show: false,
+      type: 'single', // 'single' | 'bulk' | 'clear_completed'
+      targetId: null,
+      targetTitle: '',
+      count: 0
+    });
+
+    const closeDeleteModal = () => {
+      deleteModal.value.show = false;
+    };
+
+    const confirmDeleteTask = (taskOrId) => {
+      let targetTask = null;
+      if (typeof taskOrId === 'object' && taskOrId !== null) {
+        targetTask = taskOrId;
+      } else {
+        targetTask = tasks.value.find(t => String(t.id) === String(taskOrId));
+      }
+
+      deleteModal.value = {
+        show: true,
+        type: 'single',
+        targetId: targetTask ? targetTask.id : taskOrId,
+        targetTitle: targetTask ? targetTask.name : 'Tugas ini',
+        count: 1
+      };
+    };
+
+    const confirmBulkDelete = () => {
+      if (selectedIds.value.length === 0) return;
+      deleteModal.value = {
+        show: true,
+        type: 'bulk',
+        targetId: null,
+        targetTitle: '',
+        count: selectedIds.value.length
+      };
+    };
+
+    const confirmClearCompleted = () => {
+      if (completedCount.value === 0) return;
+      deleteModal.value = {
+        show: true,
+        type: 'clear_completed',
+        targetId: null,
+        targetTitle: '',
+        count: completedCount.value
+      };
+    };
+
+    const executeDelete = () => {
+      if (deleteModal.value.type === 'single') {
+        if (deleteModal.value.targetId) {
+          store.dispatch('deleteTask', deleteModal.value.targetId);
+          showToastMsg('Tugas berhasil dihapus secara permanen.');
+        }
+      } else if (deleteModal.value.type === 'bulk') {
+        if (selectedIds.value.length > 0) {
+          store.dispatch('deleteTasksBulk', selectedIds.value);
+          showToastMsg(`${selectedIds.value.length} tugas berhasil dihapus secara permanen.`);
+          selectedIds.value = [];
+        }
+      } else if (deleteModal.value.type === 'clear_completed') {
+        const completedIds = tasks.value.filter(t => t.done || t.statusColumn === 'done').map(t => t.id);
+        if (completedIds.length > 0) {
+          store.dispatch('deleteTasksBulk', completedIds);
+          showToastMsg('Semua tugas selesai berhasil dibersihkan.');
+        }
+      }
+      closeDeleteModal();
+    };
+
+    // Custom Project Folders list state
+    const DEFAULT_FOLDERS = ['Work', 'Personal', 'Urgent', 'Client Project', 'Routine', 'Marketing', 'Development'];
+    const projectFolders = ref([]);
+
+    const loadFolders = () => {
+      try {
+        const stored = localStorage.getItem('ft_custom_folders');
+        if (stored) {
+          projectFolders.value = JSON.parse(stored);
+        } else {
+          projectFolders.value = [...DEFAULT_FOLDERS];
+          localStorage.setItem('ft_custom_folders', JSON.stringify(projectFolders.value));
+        }
+      } catch (e) {
+        projectFolders.value = [...DEFAULT_FOLDERS];
+      }
+    };
+
+    const addCustomFolder = (folderName) => {
+      if (!folderName || !folderName.trim()) return;
+      const clean = folderName.trim();
+      if (!projectFolders.value.includes(clean)) {
+        projectFolders.value.push(clean);
+        localStorage.setItem('ft_custom_folders', JSON.stringify(projectFolders.value));
+        showToastMsg(`Folder proyek "${clean}" berhasil ditambahkan!`);
+      }
+    };
+
+    const promptAddCustomFolder = () => {
+      const name = prompt('Masukkan nama Project Folder / Kategori baru:');
+      if (name) {
+        addCustomFolder(name);
+        form.value.category = name.trim();
+      }
+    };
+
+    const onCustomFolderInput = () => {
+      if (form.value.customCategoryInput && form.value.customCategoryInput.trim()) {
+        form.value.category = form.value.customCategoryInput.trim();
+      }
+    };
+
+    onMounted(() => {
+      loadFolders();
+    });
+
     const form = ref({
       name: '',
       category: 'Work',
+      customCategoryInput: '',
       level: 'Menengah',
       projectTag: 'Umum',
       deadline: new Date().toISOString().split('T')[0],
@@ -673,7 +1054,7 @@ export default {
       { id: 'done', title: 'Completed', badgeBg: 'bg-success text-white' }
     ];
 
-    const tasks = computed(() => store.getters.getTasks);
+    const tasks = computed(() => store.getters.getTasks || []);
     const completedCount = computed(() => tasks.value.filter(t => t.done || t.statusColumn === 'done').length);
     const pendingCount = computed(() => tasks.value.filter(t => !t.done && t.statusColumn !== 'done').length);
     const completionPercent = computed(() => {
@@ -681,12 +1062,111 @@ export default {
       return Math.round((completedCount.value / tasks.value.length) * 100);
     });
 
+    // Productivity Rating & Badge
+    const productivityBadge = computed(() => {
+      const pct = completionPercent.value;
+      if (pct === 100) {
+        return { label: '🔥 Outstanding! (100%)', class: 'bg-success text-white' };
+      } else if (pct >= 70) {
+        return { label: '⚡ Produktivitas Tinggi', class: 'bg-primary text-white' };
+      } else if (pct >= 40) {
+        return { label: '📈 Produktivitas Sedang', class: 'bg-info-subtle text-info-emphasis border border-info' };
+      } else {
+        return { label: '🌱 Ayo Mulai Selesaikan!', class: 'bg-warning-subtle text-warning-emphasis border border-warning' };
+      }
+    });
+
+    // Deadline Info Helper (returns red text styling when overdue / approaching)
+    const getDeadlineInfo = (deadlineStr, done) => {
+      if (done) {
+        return {
+          status: 'completed',
+          isDanger: false,
+          isWarning: false,
+          label: 'Selesai',
+          badgeClass: 'bg-success-subtle text-success border border-success-subtle',
+          textClass: 'text-muted'
+        };
+      }
+      if (!deadlineStr) {
+        return {
+          status: 'none',
+          isDanger: false,
+          isWarning: false,
+          label: 'Tanpa Deadline',
+          badgeClass: 'bg-light text-muted border',
+          textClass: 'text-muted'
+        };
+      }
+
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      const deadline = new Date(deadlineStr);
+      deadline.setHours(0, 0, 0, 0);
+
+      const diffTime = deadline - today;
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+      if (diffDays < 0) {
+        const absDays = Math.abs(diffDays);
+        return {
+          status: 'overdue',
+          isDanger: true,
+          isWarning: false,
+          label: `⚠️ Overdue (${absDays} hari lalu)`,
+          badgeClass: 'bg-danger text-white fw-bold shadow-sm',
+          textClass: 'text-danger fw-extrabold'
+        };
+      } else if (diffDays === 0) {
+        return {
+          status: 'today',
+          isDanger: true,
+          isWarning: false,
+          label: '🔥 Deadline Hari Ini!',
+          badgeClass: 'bg-danger text-white fw-bold shadow-sm',
+          textClass: 'text-danger fw-extrabold'
+        };
+      } else if (diffDays === 1) {
+        return {
+          status: 'tomorrow',
+          isDanger: true,
+          isWarning: true,
+          label: '⏰ Deadline Besok!',
+          badgeClass: 'bg-warning-subtle text-danger border border-danger fw-bold',
+          textClass: 'text-danger fw-bold'
+        };
+      } else {
+        return {
+          status: 'future',
+          isDanger: false,
+          isWarning: false,
+          label: formatDate(deadlineStr),
+          badgeClass: 'bg-light text-dark border',
+          textClass: 'text-dark'
+        };
+      }
+    };
+
+    // Count urgent / overdue tasks
+    const urgentOrOverdueCount = computed(() => {
+      return tasks.value.filter(t => !t.done && getDeadlineInfo(t.deadline, false).isDanger).length;
+    });
+
+    const urgentOverdueLabel = computed(() => {
+      if (urgentOrOverdueCount.value > 0) {
+        return `${urgentOrOverdueCount.value} tugas telah melewati deadline atau jatuh tempo hari ini/besok.`;
+      }
+      return 'Semua tugas berada pada rentang waktu deadline yang aman.';
+    });
+
     const filteredTasks = computed(() => {
       return tasks.value.filter(t => {
         const query = searchQuery.value.toLowerCase();
         const matchesQuery = !query ||
           t.name.toLowerCase().includes(query) ||
-          (t.projectTag && t.projectTag.toLowerCase().includes(query));
+          (t.projectTag && t.projectTag.toLowerCase().includes(query)) ||
+          (t.category && t.category.toLowerCase().includes(query));
 
         const matchesCategory = selectedCategory.value === 'all' || (t.category || 'Work') === selectedCategory.value;
 
@@ -713,6 +1193,18 @@ export default {
 
     const getTaskCountInCol = (colId) => {
       return getTasksInCol(colId).length;
+    };
+
+    const getTasksInFolder = (folderName) => {
+      return filteredTasks.value.filter(t => (t.category || 'Work') === folderName);
+    };
+
+    const getTaskCountInFolder = (folderName) => {
+      return tasks.value.filter(t => (t.category || 'Work') === folderName).length;
+    };
+
+    const getFolderCompletedCount = (folderName) => {
+      return getTasksInFolder(folderName).filter(t => t.done).length;
     };
 
     const getEisenhowerTasks = (quadrant) => {
@@ -749,6 +1241,8 @@ export default {
       formErrors.value = {};
       form.value = {
         name: '',
+        category: 'Work',
+        customCategoryInput: '',
         level: 'Menengah',
         projectTag: 'Umum',
         deadline: new Date().toISOString().split('T')[0],
@@ -762,6 +1256,20 @@ export default {
       showForm.value = true;
     };
 
+    const setFormDeadline = (type) => {
+      const d = new Date();
+      if (type === 'today') {
+        // today
+      } else if (type === 'tomorrow') {
+        d.setDate(d.getDate() + 1);
+      } else if (type === 'in3days') {
+        d.setDate(d.getDate() + 3);
+      } else if (type === 'nextweek') {
+        d.setDate(d.getDate() + 7);
+      }
+      form.value.deadline = d.toISOString().split('T')[0];
+    };
+
     const openAddForCol = (colId) => {
       openAddModal();
       form.value.statusColumn = colId;
@@ -771,7 +1279,10 @@ export default {
       isEditing.value = true;
       editingId.value = task.id;
       formErrors.value = {};
-      form.value = { ...task };
+      form.value = {
+        ...task,
+        customCategoryInput: ''
+      };
       formTab.value = 'single';
       showForm.value = true;
     };
@@ -785,6 +1296,11 @@ export default {
       if (!form.value.deadline) {
         formErrors.value.deadline = 'Target deadline wajib diisi!';
         return;
+      }
+
+      // Add category to custom folders list if new
+      if (form.value.category) {
+        addCustomFolder(form.value.category);
       }
 
       if (isEditing.value) {
@@ -810,8 +1326,12 @@ export default {
         return;
       }
 
+      const targetCategory = bulkDefault.value.category || 'Work';
+      addCustomFolder(targetCategory);
+
       const tasksToAdd = lines.map(name => ({
         name,
+        category: targetCategory,
         projectTag: bulkDefault.value.projectTag || 'Umum',
         level: bulkDefault.value.level || 'Menengah',
         deadline: bulkDefault.value.deadline || new Date().toISOString().split('T')[0],
@@ -849,20 +1369,12 @@ export default {
       return null;
     };
 
-    const removeTask = (id) => {
-      if (confirm('Apakah Anda yakin ingin menghapus tugas ini?')) {
-        store.dispatch('deleteTask', id);
-        showToastMsg('Tugas dihapus.');
-      }
+    const removeTask = (taskOrId) => {
+      confirmDeleteTask(taskOrId);
     };
 
     const bulkDelete = () => {
-      if (selectedIds.value.length === 0) return;
-      if (confirm(`Hapus ${selectedIds.value.length} tugas terpilih?`)) {
-        store.dispatch('deleteTasksBulk', selectedIds.value);
-        showToastMsg(`${selectedIds.value.length} tugas berhasil dihapus.`);
-        selectedIds.value = [];
-      }
+      confirmBulkDelete();
     };
 
     const bulkMarkDone = () => {
@@ -878,11 +1390,7 @@ export default {
     };
 
     const clearCompleted = () => {
-      if (confirm('Bersihkan semua tugas yang sudah selesai?')) {
-        const completedIds = tasks.value.filter(t => t.done || t.statusColumn === 'done').map(t => t.id);
-        store.dispatch('deleteTasksBulk', completedIds);
-        showToastMsg('Tugas selesai berhasil dibersihkan.');
-      }
+      confirmClearCompleted();
     };
 
     const badgeClass = (level) => {
@@ -905,22 +1413,12 @@ export default {
         case 'Urgent':
           return 'bg-danger text-white fw-bold shadow-sm';
         case 'Client':
+        case 'Client Project':
           return 'bg-info-subtle text-info-emphasis border border-info-subtle';
         case 'Routine':
           return 'bg-success-subtle text-success border border-success-subtle';
         default:
-          return 'bg-light text-dark border';
-      }
-    };
-
-    const getCategoryLabel = (category) => {
-      switch (category) {
-        case 'Work': return '💼 Work';
-        case 'Personal': return '🏠 Personal';
-        case 'Urgent': return '🔥 Urgent';
-        case 'Client': return '🤝 Client';
-        case 'Routine': return '🔄 Routine';
-        default: return category || '💼 Work';
+          return 'bg-primary-subtle text-primary border border-primary-subtle';
       }
     };
 
@@ -934,16 +1432,11 @@ export default {
       }
     };
 
-    const isOverdue = (dateStr, done) => {
-      if (done || !dateStr) return false;
-      return new Date(dateStr) < new Date(new Date().setHours(0, 0, 0, 0));
-    };
-
     const exportToExcel = () => {
       const exportData = tasks.value.map((t, idx) => ({
         No: idx + 1,
         NamaTugas: t.name,
-        Kategori: t.category || 'Work',
+        ProjectFolder: t.category || 'Work',
         ProyekTag: t.projectTag || 'Umum',
         Prioritas: t.level,
         Recurring: t.recurring || 'none',
@@ -965,11 +1458,21 @@ export default {
       kanbanColumns,
       searchQuery,
       selectedCategory,
+      projectFolders,
+      promptAddCustomFolder,
+      onCustomFolderInput,
+      getTaskCountInFolder,
+      getTasksInFolder,
+      getFolderCompletedCount,
       tasks,
       filteredTasks,
       completedCount,
       pendingCount,
       completionPercent,
+      productivityBadge,
+      getDeadlineInfo,
+      urgentOrOverdueCount,
+      urgentOverdueLabel,
       getTasksInCol,
       getTaskCountInCol,
       getEisenhowerTasks,
@@ -979,6 +1482,7 @@ export default {
       isEditing,
       form,
       formErrors,
+      setFormDeadline,
       bulkText,
       bulkError,
       bulkDefault,
@@ -986,8 +1490,10 @@ export default {
       isAllSelected,
       toggleSelectAll,
       toast,
+      deleteModal,
+      closeDeleteModal,
+      executeDelete,
       getCategoryBadgeClass,
-      getCategoryLabel,
       toggleShowForm,
       openAddModal,
       openAddForCol,
@@ -1004,7 +1510,6 @@ export default {
       clearCompleted,
       badgeClass,
       formatDate,
-      isOverdue,
       exportToExcel
     };
   }
@@ -1019,7 +1524,12 @@ export default {
 }
 
 .style-mini {
-  font-size: 10px;
+  font-size: 10.5px;
+}
+
+.btn-xs {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
 }
 
 .min-vh-25 {
@@ -1027,10 +1537,39 @@ export default {
 }
 
 .hover-card {
-  transition: transform 0.15s ease;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
 .hover-card:hover {
   transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08) !important;
+}
+
+.bg-purple-subtle {
+  background-color: #f3e8ff;
+}
+
+.text-purple {
+  color: #7e22ce;
+}
+
+.border-purple-subtle {
+  border-color: #e9d5ff;
+}
+
+.bg-gradient-success {
+  background: linear-gradient(90deg, #10b981 0%, #059669 100%);
+}
+
+.shadow-inner {
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.06);
+}
+
+.style-scroll-horizontal::-webkit-scrollbar {
+  height: 4px;
+}
+.style-scroll-horizontal::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
 }
 </style>

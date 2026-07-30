@@ -17,7 +17,7 @@ const SAMPLE_CONTACTS = [
     name: 'Budi Santoso',
     company: 'PT Teknologi Nusantara',
     email: 'budi@teknus.co.id',
-    phone: '0812-3456-7890',
+    phone: '081234567890',
     address: 'Jl. Jend. Sudirman No. 45, Jakarta Selatan',
     category: 'Corporate Client',
     status: 'Active',
@@ -26,10 +26,34 @@ const SAMPLE_CONTACTS = [
   },
   {
     id: 'c2',
+    name: 'Rian Prasetyo',
+    company: 'RajinKerja Core Team',
+    email: 'rian.dev@rajinkerja.id',
+    phone: '081398765432',
+    address: 'BSD City, Tangerang Selatan',
+    category: 'Tim Internal',
+    status: 'Active',
+    notes: 'Lead Developer & System Architect.',
+    createdDate: '2026-01-20'
+  },
+  {
+    id: 'c3',
+    name: 'Dinda Kirana',
+    company: 'RajinKerja Core Team',
+    email: 'dinda.design@rajinkerja.id',
+    phone: '085712345678',
+    address: 'Kebayoran Baru, Jakarta Selatan',
+    category: 'Tim Internal',
+    status: 'VIP',
+    notes: 'Senior UI/UX Designer & Product Illustrator.',
+    createdDate: '2026-02-01'
+  },
+  {
+    id: 'c4',
     name: 'Sarah Jenkins',
     company: 'Global Tech Solutions',
     email: 'sarah.j@globaltech.com',
-    phone: '+1 (415) 892-0123',
+    phone: '081987654321',
     address: '500 Howard St, San Francisco, CA 94105',
     category: 'International',
     status: 'VIP',
@@ -164,7 +188,7 @@ export default createStore({
       habits: loadLocal('ft_habits', DEFAULT_HABITS),
       notes: loadLocal('ft_notes', DEFAULT_NOTES),
       events: loadLocal('ft_events', DEFAULT_EVENTS),
-      themeMode: loadLocal('ft_themeMode', 'light'), // 'light' | 'dark'
+      themeMode: 'light', // Light mode default
       accentColor: loadLocal('ft_accentColor', '#2563eb'), // default Material blue
       budgetThreshold: loadLocal('ft_budgetThreshold', 5000000), // Default budget threshold: Rp 5.000.000
       myBusiness: loadLocal('ft_myBusiness', {
@@ -220,8 +244,8 @@ export default createStore({
   mutations: {
     // Theme & Preferences
     SET_THEME_MODE(state, mode) {
-      state.themeMode = mode;
-      saveLocal('ft_themeMode', state.themeMode);
+      state.themeMode = 'light';
+      saveLocal('ft_themeMode', 'light');
     },
     SET_ACCENT_COLOR(state, color) {
       state.accentColor = color;
