@@ -1,145 +1,259 @@
 <template>
   <div class="container-fluid p-0" data-aos="fade-up">
-    <!-- Top Action Bar -->
-    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3 p-4 rounded-4 shadow-sm border top-bar-card">
-      <div class="d-flex align-items-center gap-3">
-        <router-link to="/notes" class="btn btn-outline-secondary rounded-3 px-3 py-2 d-flex align-items-center gap-2 fw-semibold">
-          <i class="bi bi-arrow-left fs-5"></i>
-          <span>Kembali ke Notes</span>
-        </router-link>
-        <div class="border-start ps-3 d-none d-sm-block" v-if="note">
-          <span class="badge badge-preview-tag fw-bold px-3 py-1.5 rounded-pill mb-1">
-            <i class="bi bi-file-earmark-text me-1"></i> Detail Preview Catatan
-          </span>
-          <h4 class="fw-bold mb-0 text-truncate header-title" style="max-width: 420px;">{{ note.title || 'Untitled Note' }}</h4>
-        </div>
-      </div>
-
-      <!-- Action Buttons -->
-      <div class="d-flex flex-wrap align-items-center gap-2" v-if="note">
-        <button class="btn btn-action-btn border rounded-3 px-3 py-2 fw-semibold d-flex align-items-center gap-2" @click="copyContent">
-          <i class="bi bi-clipboard"></i>
-          <span>Salin Teks</span>
-        </button>
-        <button class="btn btn-action-btn border rounded-3 px-3 py-2 fw-semibold d-flex align-items-center gap-2" @click="printNote">
-          <i class="bi bi-printer"></i>
-          <span>Cetak / Export</span>
-        </button>
-        <button class="btn btn-warning rounded-3 px-3 py-2 fw-semibold d-flex align-items-center gap-2 text-dark shadow-sm" @click="openEditor">
-          <i class="bi bi-pencil-square"></i>
-          <span>Edit Catatan</span>
-        </button>
-        <button class="btn btn-outline-danger rounded-3 px-3 py-2 fw-semibold d-flex align-items-center gap-2" @click="deleteNote">
-          <i class="bi bi-trash"></i>
-          <span>Hapus</span>
-        </button>
-      </div>
-    </div>
-
-    <!-- MAIN NOTE DETAIL CARD -->
-    <div v-if="note" class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4 main-note-card">
-      <!-- Top Colored Accent Bar matching Note Theme -->
-      <div class="note-top-color-bar" :style="{ backgroundColor: note.color || '#2563eb' }"></div>
-
-      <!-- Note Header Bar -->
-      <div class="p-4 p-md-5 border-bottom note-header-bar d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
-        <div>
-          <div class="d-flex align-items-center gap-2 mb-2 flex-wrap">
-            <span class="badge doc-badge rounded-pill px-3 py-1.5 text-uppercase fw-bold" style="font-size: 11px; letter-spacing: 0.5px;">
-              <i class="bi bi-markdown me-1"></i> Markdown Document
+    <!-- MODE EDIT: DEDICATED MARKDOWN EDITOR STUDIO PAGE (NO SLIDER/DRAWER) -->
+    <div v-if="isEditing" class="markdown-editor-studio">
+      <!-- Editor Top Navigation Bar -->
+      <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3 p-4 rounded-4 shadow-sm border editor-header-card">
+        <div class="d-flex align-items-center gap-3">
+          <button class="btn btn-outline-secondary rounded-3 px-3 py-2 d-flex align-items-center gap-2 fw-semibold" @click="cancelEdit">
+            <i class="bi bi-arrow-left fs-5"></i>
+            <span>Kembali ke Preview</span>
+          </button>
+          <div class="border-start ps-3 d-none d-sm-block">
+            <span class="badge bg-warning text-dark fw-bold px-3 py-1.5 rounded-pill mb-1">
+              <i class="bi bi-markdown-fill me-1"></i> Markdown Editor Studio
             </span>
-            <span class="small text-sub-heading d-flex align-items-center gap-1">
-              <i class="bi bi-clock me-1"></i> Terakhir diperbarui: {{ formatDate(note.updatedAt) }}
-            </span>
-          </div>
-          <h1 class="display-6 fw-extrabold main-note-title mb-0">{{ note.title || 'Untitled Note' }}</h1>
-        </div>
-
-        <div class="d-flex align-items-center gap-3 stats-box p-3 rounded-3 border">
-          <div class="text-center px-2">
-            <span class="small text-sub-heading d-block fw-semibold" style="font-size: 11px;">KATA</span>
-            <span class="fs-5 fw-extrabold stat-value">{{ getWordCount(note.content) }}</span>
-          </div>
-          <div class="border-start ps-3 text-center px-2">
-            <span class="small text-sub-heading d-block fw-semibold" style="font-size: 11px;">KARAKTER</span>
-            <span class="fs-5 fw-extrabold stat-value">{{ (note.content || '').length }}</span>
+            <h4 class="fw-bold mb-0 header-title">Edit Catatan Document</h4>
           </div>
         </div>
-      </div>
 
-      <!-- Note Rendered Markdown Body -->
-      <div class="card-body p-4 p-md-5 note-body-wrapper">
-        <div class="note-markdown-body" v-html="renderedMarkdown"></div>
-      </div>
-
-      <!-- Note Footer Info -->
-      <div class="card-footer p-4 border-top note-footer-bar d-flex flex-column flex-sm-row justify-content-between align-items-center gap-2">
-        <span class="small text-sub-heading">
-          <i class="bi bi-shield-check text-success me-1"></i> Catatan ini tersimpan aman di penyimpanan lokal aplikasi Anda.
-        </span>
-        <span class="small text-sub-heading">ID: <code class="note-id-code fw-bold">{{ note.id }}</code></span>
-      </div>
-    </div>
-
-    <!-- NOTE NOT FOUND STATE -->
-    <div v-else class="text-center py-5 rounded-4 shadow-sm border my-4 not-found-box">
-      <div class="display-1 text-muted opacity-50 mb-3">📑</div>
-      <h3 class="fw-bold not-found-title">Catatan Tidak Ditemukan</h3>
-      <p class="text-sub-heading max-w-md mx-auto">Catatan yang Anda cari mungkin telah dihapus atau ID tidak valid.</p>
-      <router-link to="/notes" class="btn btn-primary rounded-3 px-4 py-2 mt-2 fw-semibold">
-        <i class="bi bi-arrow-left me-1"></i> Kembali ke Daftar Notes
-      </router-link>
-    </div>
-
-    <!-- Edit Note Inline Offcanvas / Drawer -->
-    <div v-if="isEditing" class="drawer-backdrop" @click="isEditing = false"></div>
-    <div class="drawer-panel bg-white shadow-lg border-start" :class="{ 'drawer-show': isEditing }">
-      <div class="drawer-header p-4 border-bottom d-flex align-items-center justify-content-between bg-light">
-        <div>
-          <span class="badge bg-warning text-dark fw-bold px-3 py-1 rounded-pill mb-1">
-            ✏️ Quick Edit Mode
-          </span>
-          <h5 class="fw-bold mb-0 drawer-title">Edit Catatan</h5>
-        </div>
-        <button type="button" class="btn btn-light rounded-circle border p-2" @click="isEditing = false">
-          <i class="bi bi-x-lg"></i>
-        </button>
-      </div>
-
-      <div class="drawer-body p-4 overflow-y-auto" style="height: calc(100vh - 85px);">
-        <form @submit.prevent="saveEditNote" class="row g-3" v-if="editForm">
-          <div class="col-12">
-            <label class="form-label fw-bold small">Judul Catatan</label>
-            <input type="text" class="form-control form-control-lg border-2 fs-6" v-model="editForm.title" required />
-          </div>
-
-          <div class="col-12">
-            <label class="form-label fw-bold small">Warna Note</label>
-            <div class="d-flex gap-2">
-              <button
-                type="button"
-                v-for="c in colorOptions"
-                :key="c.code"
-                class="btn rounded-3 p-0 flex-grow-1"
-                :style="{ backgroundColor: c.code, height: '36px' }"
-                :class="{ 'border border-3 border-dark': editForm.color === c.code }"
-                @click="editForm.color = c.code"
-              ></button>
-            </div>
-          </div>
-
-          <div class="col-12">
-            <label class="form-label fw-bold small">Isi Markdown</label>
-            <textarea class="form-control font-monospace border-2 p-3" rows="12" v-model="editForm.content"></textarea>
-          </div>
-
-          <div class="col-12 pt-3 border-top mt-4 d-flex gap-2">
-            <button type="button" class="btn btn-light rounded-3 px-4 flex-grow-1" @click="isEditing = false">Batal</button>
-            <button type="submit" class="btn btn-primary rounded-3 px-4 py-2 fw-bold flex-grow-1 shadow-sm">
-              <i class="bi bi-check-circle-fill me-1"></i> Simpan Perubahan
+        <!-- Editor Header Right Controls -->
+        <div class="d-flex flex-wrap align-items-center gap-2" v-if="editForm">
+          <!-- Color Accent Swatch Picker -->
+          <div class="d-flex align-items-center gap-1.5 bg-light p-1.5 rounded-3 border me-2">
+            <span class="small fw-semibold text-muted px-1" style="font-size: 11px;">Aksen:</span>
+            <button
+              type="button"
+              v-for="c in colorOptions"
+              :key="c.code"
+              class="btn rounded-circle p-0 color-swatch-btn"
+              :style="{ backgroundColor: c.code, width: '26px', height: '26px' }"
+              :class="{ 'ring-active': editForm.color === c.code }"
+              @click="editForm.color = c.code"
+              :title="c.name"
+            >
+              <i v-if="editForm.color === c.code" class="bi bi-check-lg text-dark fw-bold" style="font-size: 11px;"></i>
             </button>
           </div>
-        </form>
+
+          <!-- View Mode Toggles -->
+          <div class="btn-group me-2" role="group">
+            <button
+              type="button"
+              class="btn btn-sm py-2 px-3 fw-semibold"
+              :class="editorLayout === 'split' ? 'btn-dark' : 'btn-outline-secondary'"
+              @click="editorLayout = 'split'"
+              title="Split View (Editor + Live Preview)"
+            >
+              <i class="bi bi-layout-split me-1"></i> Split View
+            </button>
+            <button
+              type="button"
+              class="btn btn-sm py-2 px-3 fw-semibold"
+              :class="editorLayout === 'editor' ? 'btn-dark' : 'btn-outline-secondary'"
+              @click="editorLayout = 'editor'"
+              title="Ketik Full Editor"
+            >
+              <i class="bi bi-file-earmark-code me-1"></i> Full Editor
+            </button>
+            <button
+              type="button"
+              class="btn btn-sm py-2 px-3 fw-semibold"
+              :class="editorLayout === 'preview' ? 'btn-dark' : 'btn-outline-secondary'"
+              @click="editorLayout = 'preview'"
+              title="Pratinjau Hasil"
+            >
+              <i class="bi bi-eye me-1"></i> Live Preview
+            </button>
+          </div>
+
+          <button class="btn btn-light border rounded-3 px-3 py-2 fw-semibold" @click="cancelEdit">
+            Batal
+          </button>
+          <button class="btn btn-primary rounded-3 px-4 py-2 fw-bold d-flex align-items-center gap-2 shadow-sm" @click="saveEditNote">
+            <i class="bi bi-check-circle-fill"></i>
+            <span>Simpan Catatan</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- MAIN EDITOR WORKSPACE -->
+      <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4 main-editor-card" v-if="editForm">
+        <!-- Colored Top Accent -->
+        <div class="note-top-color-bar" :style="{ backgroundColor: editForm.color || '#2563eb' }"></div>
+
+        <div class="p-4 p-md-5">
+          <!-- Title Input -->
+          <div class="mb-4">
+            <label class="form-label fw-bold text-dark small mb-1">Judul Catatan / Dokumen <span class="text-danger">*</span></label>
+            <input
+              type="text"
+              class="form-control form-control-lg border-2 fw-extrabold fs-4 rounded-3 title-input-field"
+              v-model="editForm.title"
+              placeholder="Masukkan Judul Catatan..."
+              required
+            />
+          </div>
+
+          <!-- Quick Formatting Toolbar -->
+          <div class="markdown-toolbar p-2 rounded-3 border mb-3 d-flex flex-wrap align-items-center gap-1">
+            <span class="small fw-bold text-muted me-2 ms-1"><i class="bi bi-type me-1"></i>Toolbar:</span>
+            <button type="button" class="btn btn-sm btn-white border rounded-2 px-2.5 py-1 fw-bold" @click="insertMarkdown('**', '**')" title="Bold (Tebal)"><i class="bi bi-type-bold"></i></button>
+            <button type="button" class="btn btn-sm btn-white border rounded-2 px-2.5 py-1" @click="insertMarkdown('*', '*')" title="Italic (Miring)"><i class="bi bi-type-italic"></i></button>
+            <button type="button" class="btn btn-sm btn-white border rounded-2 px-2.5 py-1 fw-bold" @click="insertMarkdown('# ')" title="Heading 1">H1</button>
+            <button type="button" class="btn btn-sm btn-white border rounded-2 px-2.5 py-1 fw-bold" @click="insertMarkdown('## ')" title="Heading 2">H2</button>
+            <button type="button" class="btn btn-sm btn-white border rounded-2 px-2.5 py-1 fw-bold" @click="insertMarkdown('### ')" title="Heading 3">H3</button>
+            <div class="vr mx-1"></div>
+            <button type="button" class="btn btn-sm btn-white border rounded-2 px-2.5 py-1" @click="insertMarkdown('> ')" title="Quote (Kutipan)"><i class="bi bi-quote"></i></button>
+            <button type="button" class="btn btn-sm btn-white border rounded-2 px-2.5 py-1" @click="insertMarkdown('```\n', '\n```')" title="Code Block"><i class="bi bi-code-slash"></i></button>
+            <button type="button" class="btn btn-sm btn-white border rounded-2 px-2.5 py-1" @click="insertMarkdown('`', '`')" title="Inline Code"><i class="bi bi-code"></i></button>
+            <div class="vr mx-1"></div>
+            <button type="button" class="btn btn-sm btn-white border rounded-2 px-2.5 py-1" @click="insertMarkdown('- ')" title="Bullet List"><i class="bi bi-list-ul"></i></button>
+            <button type="button" class="btn btn-sm btn-white border rounded-2 px-2.5 py-1" @click="insertMarkdown('1. ')" title="Numbered List"><i class="bi bi-list-ol"></i></button>
+            <button type="button" class="btn btn-sm btn-white border rounded-2 px-2.5 py-1" @click="insertMarkdown('- [ ] ')" title="Checklist / Task"><i class="bi bi-check2-square"></i></button>
+            <div class="vr mx-1"></div>
+            <button type="button" class="btn btn-sm btn-white border rounded-2 px-2.5 py-1" @click="insertMarkdown('[', '](https://)')" title="Insert Link"><i class="bi bi-link-45deg"></i></button>
+            <button type="button" class="btn btn-sm btn-white border rounded-2 px-2.5 py-1" @click="insertMarkdown('\n| Kolom 1 | Kolom 2 |\n| --- | --- |\n| Isi 1 | Isi 2 |\n')" title="Table Markdown"><i class="bi bi-table"></i></button>
+            <button type="button" class="btn btn-sm btn-white border rounded-2 px-2.5 py-1" @click="insertMarkdown('\n---\n')" title="Horizontal Divider">---</button>
+          </div>
+
+          <!-- Editor Body Grid (Split vs Single) -->
+          <div class="row g-4">
+            <!-- Textarea Field -->
+            <div :class="editorLayout === 'split' ? 'col-lg-6' : (editorLayout === 'editor' ? 'col-12' : 'd-none')">
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <label class="form-label fw-bold text-dark small mb-0"><i class="bi bi-pencil-fill text-primary me-1"></i> Editor Markdown</label>
+                <span class="small text-muted font-monospace">{{ editLineCount }} Baris | {{ getWordCount(editForm.content) }} Kata | {{ (editForm.content || '').length }} Karakter</span>
+              </div>
+              <textarea
+                ref="editorTextarea"
+                class="form-control font-monospace border-2 p-3 text-editor-area rounded-3"
+                rows="18"
+                v-model="editForm.content"
+                placeholder="Tulis catatan lengkap dengan sintaks Markdown di sini..."
+              ></textarea>
+            </div>
+
+            <!-- Live Preview Card -->
+            <div :class="editorLayout === 'split' ? 'col-lg-6' : (editorLayout === 'preview' ? 'col-12' : 'd-none')">
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <label class="form-label fw-bold text-dark small mb-0"><i class="bi bi-eye-fill text-success me-1"></i> Live Markdown Preview</label>
+                <span class="badge bg-success-subtle text-success fw-bold rounded-pill px-2.5 py-1 small">Realtime Sync</span>
+              </div>
+              <div class="card p-4 rounded-3 border-2 bg-light overflow-y-auto editor-preview-box" style="height: 480px;">
+                <div class="note-markdown-body" v-html="renderedEditMarkdown"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Footer Action Bar -->
+        <div class="card-footer p-4 border-top bg-light d-flex flex-column flex-sm-row justify-content-between align-items-center gap-3">
+          <span class="small text-muted">
+            <i class="bi bi-info-circle me-1"></i> Format Markdown otomatis dirender di pratinjau langsung secara real-time.
+          </span>
+          <div class="d-flex gap-2">
+            <button class="btn btn-light border rounded-3 px-4 py-2 fw-semibold" @click="cancelEdit">Batal</button>
+            <button class="btn btn-primary rounded-3 px-4 py-2 fw-bold shadow-sm d-flex align-items-center gap-2" @click="saveEditNote">
+              <i class="bi bi-check-circle-fill"></i>
+              <span>Simpan Perubahan</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODE PREVIEW / READ ONLY (isEditing === false) -->
+    <div v-else>
+      <!-- Top Action Bar -->
+      <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3 p-4 rounded-4 shadow-sm border top-bar-card">
+        <div class="d-flex align-items-center gap-3">
+          <router-link to="/notes" class="btn btn-outline-secondary rounded-3 px-3 py-2 d-flex align-items-center gap-2 fw-semibold">
+            <i class="bi bi-arrow-left fs-5"></i>
+            <span>Kembali ke Notes</span>
+          </router-link>
+          <div class="border-start ps-3 d-none d-sm-block" v-if="note">
+            <span class="badge badge-preview-tag fw-bold px-3 py-1.5 rounded-pill mb-1">
+              <i class="bi bi-file-earmark-text me-1"></i> Detail Preview Catatan
+            </span>
+            <h4 class="fw-bold mb-0 text-truncate header-title" style="max-width: 420px;">{{ note.title || 'Untitled Note' }}</h4>
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="d-flex flex-wrap align-items-center gap-2" v-if="note">
+          <button class="btn btn-action-btn border rounded-3 px-3 py-2 fw-semibold d-flex align-items-center gap-2" @click="copyContent">
+            <i class="bi bi-clipboard"></i>
+            <span>Salin Teks</span>
+          </button>
+          <button class="btn btn-action-btn border rounded-3 px-3 py-2 fw-semibold d-flex align-items-center gap-2" @click="printNote">
+            <i class="bi bi-printer"></i>
+            <span>Cetak / Export</span>
+          </button>
+          <button class="btn btn-warning rounded-3 px-3 py-2 fw-semibold d-flex align-items-center gap-2 text-dark shadow-sm" @click="openEditor">
+            <i class="bi bi-pencil-square"></i>
+            <span>Edit Catatan</span>
+          </button>
+          <button class="btn btn-outline-danger rounded-3 px-3 py-2 fw-semibold d-flex align-items-center gap-2" @click="deleteNote">
+            <i class="bi bi-trash"></i>
+            <span>Hapus</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- MAIN NOTE DETAIL CARD -->
+      <div v-if="note" class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4 main-note-card">
+        <!-- Top Colored Accent Bar matching Note Theme -->
+        <div class="note-top-color-bar" :style="{ backgroundColor: note.color || '#2563eb' }"></div>
+
+        <!-- Note Header Bar -->
+        <div class="p-4 p-md-5 border-bottom note-header-bar d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+          <div>
+            <div class="d-flex align-items-center gap-2 mb-2 flex-wrap">
+              <span class="badge doc-badge rounded-pill px-3 py-1.5 text-uppercase fw-bold" style="font-size: 11px; letter-spacing: 0.5px;">
+                <i class="bi bi-markdown me-1"></i> Markdown Document
+              </span>
+              <span class="small text-sub-heading d-flex align-items-center gap-1">
+                <i class="bi bi-clock me-1"></i> Terakhir diperbarui: {{ formatDate(note.updatedAt) }}
+              </span>
+            </div>
+            <h1 class="display-6 fw-extrabold main-note-title mb-0">{{ note.title || 'Untitled Note' }}</h1>
+          </div>
+
+          <div class="d-flex align-items-center gap-3 stats-box p-3 rounded-3 border">
+            <div class="text-center px-2">
+              <span class="small text-sub-heading d-block fw-semibold" style="font-size: 11px;">KATA</span>
+              <span class="fs-5 fw-extrabold stat-value">{{ getWordCount(note.content) }}</span>
+            </div>
+            <div class="border-start ps-3 text-center px-2">
+              <span class="small text-sub-heading d-block fw-semibold" style="font-size: 11px;">KARAKTER</span>
+              <span class="fs-5 fw-extrabold stat-value">{{ (note.content || '').length }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Note Rendered Markdown Body -->
+        <div class="card-body p-4 p-md-5 note-body-wrapper">
+          <div class="note-markdown-body" v-html="renderedMarkdown"></div>
+        </div>
+
+        <!-- Note Footer Info -->
+        <div class="card-footer p-4 border-top note-footer-bar d-flex flex-column flex-sm-row justify-content-between align-items-center gap-2">
+          <span class="small text-sub-heading">
+            <i class="bi bi-shield-check text-success me-1"></i> Catatan ini tersimpan aman di penyimpanan lokal aplikasi Anda.
+          </span>
+          <span class="small text-sub-heading">ID: <code class="note-id-code fw-bold">{{ note.id }}</code></span>
+        </div>
+      </div>
+
+      <!-- NOTE NOT FOUND STATE -->
+      <div v-else class="text-center py-5 rounded-4 shadow-sm border my-4 not-found-box">
+        <div class="display-1 text-muted opacity-50 mb-3">📑</div>
+        <h3 class="fw-bold not-found-title">Catatan Tidak Ditemukan</h3>
+        <p class="text-sub-heading max-w-md mx-auto">Catatan yang Anda cari mungkin telah dihapus atau ID tidak valid.</p>
+        <router-link to="/notes" class="btn btn-primary rounded-3 px-4 py-2 mt-2 fw-semibold">
+          <i class="bi bi-arrow-left me-1"></i> Kembali ke Daftar Notes
+        </router-link>
       </div>
     </div>
 
@@ -159,7 +273,7 @@
 </template>
 
 <script>
-import { computed, ref } from 'vue';
+import { computed, ref, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useStore } from 'vuex';
 import { marked } from 'marked';
@@ -174,6 +288,8 @@ export default {
     const toast = ref({ show: false, message: '' });
     const isEditing = ref(false);
     const editForm = ref(null);
+    const editorLayout = ref('split'); // 'split', 'editor', 'preview'
+    const editorTextarea = ref(null);
 
     const colorOptions = [
       { name: 'Kuning', code: '#fef08a' },
@@ -198,12 +314,19 @@ export default {
       }
     });
 
-    const getNoteCardStyle = (hexColor) => {
-      if (!hexColor) return {};
-      return {
-        borderLeft: `6px solid ${hexColor}`
-      };
-    };
+    const renderedEditMarkdown = computed(() => {
+      if (!editForm.value || !editForm.value.content) return '<p class="text-muted italic">Pratinjau kosong. Ketik sesuatu di editor.</p>';
+      try {
+        return marked.parse(editForm.value.content);
+      } catch (e) {
+        return editForm.value.content;
+      }
+    });
+
+    const editLineCount = computed(() => {
+      if (!editForm.value || !editForm.value.content) return 0;
+      return editForm.value.content.split('\n').length;
+    });
 
     const getWordCount = (text) => {
       if (!text) return 0;
@@ -242,6 +365,29 @@ export default {
       isEditing.value = true;
     };
 
+    const cancelEdit = () => {
+      isEditing.value = false;
+      editForm.value = null;
+    };
+
+    const insertMarkdown = (prefix, suffix = '') => {
+      if (!editorTextarea.value || !editForm.value) return;
+      const el = editorTextarea.value;
+      const start = el.selectionStart || 0;
+      const end = el.selectionEnd || 0;
+      const text = editForm.value.content || '';
+      const selected = text.substring(start, end);
+
+      const replacement = prefix + (selected || '') + suffix;
+      editForm.value.content = text.substring(0, start) + replacement + text.substring(end);
+
+      setTimeout(() => {
+        el.focus();
+        const newPos = start + prefix.length + (selected || '').length;
+        el.setSelectionRange(newPos, newPos);
+      }, 0);
+    };
+
     const saveEditNote = () => {
       if (!editForm.value) return;
       const updated = {
@@ -268,18 +414,29 @@ export default {
       }, 3000);
     };
 
+    onMounted(() => {
+      if (route.query.edit === 'true' && note.value) {
+        openEditor();
+      }
+    });
+
     return {
       note,
       renderedMarkdown,
-      getNoteCardStyle,
+      renderedEditMarkdown,
+      editLineCount,
       getWordCount,
       formatDate,
       copyContent,
       printNote,
       isEditing,
       editForm,
+      editorLayout,
+      editorTextarea,
       colorOptions,
       openEditor,
+      cancelEdit,
+      insertMarkdown,
       saveEditNote,
       deleteNote,
       toast
@@ -289,7 +446,7 @@ export default {
 </script>
 
 <style scoped>
-.top-bar-card {
+.top-bar-card, .editor-header-card {
   background-color: #ffffff;
   border-color: #e2e8f0;
   transition: all 0.2s ease;
@@ -302,8 +459,7 @@ export default {
 
 .header-title,
 .main-note-title,
-.not-found-title,
-.drawer-title {
+.not-found-title {
   color: #0f172a;
 }
 
@@ -342,7 +498,7 @@ export default {
   border-color: #e2e8f0;
 }
 
-.main-note-card {
+.main-note-card, .main-editor-card {
   background-color: #ffffff;
 }
 
@@ -371,6 +527,48 @@ export default {
   padding: 0.15rem 0.5rem;
   border-radius: 0.25rem;
   border: 1px solid #dbeafe;
+}
+
+.markdown-toolbar {
+  background-color: #f8fafc;
+  border-color: #e2e8f0;
+}
+
+.btn-white {
+  background-color: #ffffff;
+  color: #334155;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+
+.btn-white:hover {
+  background-color: #f1f5f9;
+  color: #0f172a;
+}
+
+.color-swatch-btn {
+  border: 2px solid transparent;
+  transition: transform 0.2s ease;
+}
+
+.color-swatch-btn:hover {
+  transform: scale(1.15);
+}
+
+.color-swatch-btn.ring-active {
+  border-color: #0f172a !important;
+  box-shadow: 0 0 0 2px rgba(0,0,0,0.2);
+}
+
+.title-input-field:focus {
+  border-color: #2563eb !important;
+  box-shadow: 0 0 0 0.25rem rgba(37, 99, 235, 0.15) !important;
+}
+
+.text-editor-area {
+  font-family: 'Fira Code', 'Courier New', Courier, monospace;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  resize: vertical;
 }
 
 /* TYPOGRAPHY & MARKDOWN STYLING - LIGHT MODE */
@@ -490,11 +688,11 @@ export default {
   color: #0f172a;
 }
 
-/* =================================================== */
-/* DARK THEME SPECIFIC OVERRIDES FOR NOTE DETAIL PREVIEW */
-/* =================================================== */
+/* DARK THEME SPECIFIC OVERRIDES */
 :global(.dark-theme) .top-bar-card,
+:global(.dark-theme) .editor-header-card,
 :global(.dark-theme) .main-note-card,
+:global(.dark-theme) .main-editor-card,
 :global(.dark-theme) .note-header-bar,
 :global(.dark-theme) .not-found-box {
   background-color: #131b2e !important;
@@ -510,7 +708,6 @@ export default {
 :global(.dark-theme) .header-title,
 :global(.dark-theme) .main-note-title,
 :global(.dark-theme) .not-found-title,
-:global(.dark-theme) .drawer-title,
 :global(.dark-theme) .stat-value {
   color: #f8fafc !important;
 }
@@ -543,8 +740,31 @@ export default {
 }
 
 :global(.dark-theme) .stats-box,
-:global(.dark-theme) .note-footer-bar {
+:global(.dark-theme) .note-footer-bar,
+:global(.dark-theme) .markdown-toolbar {
   background-color: #090d16 !important;
+  border-color: #26334d !important;
+}
+
+:global(.dark-theme) .btn-white {
+  background-color: #1e293b !important;
+  color: #f8fafc !important;
+  border-color: #334155 !important;
+}
+
+:global(.dark-theme) .btn-white:hover {
+  background-color: #334155 !important;
+}
+
+:global(.dark-theme) .title-input-field,
+:global(.dark-theme) .text-editor-area {
+  background-color: #090d16 !important;
+  color: #f8fafc !important;
+  border-color: #26334d !important;
+}
+
+:global(.dark-theme) .editor-preview-box {
+  background-color: #060911 !important;
   border-color: #26334d !important;
 }
 
@@ -554,7 +774,6 @@ export default {
   border-color: #26334d !important;
 }
 
-/* MARKDOWN CONTENT IN DARK MODE - MONOSPACE STYLING & BRIGHT FONTS */
 :global(.dark-theme) .note-markdown-body {
   font-family: 'Fira Code', 'JetBrains Mono', 'Source Code Pro', 'Cascadia Code', Menlo, Monaco, Consolas, monospace !important;
   color: #f8fafc !important;
@@ -642,49 +861,9 @@ export default {
   background: #1e293b !important;
 }
 
-/* Slide-over Drawer Styles */
-.drawer-backdrop {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background-color: rgba(15, 23, 42, 0.65);
-  backdrop-filter: blur(4px);
-  z-index: 1070;
-}
-
-.drawer-panel {
-  position: fixed;
-  top: 0;
-  right: 0;
-  width: 540px;
-  max-width: 100vw;
-  height: 100vh;
-  z-index: 1080;
-  transform: translateX(100%);
-  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.drawer-panel.drawer-show {
-  transform: translateX(0);
-}
-
-:global(.dark-theme) .drawer-panel {
-  background-color: #131b2e !important;
-  color: #f8fafc !important;
-  border-color: #26334d !important;
-}
-
-:global(.dark-theme) .drawer-header {
-  background-color: #090d16 !important;
-  border-color: #26334d !important;
-}
-
 @media print {
-  .drawer-panel, .drawer-backdrop, .toast-container, button, .router-link {
+  .toast-container, button, .router-link, .markdown-toolbar {
     display: none !important;
   }
 }
 </style>
-

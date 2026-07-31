@@ -819,65 +819,40 @@
       </div>
     </div>
 
-    <!-- DELETE CONFIRMATION MODAL DIALOG -->
-    <div v-if="deleteModal.show" class="modal-backdrop fade show" style="z-index: 1080;" @click="closeDeleteModal"></div>
-    <div v-if="deleteModal.show" class="modal d-block fade show" style="z-index: 1085;" tabindex="-1" role="dialog" aria-modal="true">
-      <div class="modal-dialog modal-dialog-centered" style="max-width: 460px;">
-        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
-          <div class="modal-header border-0 bg-danger-subtle text-danger p-4 pb-0">
-            <div class="d-flex align-items-center gap-3">
-              <div class="p-3 bg-danger text-white rounded-circle d-flex align-items-center justify-content-center shadow-sm" style="width: 52px; height: 52px;">
-                <i class="bi bi-exclamation-triangle-fill fs-3"></i>
-              </div>
-              <div>
-                <h5 class="modal-title fw-bold text-danger mb-0">Konfirmasi Hapus</h5>
-                <small class="text-danger-emphasis fw-medium">Peringatan: Data akan dihapus permanen</small>
-              </div>
+    <!-- INLINE DELETE CONFIRMATION PANEL (NO MODAL OVERLAY) -->
+    <transition name="fade-slide">
+      <div v-if="deleteModal.show" class="card border border-2 border-danger shadow-lg rounded-4 overflow-hidden mb-4 bg-white p-4">
+        <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
+          <div class="d-flex align-items-center gap-3">
+            <div class="p-3 bg-danger text-white rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 50px; height: 50px;">
+              <i class="bi bi-exclamation-triangle-fill fs-4"></i>
             </div>
-            <button type="button" class="btn-close" @click="closeDeleteModal" aria-label="Close"></button>
-          </div>
-
-          <div class="modal-body p-4 text-dark">
-            <div v-if="deleteModal.type === 'single'" class="mb-3">
-              <p class="mb-2">Apakah Anda yakin ingin menghapus tugas berikut secara permanen?</p>
-              <div class="p-3 bg-light rounded-3 border border-danger-subtle text-dark fw-bold text-break d-flex align-items-center gap-2">
-                <i class="bi bi-file-earmark-text text-danger fs-5"></i>
-                <span>{{ deleteModal.targetTitle }}</span>
-              </div>
-            </div>
-
-            <div v-else-if="deleteModal.type === 'bulk'" class="mb-3">
-              <p class="mb-2">Apakah Anda yakin ingin menghapus <strong>{{ deleteModal.count }} tugas terpilih</strong> secara permanen?</p>
-              <div class="p-3 bg-light rounded-3 border border-danger-subtle text-muted small">
-                Semua {{ deleteModal.count }} tugas yang telah Anda centang di daftar akan dihapus dari sistem.
-              </div>
-            </div>
-
-            <div v-else-if="deleteModal.type === 'clear_completed'" class="mb-3">
-              <p class="mb-2">Apakah Anda yakin ingin membersihkan <strong>{{ deleteModal.count }} tugas selesai</strong>?</p>
-              <div class="p-3 bg-light rounded-3 border border-danger-subtle text-muted small">
-                Seluruh tugas yang sudah selesai dikerjakan akan dibersihkan secara permanen.
-              </div>
-            </div>
-
-            <div class="alert alert-warning border-warning-subtle py-2 px-3 small d-flex align-items-center gap-2 mb-0 rounded-3">
-              <i class="bi bi-shield-exclamation text-warning fs-5"></i>
-              <span>Tindakan ini untuk mencegah kehilangan data secara tidak sengaja.</span>
+            <div>
+              <h5 class="fw-bold text-danger mb-1">Konfirmasi Hapus Permanen</h5>
+              <p class="small text-muted mb-0" v-if="deleteModal.type === 'single'">
+                Hapus tugas "<strong>{{ deleteModal.targetTitle }}</strong>"?
+              </p>
+              <p class="small text-muted mb-0" v-else-if="deleteModal.type === 'bulk'">
+                Hapus <strong>{{ deleteModal.count }} tugas terpilih</strong> secara permanen?
+              </p>
+              <p class="small text-muted mb-0" v-else-if="deleteModal.type === 'clear_completed'">
+                Bersihkan <strong>{{ deleteModal.count }} tugas selesai</strong>?
+              </p>
             </div>
           </div>
 
-          <div class="modal-footer border-0 p-4 pt-0 gap-2">
-            <button type="button" class="btn btn-light px-4 py-2 rounded-3 fw-bold flex-grow-1 border" @click="closeDeleteModal">
+          <div class="d-flex gap-2 justify-content-end">
+            <button type="button" class="btn btn-light px-4 py-2 rounded-pill fw-bold border" @click="closeDeleteModal">
               Batal
             </button>
-            <button type="button" class="btn btn-danger px-4 py-2 rounded-3 fw-bold flex-grow-1 shadow-sm d-flex align-items-center justify-content-center gap-2" @click="executeDelete">
+            <button type="button" class="btn btn-danger px-4 py-2 rounded-pill fw-bold shadow-sm d-flex align-items-center gap-2" @click="executeDelete">
               <i class="bi bi-trash-fill"></i>
-              <span>Ya, Hapus Permanen</span>
+              <span>Ya, Hapus</span>
             </button>
           </div>
         </div>
       </div>
-    </div>
+    </transition>
   </div>
 </template>
 

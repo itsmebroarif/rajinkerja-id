@@ -84,6 +84,29 @@ const routes = [
     component: () => import("../views/PreferencesView.vue"),
   },
   {
+    path: "/camera",
+    name: "camera",
+    component: () => import("../views/CameraScannerView.vue"),
+  },
+  {
+    path: "/scan",
+    redirect: "/camera",
+  },
+  {
+    path: "/mood",
+    name: "mood",
+    component: () => import("../views/MoodAlarmView.vue"),
+  },
+  {
+    path: "/alarm",
+    name: "alarm",
+    component: () => import("../views/MoodAlarmView.vue"),
+  },
+  {
+    path: "/mood-alarm",
+    redirect: "/mood",
+  },
+  {
     path: "/faq",
     name: "faq",
     component: () => import("../views/FaqAboutView.vue"),

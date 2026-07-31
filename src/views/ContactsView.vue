@@ -382,312 +382,207 @@
       </div>
     </div>
 
-    <!-- 1. MODAL AJAK KETEMUAN / MEETING (CASUAL EVERYDAY LANGUAGE) -->
-    <div v-if="meetupModal.show" class="modal-backdrop fade show" style="z-index: 1080;" @click="closeMeetupModal"></div>
-    <div v-if="meetupModal.show" class="modal d-block fade show" style="z-index: 1085;" tabindex="-1" role="dialog" aria-modal="true">
-      <div class="modal-dialog modal-dialog-centered modal-lg">
-        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
-          <div class="modal-header border-0 bg-success-subtle text-success p-4 pb-3">
-            <div class="d-flex align-items-center gap-3">
-              <div class="p-3 bg-success text-white rounded-circle d-flex align-items-center justify-content-center shadow-sm" style="width: 52px; height: 52px;">
-                <i class="bi bi-cup-hot-fill fs-3"></i>
-              </div>
-              <div>
-                <h5 class="modal-title fw-extrabold text-success mb-0">☕ Ajak Ketemuan Tim & Rekan</h5>
-                <small class="text-success-emphasis fw-semibold">Buat pesan ajakan santai sehari-hari + nentuin lokasi & waktu</small>
-              </div>
+    <!-- 1. IN-PAGE PANEL: AJAK KETEMUAN / MEETING (NO MODAL OVERLAY) -->
+    <transition name="fade-slide">
+      <div v-if="meetupModal.show" class="card border-0 shadow-lg rounded-4 overflow-hidden mb-4 bg-white p-4">
+        <div class="d-flex justify-content-between align-items-center border-bottom pb-3 mb-3">
+          <div class="d-flex align-items-center gap-3">
+            <div class="p-3 bg-success text-white rounded-circle d-flex align-items-center justify-content-center shadow-sm" style="width: 48px; height: 48px;">
+              <i class="bi bi-cup-hot-fill fs-3"></i>
             </div>
-            <button type="button" class="btn-close" @click="closeMeetupModal" aria-label="Close"></button>
+            <div>
+              <h5 class="fw-extrabold text-success mb-0">☕ Ajak Ketemuan Tim & Rekan</h5>
+              <small class="text-muted fw-semibold">Pesan ajakan santai + lokasi & waktu ketemuan</small>
+            </div>
+          </div>
+          <button type="button" class="btn-close" @click="closeMeetupModal" aria-label="Close"></button>
+        </div>
+
+        <div class="row g-3">
+          <div class="col-12">
+            <label class="form-label fw-bold small">Pilih Kontak / Tim Target</label>
+            <select class="form-select fw-semibold" v-model="meetupModal.targetContactId" @change="onMeetupTargetChange">
+              <option v-for="c in contacts" :key="c.id" :value="c.id">
+                {{ isTeam(c) ? '👥 ' + c.name + ' (' + (c.company || 'Tim') + ')' : '💼 ' + c.name + ' (' + (c.company || 'Klien') + ')' }} — {{ c.phone || 'No WA' }}
+              </option>
+            </select>
           </div>
 
-          <div class="modal-body p-4 text-dark">
-            <div class="row g-3">
-              <!-- Target Recipient -->
-              <div class="col-12">
-                <label class="form-label fw-bold">Pilih Kontak / Tim</label>
-                <select class="form-select fw-semibold" v-model="meetupModal.targetContactId" @change="onMeetupTargetChange">
-                  <option v-for="c in contacts" :key="c.id" :value="c.id">
-                    {{ isTeam(c) ? '👥 ' + c.name + ' (' + (c.company || 'Tim') + ')' : '💼 ' + c.name + ' (' + (c.company || 'Klien') + ')' }} — {{ c.phone || 'No WA' }}
-                  </option>
-                </select>
-              </div>
+          <div class="col-md-6">
+            <label class="form-label fw-bold small">Jenis Ketemuan</label>
+            <select class="form-select" v-model="meetupModal.type" @change="updateMeetupMessage">
+              <option value="coffee">☕ Ngopi Santai (Coffee Shop)</option>
+              <option value="lunch">🍕 Makan Siang / Dinner (Resto)</option>
+              <option value="work">💼 Briefing / Rapat Kerja (Office)</option>
+              <option value="online">💻 Google Meet / Call Online</option>
+              <option value="brainstorm">🎯 Brainstorming Ide Baru</option>
+            </select>
+          </div>
 
-              <!-- Meetup Type & Location Presets -->
-              <div class="col-md-6">
-                <label class="form-label fw-bold">Jenis Ketemuan</label>
-                <select class="form-select" v-model="meetupModal.type" @change="updateMeetupMessage">
-                  <option value="coffee">☕ Ngopi Santai (Coffee Shop)</option>
-                  <option value="lunch">🍕 Makan Siang / Dinner (Resto)</option>
-                  <option value="work">💼 Briefing / Rapat Kerja (Office)</option>
-                  <option value="online">💻 Google Meet / Call Online</option>
-                  <option value="brainstorm">🎯 Brainstorming Ide Baru</option>
-                </select>
-              </div>
-
-              <div class="col-md-6">
-                <label class="form-label fw-bold">Waktu & Tanggal Ketemuan</label>
-                <input type="text" class="form-control" v-model="meetupModal.time" placeholder="Contoh: Besok jam 14.00 / Jumat sore jam 16.00" @input="updateMeetupMessage" />
-                <div class="d-flex gap-1 mt-1 flex-wrap">
-                  <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-2 rounded-pill small" @click="setMeetupTimePreset('Hari ini jam 16.00')">Hari ini jam 4 sore</button>
-                  <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-2 rounded-pill small" @click="setMeetupTimePreset('Besok jam 14.00')">Besok jam 2 siang</button>
-                  <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-2 rounded-pill small" @click="setMeetupTimePreset('Jumat ini jam 15.30')">Jumat sore</button>
-                </div>
-              </div>
-
-              <div class="col-12">
-                <label class="form-label fw-bold">Lokasi Tempat Ketemuan</label>
-                <input type="text" class="form-control" v-model="meetupModal.location" placeholder="Contoh: Starbucks Senayan / Kopi Kenangan BSD / Ruang Meeting Lt 2" @input="updateMeetupMessage" />
-                <div class="d-flex gap-1 mt-1 flex-wrap">
-                  <button type="button" class="btn btn-xs btn-outline-success py-0 px-2 rounded-pill small" @click="setMeetupLocationPreset('☕ Starbucks terdekat')">☕ Starbucks</button>
-                  <button type="button" class="btn btn-xs btn-outline-success py-0 px-2 rounded-pill small" @click="setMeetupLocationPreset('🥤 Kopi Kenangan')">🥤 Kopi Kenangan</button>
-                  <button type="button" class="btn btn-xs btn-outline-success py-0 px-2 rounded-pill small" @click="setMeetupLocationPreset('🏢 Ruang Meeting Kantor')">🏢 Ruang Meeting Kantor</button>
-                  <button type="button" class="btn btn-xs btn-outline-success py-0 px-2 rounded-pill small" @click="setMeetupLocationPreset('💻 Google Meet / Zoom Call')">💻 Google Meet</button>
-                  <button type="button" class="btn btn-xs btn-outline-success py-0 px-2 rounded-pill small" @click="setMeetupLocationPreset('🍽️ Resto / Place Makanan Suka-Suka')">🍽️ Resto Suka-Suka</button>
-                </div>
-              </div>
-
-              <div class="col-12">
-                <label class="form-label fw-bold">Agenda / Bahasan Kerjaan</label>
-                <input type="text" class="form-control" v-model="meetupModal.topic" placeholder="Contoh: ngobrolin sprint minggu depan & ide desain baru" @input="updateMeetupMessage" />
-              </div>
-
-              <!-- Tone Selector -->
-              <div class="col-12">
-                <label class="form-label fw-bold">Gaya Bahasa Casual Sehari-hari</label>
-                <div class="btn-group w-100" role="group">
-                  <button
-                    type="button"
-                    class="btn btn-sm py-2 fw-semibold"
-                    :class="meetupModal.tone === 'gaul' ? 'btn-success text-white' : 'btn-outline-success'"
-                    @click="setTone('gaul')"
-                  >
-                    😎 Santai Akrab (Gaul)
-                  </button>
-                  <button
-                    type="button"
-                    class="btn btn-sm py-2 fw-semibold"
-                    :class="meetupModal.tone === 'friendly' ? 'btn-success text-white' : 'btn-outline-success'"
-                    @click="setTone('friendly')"
-                  >
-                    🤝 Casual Kerja (Friendly)
-                  </button>
-                  <button
-                    type="button"
-                    class="btn btn-sm py-2 fw-semibold"
-                    :class="meetupModal.tone === 'direct' ? 'btn-success text-white' : 'btn-outline-success'"
-                    @click="setTone('direct')"
-                  >
-                    ⚡ Singkat Direct
-                  </button>
-                </div>
-              </div>
-
-              <!-- Generated Message Preview & Edit -->
-              <div class="col-12">
-                <label class="form-label fw-bold d-flex justify-content-between">
-                  <span>Draft Pesan WhatsApp</span>
-                  <small class="text-success"><i class="bi bi-pencil me-1"></i>Bisa diedit manual</small>
-                </label>
-                <textarea class="form-control font-monospace p-3 bg-light border-success-subtle" rows="5" v-model="meetupModal.customMessage"></textarea>
-              </div>
+          <div class="col-md-6">
+            <label class="form-label fw-bold small">Waktu & Tanggal Ketemuan</label>
+            <input type="text" class="form-control" v-model="meetupModal.time" placeholder="Contoh: Besok jam 14.00" @input="updateMeetupMessage" />
+            <div class="d-flex gap-1 mt-1 flex-wrap">
+              <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-2 rounded-pill small" @click="setMeetupTimePreset('Hari ini jam 16.00')">Hari ini jam 4 sore</button>
+              <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-2 rounded-pill small" @click="setMeetupTimePreset('Besok jam 14.00')">Besok jam 2 siang</button>
+              <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-2 rounded-pill small" @click="setMeetupTimePreset('Jumat ini jam 15.30')">Jumat sore</button>
             </div>
           </div>
 
-          <div class="modal-footer border-0 p-4 pt-0 gap-2">
-            <button type="button" class="btn btn-light px-4 py-2 rounded-3 fw-bold border" @click="closeMeetupModal">Batal</button>
-            <button type="button" class="btn btn-success px-4 py-2 rounded-3 fw-bold text-white shadow-sm d-flex align-items-center justify-content-center gap-2" @click="sendMeetupWhatsApp">
+          <div class="col-12">
+            <label class="form-label fw-bold small">Lokasi Tempat Ketemuan</label>
+            <input type="text" class="form-control" v-model="meetupModal.location" placeholder="Contoh: Starbucks Senayan" @input="updateMeetupMessage" />
+            <div class="d-flex gap-1 mt-1 flex-wrap">
+              <button type="button" class="btn btn-xs btn-outline-success py-0 px-2 rounded-pill small" @click="setMeetupLocationPreset('☕ Starbucks terdekat')">☕ Starbucks</button>
+              <button type="button" class="btn btn-xs btn-outline-success py-0 px-2 rounded-pill small" @click="setMeetupLocationPreset('🥤 Kopi Kenangan')">🥤 Kopi Kenangan</button>
+              <button type="button" class="btn btn-xs btn-outline-success py-0 px-2 rounded-pill small" @click="setMeetupLocationPreset('🏢 Ruang Meeting Kantor')">🏢 Ruang Meeting Kantor</button>
+              <button type="button" class="btn btn-xs btn-outline-success py-0 px-2 rounded-pill small" @click="setMeetupLocationPreset('💻 Google Meet Call')">💻 Google Meet</button>
+            </div>
+          </div>
+
+          <div class="col-12">
+            <label class="form-label fw-bold small">Gaya Bahasa</label>
+            <div class="btn-group w-100" role="group">
+              <button type="button" class="btn btn-sm py-1.5 fw-semibold" :class="meetupModal.tone === 'gaul' ? 'btn-success text-white' : 'btn-outline-success'" @click="setTone('gaul')">😎 Gaul Santai</button>
+              <button type="button" class="btn btn-sm py-1.5 fw-semibold" :class="meetupModal.tone === 'friendly' ? 'btn-success text-white' : 'btn-outline-success'" @click="setTone('friendly')">🤝 Casual Kerja</button>
+              <button type="button" class="btn btn-sm py-1.5 fw-semibold" :class="meetupModal.tone === 'direct' ? 'btn-success text-white' : 'btn-outline-success'" @click="setTone('direct')">⚡ Singkat Direct</button>
+            </div>
+          </div>
+
+          <div class="col-12">
+            <label class="form-label fw-bold small">Draft Pesan WhatsApp</label>
+            <textarea class="form-control font-monospace p-3 bg-light border-success-subtle" rows="4" v-model="meetupModal.customMessage"></textarea>
+          </div>
+
+          <div class="col-12 d-flex justify-content-end gap-2 pt-2 border-top">
+            <button type="button" class="btn btn-light px-4 py-2 rounded-pill fw-bold border" @click="closeMeetupModal">Tutup</button>
+            <button type="button" class="btn btn-success px-4 py-2 rounded-pill fw-bold text-white shadow-sm d-flex align-items-center gap-2" @click="sendMeetupWhatsApp">
               <i class="bi bi-whatsapp fs-5"></i>
               <span>Kirim via WhatsApp Direct</span>
             </button>
           </div>
         </div>
       </div>
-    </div>
+    </transition>
 
-    <!-- 2. MODAL BROADCAST WHATSAPP (KIRIM PESAN KE BANYAK WA) -->
-    <div v-if="broadcastModal.show" class="modal-backdrop fade show" style="z-index: 1080;" @click="closeBroadcastModal"></div>
-    <div v-if="broadcastModal.show" class="modal d-block fade show" style="z-index: 1085;" tabindex="-1" role="dialog" aria-modal="true">
-      <div class="modal-dialog modal-dialog-centered modal-lg">
-        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
-          <div class="modal-header border-0 bg-primary-subtle text-primary p-4 pb-3">
-            <div class="d-flex align-items-center gap-3">
-              <div class="p-3 bg-primary text-white rounded-circle d-flex align-items-center justify-content-center shadow-sm" style="width: 52px; height: 52px;">
-                <i class="bi bi-broadcast fs-3"></i>
-              </div>
-              <div>
-                <h5 class="modal-title fw-extrabold text-primary mb-0">📢 Broadcast WhatsApp ke Banyak Kontak</h5>
-                <small class="text-primary-emphasis fw-semibold">Kirim pesan personalisasi ke seluruh tim / klien sekaligus</small>
+    <!-- 2. IN-PAGE PANEL: BROADCAST WHATSAPP (NO MODAL OVERLAY) -->
+    <transition name="fade-slide">
+      <div v-if="broadcastModal.show" class="card border-0 shadow-lg rounded-4 overflow-hidden mb-4 bg-white p-4">
+        <div class="d-flex justify-content-between align-items-center border-bottom pb-3 mb-3">
+          <div class="d-flex align-items-center gap-3">
+            <div class="p-3 bg-primary text-white rounded-circle d-flex align-items-center justify-content-center shadow-sm" style="width: 48px; height: 48px;">
+              <i class="bi bi-broadcast fs-3"></i>
+            </div>
+            <div>
+              <h5 class="fw-extrabold text-primary mb-0">📢 Broadcast WhatsApp ke Banyak Kontak</h5>
+              <small class="text-muted fw-semibold">Kirim pesan personalisasi ke seluruh tim / klien sekaligus</small>
+            </div>
+          </div>
+          <button type="button" class="btn-close" @click="closeBroadcastModal" aria-label="Close"></button>
+        </div>
+
+        <div class="row g-3">
+          <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <label class="form-label fw-bold small mb-0">Pilih Penerima Broadcast ({{ broadcastSelectedIds.length }} Terpilih)</label>
+              <div class="d-flex gap-1">
+                <button type="button" class="btn btn-xs btn-outline-primary rounded-pill py-0 px-2 small" @click="selectAllTeamBroadcast">Semua Tim</button>
+                <button type="button" class="btn btn-xs btn-outline-primary rounded-pill py-0 px-2 small" @click="selectAllClientsBroadcast">Semua Klien</button>
+                <button type="button" class="btn btn-xs btn-outline-secondary rounded-pill py-0 px-2 small" @click="selectAllBroadcast">Pilih Semua</button>
               </div>
             </div>
-            <button type="button" class="btn-close" @click="closeBroadcastModal" aria-label="Close"></button>
-          </div>
 
-          <div class="modal-body p-4 text-dark">
-            <div class="row g-3">
-              <!-- Target Selection Filter -->
-              <div class="col-12">
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                  <label class="form-label fw-bold mb-0">Pilih Penerima Broadcast ({{ broadcastSelectedIds.length }} Terpilih)</label>
-                  <div class="d-flex gap-1">
-                    <button type="button" class="btn btn-xs btn-outline-primary rounded-pill py-0 px-2 small" @click="selectAllTeamBroadcast">Semua Tim Internal</button>
-                    <button type="button" class="btn btn-xs btn-outline-primary rounded-pill py-0 px-2 small" @click="selectAllClientsBroadcast">Semua Klien</button>
-                    <button type="button" class="btn btn-xs btn-outline-secondary rounded-pill py-0 px-2 small" @click="selectAllBroadcast">Pilih Semua</button>
-                  </div>
-                </div>
-
-                <div class="bg-light p-3 rounded-3 border overflow-auto" style="max-height: 140px;">
-                  <div class="row g-2">
-                    <div v-for="c in contacts" :key="c.id" class="col-md-6 col-lg-4">
-                      <div class="form-check p-2 bg-white rounded-2 border d-flex align-items-center gap-2">
-                        <input type="checkbox" class="form-check-input mt-0 ms-1" :value="c.id" v-model="broadcastSelectedIds" :id="'bc_' + c.id" />
-                        <label class="form-check-label small fw-bold text-truncate cursor-pointer" :for="'bc_' + c.id">
-                          {{ isTeam(c) ? '👥 ' + c.name : '💼 ' + c.name }}
-                        </label>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Broadcast Template Selector -->
-              <div class="col-12">
-                <label class="form-label fw-bold">Pilih Template Broadcast</label>
-                <div class="d-flex gap-2 flex-wrap">
-                  <button
-                    type="button"
-                    class="btn btn-sm rounded-pill px-3 fw-bold"
-                    :class="broadcastTemplate === 'ketemuan' ? 'btn-success text-white' : 'btn-outline-success'"
-                    @click="setBroadcastTemplate('ketemuan')"
-                  >
-                    ☕ Ajak Ketemuan Tim
-                  </button>
-                  <button
-                    type="button"
-                    class="btn btn-sm rounded-pill px-3 fw-bold"
-                    :class="broadcastTemplate === 'update' ? 'btn-primary text-white' : 'btn-outline-primary'"
-                    @click="setBroadcastTemplate('update')"
-                  >
-                    📢 Info & Update Tim
-                  </button>
-                  <button
-                    type="button"
-                    class="btn btn-sm rounded-pill px-3 fw-bold"
-                    :class="broadcastTemplate === 'reminder' ? 'btn-warning text-dark' : 'btn-outline-warning'"
-                    @click="setBroadcastTemplate('reminder')"
-                  >
-                    🗓️ Reminder Agenda
-                  </button>
-                  <button
-                    type="button"
-                    class="btn btn-sm rounded-pill px-3 fw-bold"
-                    :class="broadcastTemplate === 'custom' ? 'btn-secondary text-white' : 'btn-outline-secondary'"
-                    @click="setBroadcastTemplate('custom')"
-                  >
-                    ✏️ Custom Text
-                  </button>
-                </div>
-              </div>
-
-              <!-- Message Template Editor -->
-              <div class="col-12">
-                <label class="form-label fw-bold d-flex justify-content-between">
-                  <span>Isi Pesan Template (Gunakan tag <code class="text-danger">{nama}</code> untuk nama personal)</span>
-                </label>
-                <textarea class="form-control font-monospace p-3" rows="4" v-model="broadcastMessageTemplate"></textarea>
-              </div>
-
-              <!-- Sequential Broadcast Launcher Console -->
-              <div class="col-12" v-if="broadcastSelectedContacts.length > 0">
-                <div class="card border border-primary-subtle bg-primary-subtle rounded-3 p-3">
-                  <div class="d-flex justify-content-between align-items-center mb-2">
-                    <span class="fw-bold text-primary">
-                      🚀 Console Pengiriman WA Broadcast ({{ currentBroadcastIndex + 1 }} / {{ broadcastSelectedContacts.length }})
-                    </span>
-                    <span class="badge bg-primary text-white fw-bold">
-                      Target: {{ currentBroadcastContact ? currentBroadcastContact.name : '-' }}
-                    </span>
-                  </div>
-
-                  <div class="p-3 bg-white rounded-3 border mb-3">
-                    <div class="small text-muted fw-bold mb-1">Pratinjau Pesan Terpesonalisasi:</div>
-                    <div class="small font-monospace text-dark whitespace-pre-wrap">{{ getPersonalizedBroadcastMessage(currentBroadcastContact) }}</div>
-                  </div>
-
-                  <div class="d-flex gap-2">
-                    <a
-                      :href="getBroadcastWaUrl(currentBroadcastContact)"
-                      target="_blank"
-                      class="btn btn-success fw-bold text-white px-4 py-2 rounded-3 flex-grow-1 shadow-sm d-flex align-items-center justify-content-center gap-2"
-                      @click="markCurrentBroadcastSent"
-                    >
-                      <i class="bi bi-whatsapp fs-5"></i>
-                      <span>Kirim WA ke {{ currentBroadcastContact ? currentBroadcastContact.name : '' }}</span>
-                    </a>
-
-                    <button
-                      type="button"
-                      class="btn btn-outline-primary px-3 py-2 rounded-3 fw-bold"
-                      @click="nextBroadcastContact"
-                      :disabled="currentBroadcastIndex >= broadcastSelectedContacts.length - 1"
-                    >
-                      Lanjut Berikutnya ➡️
-                    </button>
+            <div class="bg-light p-3 rounded-3 border overflow-auto" style="max-height: 140px;">
+              <div class="row g-2">
+                <div v-for="c in contacts" :key="c.id" class="col-md-6 col-lg-4">
+                  <div class="form-check p-2 bg-white rounded-2 border d-flex align-items-center gap-2">
+                    <input type="checkbox" class="form-check-input mt-0 ms-1" :value="c.id" v-model="broadcastSelectedIds" :id="'bc_' + c.id" />
+                    <label class="form-check-label small fw-bold text-truncate cursor-pointer" :for="'bc_' + c.id">
+                      {{ isTeam(c) ? '👥 ' + c.name : '💼 ' + c.name }}
+                    </label>
                   </div>
                 </div>
               </div>
             </div>
           </div>
 
-          <div class="modal-footer border-0 p-4 pt-0">
-            <button type="button" class="btn btn-light px-4 py-2 rounded-3 fw-bold border" @click="closeBroadcastModal">Tutup</button>
+          <div class="col-12">
+            <label class="form-label fw-bold small">Template Broadcast</label>
+            <div class="d-flex gap-2 flex-wrap">
+              <button type="button" class="btn btn-sm rounded-pill px-3 fw-bold" :class="broadcastTemplate === 'ketemuan' ? 'btn-success text-white' : 'btn-outline-success'" @click="setBroadcastTemplate('ketemuan')">☕ Ajak Ketemuan</button>
+              <button type="button" class="btn btn-sm rounded-pill px-3 fw-bold" :class="broadcastTemplate === 'update' ? 'btn-primary text-white' : 'btn-outline-primary'" @click="setBroadcastTemplate('update')">📢 Info Update</button>
+              <button type="button" class="btn btn-sm rounded-pill px-3 fw-bold" :class="broadcastTemplate === 'reminder' ? 'btn-warning text-dark' : 'btn-outline-warning'" @click="setBroadcastTemplate('reminder')">🗓️ Reminder Agenda</button>
+            </div>
+          </div>
+
+          <div class="col-12">
+            <label class="form-label fw-bold small">Isi Pesan Template (Tag <code class="text-danger">{nama}</code>)</label>
+            <textarea class="form-control font-monospace p-3" rows="3" v-model="broadcastMessageTemplate"></textarea>
+          </div>
+
+          <div class="col-12" v-if="broadcastSelectedContacts.length > 0">
+            <div class="card border border-primary-subtle bg-primary bg-opacity-10 rounded-3 p-3">
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <span class="fw-bold text-primary small">
+                  🚀 Console Pengiriman WA ({{ currentBroadcastIndex + 1 }} / {{ broadcastSelectedContacts.length }})
+                </span>
+                <span class="badge bg-primary text-white fw-bold">
+                  Target: {{ currentBroadcastContact ? currentBroadcastContact.name : '-' }}
+                </span>
+              </div>
+
+              <div class="p-3 bg-white rounded-3 border mb-3">
+                <div class="small font-monospace text-dark whitespace-pre-wrap">{{ getPersonalizedBroadcastMessage(currentBroadcastContact) }}</div>
+              </div>
+
+              <div class="d-flex gap-2">
+                <a :href="getBroadcastWaUrl(currentBroadcastContact)" target="_blank" class="btn btn-success fw-bold text-white px-4 py-2 rounded-pill flex-grow-1 shadow-sm d-flex align-items-center justify-content-center gap-2" @click="markCurrentBroadcastSent">
+                  <i class="bi bi-whatsapp fs-5"></i>
+                  <span>Kirim WA ke {{ currentBroadcastContact ? currentBroadcastContact.name : '' }}</span>
+                </a>
+                <button type="button" class="btn btn-outline-primary px-3 py-2 rounded-pill fw-bold" @click="nextBroadcastContact" :disabled="currentBroadcastIndex >= broadcastSelectedContacts.length - 1">
+                  Lanjut ➡️
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-12 text-end pt-2 border-top">
+            <button type="button" class="btn btn-light px-4 py-2 rounded-pill fw-bold border" @click="closeBroadcastModal">Tutup Broadcast</button>
           </div>
         </div>
       </div>
-    </div>
+    </transition>
 
-    <!-- 3. MODAL CONFIRMATION DELETE CONTACT -->
-    <div v-if="deleteModal.show" class="modal-backdrop fade show" style="z-index: 1080;" @click="closeDeleteModal"></div>
-    <div v-if="deleteModal.show" class="modal d-block fade show" style="z-index: 1085;" tabindex="-1" role="dialog" aria-modal="true">
-      <div class="modal-dialog modal-dialog-centered" style="max-width: 450px;">
-        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
-          <div class="modal-header border-0 bg-danger-subtle text-danger p-4 pb-0">
-            <div class="d-flex align-items-center gap-3">
-              <div class="p-3 bg-danger text-white rounded-circle d-flex align-items-center justify-content-center shadow-sm" style="width: 50px; height: 50px;">
-                <i class="bi bi-exclamation-triangle-fill fs-3"></i>
-              </div>
-              <div>
-                <h5 class="modal-title fw-bold text-danger mb-0">Konfirmasi Hapus Kontak</h5>
-                <small class="text-danger-emphasis fw-semibold">Pencegahan kehilangan data</small>
-              </div>
+    <!-- 3. IN-PAGE CONFIRMATION DELETE CONTACT (NO MODAL OVERLAY) -->
+    <transition name="fade-slide">
+      <div v-if="deleteModal.show" class="card border border-2 border-danger shadow-lg rounded-4 overflow-hidden mb-4 bg-white p-4">
+        <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
+          <div class="d-flex align-items-center gap-3">
+            <div class="p-3 bg-danger text-white rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 48px; height: 48px;">
+              <i class="bi bi-exclamation-triangle-fill fs-3"></i>
             </div>
-            <button type="button" class="btn-close" @click="closeDeleteModal" aria-label="Close"></button>
-          </div>
-
-          <div class="modal-body p-4 text-dark">
-            <p v-if="deleteModal.type === 'single'" class="mb-2">
-              Apakah Anda yakin ingin menghapus kontak <strong>"{{ deleteModal.targetName }}"</strong>?
-            </p>
-            <p v-else class="mb-2">
-              Apakah Anda yakin ingin menghapus <strong>{{ deleteModal.count }} kontak terpilih</strong> secara permanen?
-            </p>
-            <div class="alert alert-warning border-warning-subtle py-2 px-3 small d-flex align-items-center gap-2 mb-0 rounded-3">
-              <i class="bi bi-shield-exclamation text-warning fs-5"></i>
-              <span>Data kontak yang dihapus tidak dapat dikembalikan.</span>
+            <div>
+              <h5 class="fw-bold text-danger mb-1">Konfirmasi Hapus Kontak</h5>
+              <p v-if="deleteModal.type === 'single'" class="small text-muted mb-0">
+                Hapus kontak "<strong>{{ deleteModal.targetName }}</strong>"?
+              </p>
+              <p v-else class="small text-muted mb-0">
+                Hapus <strong>{{ deleteModal.count }} kontak terpilih</strong> secara permanen?
+              </p>
             </div>
           </div>
 
-          <div class="modal-footer border-0 p-4 pt-0 gap-2">
-            <button type="button" class="btn btn-light px-4 py-2 rounded-3 fw-bold flex-grow-1 border" @click="closeDeleteModal">
-              Batal
-            </button>
-            <button type="button" class="btn btn-danger px-4 py-2 rounded-3 fw-bold flex-grow-1 shadow-sm d-flex align-items-center justify-content-center gap-2" @click="executeDelete">
+          <div class="d-flex gap-2 justify-content-end">
+            <button type="button" class="btn btn-light px-4 py-2 rounded-pill fw-bold border" @click="closeDeleteModal">Batal</button>
+            <button type="button" class="btn btn-danger px-4 py-2 rounded-pill fw-bold shadow-sm d-flex align-items-center gap-2" @click="executeDelete">
               <i class="bi bi-trash-fill"></i>
               <span>Ya, Hapus</span>
             </button>
           </div>
         </div>
       </div>
-    </div>
+    </transition>
 
     <!-- Toast Notification -->
     <div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1090;">

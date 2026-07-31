@@ -160,6 +160,13 @@ const SAMPLE_HABITS = [
   { id: 'h3', name: 'Olahraga & Stretching 30 Mnt', category: 'Health', history: {} }
 ];
 
+const DEFAULT_WORK_ALARMS = [
+  { id: 'al_1', time: '08:00', label: 'Jam Mulai Kerja & Cek Kanban', active: true, sound: 'beep', repeat: 'Senin - Jumat' },
+  { id: 'al_2', time: '12:00', label: 'Istirahat Siang & Makan', active: true, sound: 'chime', repeat: 'Setiap Hari' },
+  { id: 'al_3', time: '13:00', label: 'Selesai Istirahat & Sesi Siang', active: true, sound: 'beep', repeat: 'Senin - Jumat' },
+  { id: 'al_4', time: '17:00', label: 'Jam Selesai Kerja & Evaluasi', active: true, sound: 'siren', repeat: 'Senin - Jumat' }
+];
+
 function loadLocal(key, defaultData) {
   try {
     const saved = localStorage.getItem(key);
@@ -188,6 +195,8 @@ export default createStore({
       habits: loadLocal('ft_habits', DEFAULT_HABITS),
       notes: loadLocal('ft_notes', DEFAULT_NOTES),
       events: loadLocal('ft_events', DEFAULT_EVENTS),
+      moodLogs: loadLocal('ft_moodLogs', []),
+      workAlarms: loadLocal('ft_workAlarms', DEFAULT_WORK_ALARMS),
       themeMode: 'light', // Light mode default
       accentColor: loadLocal('ft_accentColor', '#2563eb'), // default Material blue
       budgetThreshold: loadLocal('ft_budgetThreshold', 5000000), // Default budget threshold: Rp 5.000.000
@@ -212,6 +221,8 @@ export default createStore({
     getHabits: (state) => state.habits,
     getNotes: (state) => state.notes,
     getEvents: (state) => state.events,
+    getMoodLogs: (state) => state.moodLogs,
+    getWorkAlarms: (state) => state.workAlarms,
     getThemeMode: (state) => state.themeMode,
     getAccentColor: (state) => state.accentColor,
     getBudgetThreshold: (state) => state.budgetThreshold,
@@ -464,6 +475,43 @@ export default createStore({
     SET_BUDGET_THRESHOLD(state, amount) {
       state.budgetThreshold = Number(amount) || 0;
       saveLocal('ft_budgetThreshold', state.budgetThreshold);
+    },
+
+    // Mood Tracker & Alarms
+    ADD_MOOD_LOG(state, log) {
+      state.moodLogs.unshift(log);
+      saveLocal('ft_moodLogs', state.moodLogs);
+    },
+    DELETE_MOOD_LOG(state, id) {
+      state.moodLogs = state.moodLogs.filter(m => m.id !== id);
+      saveLocal('ft_moodLogs', state.moodLogs);
+    },
+    CLEAR_MOOD_LOGS(state) {
+      state.moodLogs = [];
+      saveLocal('ft_moodLogs', []);
+    },
+
+    ADD_WORK_ALARM(state, alarm) {
+      state.workAlarms.push(alarm);
+      saveLocal('ft_workAlarms', state.workAlarms);
+    },
+    UPDATE_WORK_ALARM(state, updated) {
+      const idx = state.workAlarms.findIndex(a => a.id === updated.id);
+      if (idx !== -1) {
+        state.workAlarms[idx] = { ...updated };
+        saveLocal('ft_workAlarms', state.workAlarms);
+      }
+    },
+    TOGGLE_WORK_ALARM(state, id) {
+      const alarm = state.workAlarms.find(a => a.id === id);
+      if (alarm) {
+        alarm.active = !alarm.active;
+        saveLocal('ft_workAlarms', state.workAlarms);
+      }
+    },
+    DELETE_WORK_ALARM(state, id) {
+      state.workAlarms = state.workAlarms.filter(a => a.id !== id);
+      saveLocal('ft_workAlarms', state.workAlarms);
     },
 
     // My Business

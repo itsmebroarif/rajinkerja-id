@@ -1,5 +1,8 @@
 <template>
   <div id="app" :class="['app-container', themeMode === 'dark' ? 'dark-theme' : 'light-theme']" :style="{ '--primary-color': accentColor }">
+    <!-- Global Toast Notifications -->
+    <AppNotifications />
+
     <!-- Desktop Material Navigation Drawer -->
     <aside :class="['sidebar-nav', { collapsed: isCollapsed }]">
       <div class="sidebar-brand p-3 d-flex align-items-center justify-content-between">
@@ -40,6 +43,11 @@
           <span v-if="!isCollapsed && activeProjectsCount > 0" class="badge rounded-pill bg-info text-dark ms-auto small fw-bold">
             {{ activeProjectsCount }}
           </span>
+        </router-link>
+
+        <router-link to="/camera" class="material-nav-link" title="Kamera Scan Dokumen">
+          <i class="bi bi-camera-fill me-3 fs-5 nav-icon text-danger"></i>
+          <span v-if="!isCollapsed" class="nav-label">Kamera & Scan Dokumen</span>
         </router-link>
 
         <div class="sidebar-divider my-2"></div>
@@ -86,6 +94,11 @@
           <span v-if="!isCollapsed" class="nav-label">Kalender & Agenda</span>
         </router-link>
 
+        <router-link to="/mood" class="material-nav-link" title="On-Cam Mood Tracker & Alarm Kerja">
+          <i class="bi bi-emoji-smile-fill me-3 fs-5 nav-icon text-danger"></i>
+          <span v-if="!isCollapsed" class="nav-label">Kamera Mood & Alarm</span>
+        </router-link>
+
         <router-link to="/notes" class="material-nav-link" title="Sticky Notes & Scratchpad">
           <i class="bi bi-journal-text me-3 fs-5 nav-icon text-secondary"></i>
           <span v-if="!isCollapsed" class="nav-label">Notes & Scratchpad</span>
@@ -127,13 +140,13 @@
     <!-- Main Content Area -->
     <div :class="['main-content', { expanded: isCollapsed }]">
       <!-- Top Bar Header -->
-      <header class="top-header border-bottom px-4 py-2 d-flex align-items-center justify-content-between sticky-top">
-        <div class="d-flex align-items-center gap-3">
-          <button class="btn btn-light d-md-none rounded-3" @click="mobileDrawer = true">
+      <header class="top-header border-bottom px-3 px-md-4 py-2 d-flex align-items-center justify-content-between sticky-top">
+        <div class="d-flex align-items-center gap-2 gap-md-3">
+          <button class="btn btn-light d-md-none rounded-3 p-1.5" @click="mobileDrawer = true">
             <i class="bi bi-list fs-4"></i>
           </button>
-          <div class="d-none d-sm-flex align-items-center gap-2">
-            <span class="badge bg-primary-subtle text-primary fw-bold rounded-pill px-3 py-1.5 d-inline-flex align-items-center gap-1 shadow-sm" style="font-size: 11px; letter-spacing: 0.4px;">
+          <div class="d-flex align-items-center gap-2">
+            <span class="badge bg-primary-subtle text-primary fw-bold rounded-pill px-2.5 py-1.5 d-inline-flex align-items-center gap-1 shadow-sm" style="font-size: 11px; letter-spacing: 0.4px;">
               <i class="bi bi-patch-check-fill text-primary me-1"></i>RajinKerja Work Suite v2.5
             </span>
             <span class="text-muted small fw-medium d-none d-lg-inline opacity-75" style="letter-spacing: 0.2px;">• Organizer Pekerjaan Karyawan & Profesional</span>
@@ -141,14 +154,24 @@
         </div>
 
         <div class="d-flex align-items-center gap-2">
+          <!-- Quick Camera Shortcut Button -->
+          <router-link to="/camera" class="btn btn-sm btn-outline-secondary rounded-pill px-3 py-1.5 fw-semibold d-flex align-items-center gap-1">
+            <i class="bi bi-camera-fill me-1"></i> <span class="d-none d-sm-inline">Scan Kamera</span>
+          </router-link>
+
+          <!-- Quick Mood Tracker & Alarm Shortcut Button -->
+          <router-link to="/mood" class="btn btn-sm btn-outline-danger rounded-pill px-3 py-1.5 fw-semibold d-flex align-items-center gap-1">
+            <i class="bi bi-emoji-smile-fill me-1"></i> <span class="d-none d-sm-inline">Mood & Alarm</span>
+          </router-link>
+
           <!-- Budget Alert Warning if exceeded -->
-          <div v-if="isBudgetExceeded" class="badge bg-danger-subtle text-danger border border-danger px-3 py-2 rounded-pill d-flex align-items-center gap-2">
+          <div v-if="isBudgetExceeded" class="badge bg-danger-subtle text-danger border border-danger px-2.5 py-1.5 rounded-pill d-flex align-items-center gap-1">
             <i class="bi bi-exclamation-triangle-fill"></i>
-            <span class="d-none d-sm-inline">Pengeluaran Melebihi Anggaran!</span>
+            <span class="d-none d-sm-inline">Over Budget!</span>
           </div>
 
           <!-- Preferences Link -->
-          <router-link to="/preferences" class="btn btn-sm btn-outline-primary rounded-pill px-3 py-2 fw-semibold d-flex align-items-center gap-1">
+          <router-link to="/preferences" class="btn btn-sm btn-outline-primary rounded-pill px-3 py-1.5 fw-semibold d-flex align-items-center gap-1">
             <i class="bi bi-gear-fill me-1"></i> Preferences
           </router-link>
         </div>
@@ -175,6 +198,7 @@
             <router-link to="/" class="material-nav-link"><i class="bi bi-grid-1x2-fill me-3 text-primary"></i>Dashboard</router-link>
             <router-link to="/todo" class="material-nav-link"><i class="bi bi-kanban-fill me-3 text-warning"></i>To-Do & Kanban</router-link>
             <router-link to="/project" class="material-nav-link"><i class="bi bi-folder-fill me-3 text-info"></i>Proyek & Kontrak</router-link>
+            <router-link to="/camera" class="material-nav-link"><i class="bi bi-camera-fill me-3 text-danger"></i>Kamera & Scan Dokumen</router-link>
 
             <div class="sidebar-divider my-2"></div>
             <div class="sidebar-section-header px-1">👥 TIM & KOMUNIKASI</div>
@@ -193,7 +217,7 @@
 
             <div class="sidebar-divider my-2"></div>
             <div class="sidebar-section-header px-1">⚙️ SISTEM & PANDUAN</div>
-            <router-link to="/preferences" class="material-nav-link"><i class="bi bi-sliders me-3 text-primary"></i>Preferences</router-link>
+            <router-link to="/preferences" class="material-nav-link"><i class="bi bi-sliders me-3 text-primary"></i>Preferences & Install PWA</router-link>
             <router-link to="/faq" class="material-nav-link"><i class="bi bi-question-circle-fill me-3 text-info"></i>FAQ & About App</router-link>
           </nav>
         </div>
@@ -218,13 +242,13 @@
           <i class="bi bi-check2-square"></i>
           <span>To-Do</span>
         </router-link>
+        <router-link to="/camera" class="mobile-nav-btn" active-class="active">
+          <i class="bi bi-camera-fill text-danger"></i>
+          <span>Scan</span>
+        </router-link>
         <router-link to="/finance" class="mobile-nav-btn" active-class="active">
           <i class="bi bi-wallet2"></i>
           <span>Keuangan</span>
-        </router-link>
-        <router-link to="/invoice" class="mobile-nav-btn" active-class="active">
-          <i class="bi bi-receipt"></i>
-          <span>Invoice</span>
         </router-link>
         <router-link to="/preferences" class="mobile-nav-btn" active-class="active">
           <i class="bi bi-sliders"></i>
@@ -238,9 +262,13 @@
 <script>
 import { ref, computed, watch, onMounted } from 'vue';
 import { useStore } from 'vuex';
+import AppNotifications from './components/AppNotifications.vue';
 
 export default {
   name: 'App',
+  components: {
+    AppNotifications
+  },
   setup() {
     const store = useStore();
     const isCollapsed = ref(false);
@@ -273,6 +301,13 @@ export default {
 
     onMounted(() => {
       applyThemeToBody(themeMode.value);
+
+      // Listen for PWA Install Prompt Event
+      window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        window.deferredPwaPrompt = e;
+        window.dispatchEvent(new CustomEvent('pwa-prompt-available'));
+      });
     });
 
     const toggleThemeMode = () => {
@@ -296,6 +331,16 @@ export default {
 </script>
 
 <style>
+/* Global Anti-Horizontal Scroll & Mobile Constraints */
+html, body, #app, .app-container {
+  max-width: 100vw !important;
+  overflow-x: hidden !important;
+}
+
+.main-content {
+  max-width: 100% !important;
+  overflow-x: hidden !important;
+}
 /* CSS Variables & Themes */
 :root {
   --sidebar-width: 260px;

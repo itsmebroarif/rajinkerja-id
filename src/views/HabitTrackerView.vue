@@ -224,50 +224,44 @@
       </div>
     </div>
 
-    <!-- 30-DAY HISTORY MODAL (PURE VUE OVERLAY) -->
-    <transition name="overlay-fade">
-      <div v-if="historyModalOpen" class="drawer-backdrop" @click="closeHistoryModal"></div>
-    </transition>
-
-    <transition name="modal-scale">
-      <div v-if="historyModalOpen" class="custom-modal-wrapper" @click.self="closeHistoryModal">
-        <div class="custom-modal-content rounded-4 border-0 shadow-lg bg-white overflow-hidden">
-          <div class="p-4 border-bottom bg-light d-flex justify-content-between align-items-center">
-            <div>
-              <span class="badge bg-primary-subtle text-primary fw-bold rounded-pill px-3 py-1 mb-1">
-                <i class="bi bi-clock-history me-1"></i> 30-Day Activity History
-              </span>
-              <h5 class="fw-bold text-dark mb-0">{{ activeModalHabit?.name }}</h5>
-            </div>
-            <button type="button" class="btn btn-sm btn-light rounded-circle border shadow-sm p-2" @click="closeHistoryModal">
-              <i class="bi bi-x-lg"></i>
-            </button>
+    <!-- IN-PAGE 30-DAY HISTORY PANEL (NO MODAL OVERLAY) -->
+    <transition name="fade-slide">
+      <div v-if="historyModalOpen && activeModalHabit" class="card border-0 shadow-lg rounded-4 overflow-hidden mb-4 bg-white p-4">
+        <div class="d-flex justify-content-between align-items-center border-bottom pb-3 mb-3">
+          <div>
+            <span class="badge bg-primary-subtle text-primary fw-bold rounded-pill px-3 py-1 mb-1">
+              <i class="bi bi-clock-history me-1"></i> 30-Day Activity History
+            </span>
+            <h5 class="fw-bold text-dark mb-0">{{ activeModalHabit?.name }}</h5>
           </div>
-          <div class="p-4">
-            <p class="text-muted small mb-3">Histori check-in 30 hari terakhir. Klik kotak tanggal untuk menambah atau mengubah status check-in.</p>
-            
-            <div class="row g-2" style="max-height: 380px; overflow-y: auto;">
-              <div
-                v-for="dayItem in past30Days"
-                :key="dayItem.dateStr"
-                class="col-4 col-sm-3 col-md-2"
-              >
-                <div
-                  class="p-2 border rounded-3 text-center cursor-pointer style-day-card"
-                  :class="isHabitDone(activeModalHabit, dayItem.dateStr) ? 'bg-success text-white border-success' : 'bg-light text-dark border-light-subtle'"
-                  @click="activeModalHabit && toggleHabit(activeModalHabit.id, dayItem.dateStr)"
-                >
-                  <div class="style-mini fw-bold" style="font-size: 11px;">{{ dayItem.shortDate }}</div>
-                  <div class="mt-1">
-                    <i :class="isHabitDone(activeModalHabit, dayItem.dateStr) ? 'bi bi-check-circle-fill fs-5' : 'bi bi-circle fs-5 opacity-25'"></i>
-                  </div>
-                </div>
+          <button type="button" class="btn btn-sm btn-light rounded-circle border shadow-sm p-2" @click="closeHistoryModal">
+            <i class="bi bi-x-lg"></i>
+          </button>
+        </div>
+
+        <p class="text-muted small mb-3">Histori check-in 30 hari terakhir. Klik kotak tanggal untuk menambah atau mengubah status check-in.</p>
+        
+        <div class="row g-2 mb-3" style="max-height: 380px; overflow-y: auto;">
+          <div
+            v-for="dayItem in past30Days"
+            :key="dayItem.dateStr"
+            class="col-4 col-sm-3 col-md-2"
+          >
+            <div
+              class="p-2 border rounded-3 text-center cursor-pointer style-day-card"
+              :class="isHabitDone(activeModalHabit, dayItem.dateStr) ? 'bg-success text-white border-success' : 'bg-light text-dark border-light-subtle'"
+              @click="activeModalHabit && toggleHabit(activeModalHabit.id, dayItem.dateStr)"
+            >
+              <div class="style-mini fw-bold" style="font-size: 11px;">{{ dayItem.shortDate }}</div>
+              <div class="mt-1">
+                <i :class="isHabitDone(activeModalHabit, dayItem.dateStr) ? 'bi bi-check-circle-fill fs-5' : 'bi bi-circle fs-5 opacity-25'"></i>
               </div>
             </div>
           </div>
-          <div class="p-3 border-top bg-light text-end">
-            <button type="button" class="btn btn-secondary rounded-3 px-4 fw-semibold" @click="closeHistoryModal">Tutup</button>
-          </div>
+        </div>
+
+        <div class="text-end pt-2 border-top">
+          <button type="button" class="btn btn-secondary rounded-pill px-4 fw-semibold" @click="closeHistoryModal">Tutup Panel Histori</button>
         </div>
       </div>
     </transition>
