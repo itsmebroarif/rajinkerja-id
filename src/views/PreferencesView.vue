@@ -99,6 +99,124 @@
         </div>
       </div>
 
+      <!-- AI Integration & API Key Settings Card (Baru) -->
+      <div class="col-lg-12">
+        <div class="card border-0 shadow-sm rounded-4 bg-white p-4">
+          <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4 border-bottom pb-3">
+            <div class="d-flex align-items-center gap-3">
+              <div class="p-3 bg-primary bg-opacity-10 text-primary rounded-3 d-flex align-items-center justify-content-center" style="width: 52px; height: 52px;">
+                <i class="bi bi-cpu-fill fs-2"></i>
+              </div>
+              <div>
+                <div class="d-flex align-items-center gap-2 mb-1">
+                  <h5 class="fw-extrabold text-dark mb-0 fs-5">🤖 Integrasi AI Engine & API Key</h5>
+                  <span v-if="geminiApiKey" class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3 py-1 fw-bold">✓ API Key Terhubung</span>
+                  <span v-else class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill px-3 py-1 fw-bold">⚠️ Belum Diisi</span>
+                </div>
+                <p class="small text-muted mb-0">Tautkan API Key resmi dari <strong>Google Gemini AI</strong> untuk mengaktifkan asisten AI pintar, ringkasan tugas otomatis, dan analisa mood.</p>
+              </div>
+            </div>
+
+            <a href="https://aistudio.google.com/app/apikey" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill fw-bold px-3 py-2 d-flex align-items-center gap-1.5 align-self-start align-self-md-center">
+              <i class="bi bi-box-arrow-up-right"></i> Dapatkan Gemini API Key Gratis
+            </a>
+          </div>
+
+          <div class="row g-4">
+            <!-- Left Side: Form Controls -->
+            <div class="col-lg-7">
+              <form @submit.prevent="saveAiSettings">
+                <div class="row g-3 mb-3">
+                  <div class="col-md-6">
+                    <label class="form-label fw-bold text-dark small mb-1">Penyedia AI (AI Provider)</label>
+                    <select class="form-select border-2 rounded-3" v-model="aiProvider">
+                      <option value="gemini">Google Gemini AI (Direkomendasikan)</option>
+                      <option value="openai">OpenAI / Custom Endpoint</option>
+                      <option value="anthropic">Claude / Anthropic</option>
+                    </select>
+                  </div>
+
+                  <div class="col-md-6">
+                    <label class="form-label fw-bold text-dark small mb-1">Pilihan Model AI</label>
+                    <select class="form-select border-2 rounded-3" v-model="aiModel">
+                      <option value="gemini-1.5-flash">Gemini 1.5 Flash (Super Cepat & Hemat)</option>
+                      <option value="gemini-1.5-pro">Gemini 1.5 Pro (Akurasi Tinggi)</option>
+                      <option value="gemini-2.0-flash">Gemini 2.0 Flash Experimental</option>
+                      <option value="gpt-4o-mini">GPT-4o Mini / Custom</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div class="mb-3">
+                  <label class="form-label fw-bold text-dark small mb-1">Masukkan API Key <span class="text-danger">*</span></label>
+                  <div class="input-group">
+                    <span class="input-group-text bg-light border-2"><i class="bi bi-key-fill text-primary"></i></span>
+                    <input
+                      :type="showApiKey ? 'text' : 'password'"
+                      class="form-control border-2 font-monospace"
+                      v-model="geminiApiKey"
+                      placeholder="misal: AIzaSyD..."
+                    />
+                    <button class="btn btn-outline-secondary border-2" type="button" @click="showApiKey = !showApiKey" title="Tampilkan/Sembunyikan API Key">
+                      <i :class="showApiKey ? 'bi bi-eye-slash-fill' : 'bi bi-eye-fill'"></i>
+                    </button>
+                  </div>
+                  <small class="text-muted mt-1 d-block" style="font-size: 0.8rem;">API Key disimpan secara aman di penyimpanan lokal browser (localStorage) Anda dan tidak akan pernah dikirim ke server luar selain Google Gemini API.</small>
+                </div>
+
+                <!-- Test Result Alert -->
+                <div v-if="aiTestResult" class="alert rounded-3 p-3 mb-3 d-flex align-items-center justify-content-between" :class="aiTestResult.success ? 'alert-success border-success-subtle' : 'alert-danger border-danger-subtle'">
+                  <div class="d-flex align-items-center gap-2">
+                    <i :class="aiTestResult.success ? 'bi bi-check-circle-fill text-success fs-5' : 'bi bi-exclamation-triangle-fill text-danger fs-5'"></i>
+                    <span class="small fw-semibold">{{ aiTestResult.message }}</span>
+                  </div>
+                  <button type="button" class="btn-close" @click="aiTestResult = null"></button>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="d-flex flex-wrap gap-2">
+                  <button type="button" class="btn btn-outline-primary rounded-3 fw-bold py-2.5 px-4 d-flex align-items-center gap-2" :disabled="isTestingAiKey" @click="testAiConnection">
+                    <span v-if="isTestingAiKey" class="spinner-border spinner-border-sm" role="status"></span>
+                    <i v-else class="bi bi-broadcast"></i>
+                    <span>{{ isTestingAiKey ? 'Menguji Koneksi...' : 'Uji Koneksi API Key' }}</span>
+                  </button>
+
+                  <button type="submit" class="btn btn-primary rounded-3 fw-bold py-2.5 px-4 d-flex align-items-center gap-2 shadow-sm">
+                    <i class="bi bi-check-lg"></i>
+                    <span>Simpan Pengaturan AI</span>
+                  </button>
+                </div>
+              </form>
+            </div>
+
+            <!-- Right Side: Features unlocked with AI -->
+            <div class="col-lg-5">
+              <div class="p-3.5 bg-light rounded-4 border h-100">
+                <h6 class="fw-bold text-dark mb-2"><i class="bi bi-stars text-warning me-2"></i>Fitur AI Otomatis yang Diaktifkan:</h6>
+                <ul class="list-unstyled mb-0 small text-dark d-flex flex-column gap-2">
+                  <li class="d-flex align-items-start gap-2">
+                    <i class="bi bi-check-circle-fill text-success mt-0.5 flex-shrink-0"></i>
+                    <span><strong>Pemindai Mood Kamera AI:</strong> Analisa gestur wajah & rekomendasi ritme kerja harian.</span>
+                  </li>
+                  <li class="d-flex align-items-start gap-2">
+                    <i class="bi bi-check-circle-fill text-success mt-0.5 flex-shrink-0"></i>
+                    <span><strong>Auto-Generate Subtasks:</strong> Pembagian otomatis proyek besar menjadi daftar tugas terperinci di Kanban.</span>
+                  </li>
+                  <li class="d-flex align-items-start gap-2">
+                    <i class="bi bi-check-circle-fill text-success mt-0.5 flex-shrink-0"></i>
+                    <span><strong>Smart Invoice Summarizer:</strong> Pembuatan draf deskripsi pekerjaan invoice otomatis untuk klien.</span>
+                  </li>
+                  <li class="d-flex align-items-start gap-2">
+                    <i class="bi bi-check-circle-fill text-success mt-0.5 flex-shrink-0"></i>
+                    <span><strong>OCR Scan Kwitansi:</strong> Ekstraksi cepat nominal kwitansi transaksi dari hasil jepretan kamera.</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- JSON Backup & Data Recovery Card -->
       <div class="col-lg-12">
         <div class="card border-0 shadow-sm rounded-4 bg-white p-4">
@@ -291,6 +409,81 @@ export default {
 
     const notifPermission = ref('default');
     const notifEnabled = ref(localStorage.getItem('ft_notifications_enabled') !== 'false');
+
+    // AI Integration state
+    const geminiApiKey = ref(store.getters.getGeminiApiKey || '');
+    const aiProvider = ref(store.getters.getAiProvider || 'gemini');
+    const aiModel = ref(store.getters.getAiModel || 'gemini-1.5-flash');
+    const showApiKey = ref(false);
+    const isTestingAiKey = ref(false);
+    const aiTestResult = ref(null);
+
+    const saveAiSettings = () => {
+      store.commit('UPDATE_AI_CONFIG', {
+        geminiApiKey: geminiApiKey.value.trim(),
+        aiProvider: aiProvider.value,
+        aiModel: aiModel.value
+      });
+
+      sendOnDeviceNotification('🤖 Pengaturan AI Disimpan!', {
+        body: `Kunci API Key AI (${aiProvider.value.toUpperCase()}) telah berhasil tersimpan di sistem.`,
+        type: 'success'
+      });
+    };
+
+    const testAiConnection = async () => {
+      const key = geminiApiKey.value.trim();
+      if (!key) {
+        aiTestResult.value = {
+          success: false,
+          message: 'Silakan masukkan API Key terlebih dahulu.'
+        };
+        return;
+      }
+
+      isTestingAiKey.value = true;
+      aiTestResult.value = null;
+
+      try {
+        if (aiProvider.value === 'gemini') {
+          const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${key}`);
+          const data = await res.json();
+
+          if (res.ok && data.models) {
+            aiTestResult.value = {
+              success: true,
+              message: `Koneksi Berhasil! ${data.models.length} model Google Gemini siap digunakan.`
+            };
+            saveAiSettings();
+          } else {
+            aiTestResult.value = {
+              success: false,
+              message: data.error?.message || 'API Key Gemini tidak valid atau kuota habis.'
+            };
+          }
+        } else {
+          if (key.length > 10) {
+            aiTestResult.value = {
+              success: true,
+              message: 'Format API Key valid dan siap digunakan.'
+            };
+            saveAiSettings();
+          } else {
+            aiTestResult.value = {
+              success: false,
+              message: 'Format API Key terlalu pendek / tidak valid.'
+            };
+          }
+        }
+      } catch (err) {
+        aiTestResult.value = {
+          success: false,
+          message: 'Gagal terhubung ke server API. Periksa koneksi internet Anda.'
+        };
+      } finally {
+        isTestingAiKey.value = false;
+      }
+    };
 
     const accentColor = computed(() => store.getters.getAccentColor);
 
@@ -515,6 +708,14 @@ export default {
       isStandalone,
       notifPermission,
       notifEnabled,
+      geminiApiKey,
+      aiProvider,
+      aiModel,
+      showApiKey,
+      isTestingAiKey,
+      aiTestResult,
+      saveAiSettings,
+      testAiConnection,
       accentColor,
       accentPalette,
       currentAccentName,

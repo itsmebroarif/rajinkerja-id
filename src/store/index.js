@@ -197,6 +197,9 @@ export default createStore({
       events: loadLocal('ft_events', DEFAULT_EVENTS),
       moodLogs: loadLocal('ft_moodLogs', []),
       workAlarms: loadLocal('ft_workAlarms', DEFAULT_WORK_ALARMS),
+      geminiApiKey: loadLocal('ft_geminiApiKey', ''),
+      aiProvider: loadLocal('ft_aiProvider', 'gemini'),
+      aiModel: loadLocal('ft_aiModel', 'gemini-1.5-flash'),
       themeMode: 'light', // Light mode default
       accentColor: loadLocal('ft_accentColor', '#2563eb'), // default Material blue
       budgetThreshold: loadLocal('ft_budgetThreshold', 5000000), // Default budget threshold: Rp 5.000.000
@@ -223,6 +226,9 @@ export default createStore({
     getEvents: (state) => state.events,
     getMoodLogs: (state) => state.moodLogs,
     getWorkAlarms: (state) => state.workAlarms,
+    getGeminiApiKey: (state) => state.geminiApiKey,
+    getAiProvider: (state) => state.aiProvider,
+    getAiModel: (state) => state.aiModel,
     getThemeMode: (state) => state.themeMode,
     getAccentColor: (state) => state.accentColor,
     getBudgetThreshold: (state) => state.budgetThreshold,
@@ -512,6 +518,22 @@ export default createStore({
     DELETE_WORK_ALARM(state, id) {
       state.workAlarms = state.workAlarms.filter(a => a.id !== id);
       saveLocal('ft_workAlarms', state.workAlarms);
+    },
+
+    // AI Configuration
+    UPDATE_AI_CONFIG(state, payload) {
+      if (payload.geminiApiKey !== undefined) {
+        state.geminiApiKey = payload.geminiApiKey;
+        saveLocal('ft_geminiApiKey', state.geminiApiKey);
+      }
+      if (payload.aiProvider !== undefined) {
+        state.aiProvider = payload.aiProvider;
+        saveLocal('ft_aiProvider', state.aiProvider);
+      }
+      if (payload.aiModel !== undefined) {
+        state.aiModel = payload.aiModel;
+        saveLocal('ft_aiModel', state.aiModel);
+      }
     },
 
     // My Business
