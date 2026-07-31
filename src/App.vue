@@ -142,37 +142,30 @@
       <!-- Top Bar Header -->
       <header class="top-header border-bottom px-3 px-md-4 py-2 d-flex align-items-center justify-content-between sticky-top">
         <div class="d-flex align-items-center gap-2 gap-md-3">
-          <button class="btn btn-light d-md-none rounded-3 p-1.5" @click="mobileDrawer = true">
+          <button class="btn btn-light d-md-none rounded-3 p-1.5" @click="mobileDrawer = true" title="Menu">
             <i class="bi bi-list fs-4"></i>
           </button>
-          <div class="d-flex align-items-center gap-2">
-            <span class="badge bg-primary-subtle text-primary fw-bold rounded-pill px-2.5 py-1.5 d-inline-flex align-items-center gap-1 shadow-sm" style="font-size: 11px; letter-spacing: 0.4px;">
-              <i class="bi bi-patch-check-fill text-primary me-1"></i>RajinKerja Work Suite v2.5
-            </span>
-            <span class="text-muted small fw-medium d-none d-lg-inline opacity-75" style="letter-spacing: 0.2px;">• Organizer Pekerjaan Karyawan & Profesional</span>
-          </div>
         </div>
 
         <div class="d-flex align-items-center gap-2">
           <!-- Quick Camera Shortcut Button -->
-          <router-link to="/camera" class="btn btn-sm btn-outline-secondary rounded-pill px-3 py-1.5 fw-semibold d-flex align-items-center gap-1">
-            <i class="bi bi-camera-fill me-1"></i> <span class="d-none d-sm-inline">Scan Kamera</span>
+          <router-link to="/camera" class="btn btn-sm btn-light border rounded-circle p-0 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;" title="Scan Kamera">
+            <i class="bi bi-camera-fill text-secondary fs-6"></i>
           </router-link>
 
           <!-- Quick Mood Tracker & Alarm Shortcut Button -->
-          <router-link to="/mood" class="btn btn-sm btn-outline-danger rounded-pill px-3 py-1.5 fw-semibold d-flex align-items-center gap-1">
-            <i class="bi bi-emoji-smile-fill me-1"></i> <span class="d-none d-sm-inline">Mood & Alarm</span>
+          <router-link to="/mood" class="btn btn-sm btn-light border rounded-circle p-0 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;" title="Mood & Alarm">
+            <i class="bi bi-emoji-smile-fill text-danger fs-6"></i>
           </router-link>
 
           <!-- Budget Alert Warning if exceeded -->
-          <div v-if="isBudgetExceeded" class="badge bg-danger-subtle text-danger border border-danger px-2.5 py-1.5 rounded-pill d-flex align-items-center gap-1">
-            <i class="bi bi-exclamation-triangle-fill"></i>
-            <span class="d-none d-sm-inline">Over Budget!</span>
+          <div v-if="isBudgetExceeded" class="badge bg-danger-subtle text-danger border border-danger rounded-circle p-0 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;" title="Over Budget!">
+            <i class="bi bi-exclamation-triangle-fill fs-6"></i>
           </div>
 
           <!-- Preferences Link -->
-          <router-link to="/preferences" class="btn btn-sm btn-outline-primary rounded-pill px-3 py-1.5 fw-semibold d-flex align-items-center gap-1">
-            <i class="bi bi-gear-fill me-1"></i> Preferences
+          <router-link to="/preferences" class="btn btn-sm btn-light border rounded-circle p-0 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;" title="Preferences">
+            <i class="bi bi-gear-fill text-primary fs-6"></i>
           </router-link>
         </div>
       </header>
