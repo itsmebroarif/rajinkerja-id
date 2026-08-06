@@ -86,8 +86,21 @@
           </div>
 
           <div class="mb-3">
-            <label class="form-label fw-bold text-dark small">Isi Surat / Narasi Utama</label>
-            <textarea class="form-control form-control-sm" rows="8" v-model="letter.bodyContent" placeholder="Tuliskan isi surat lengkap di sini..."></textarea>
+            <div class="d-flex justify-content-between align-items-center mb-1">
+              <label class="form-label fw-bold text-dark small mb-0">Isi Surat / Narasi Utama</label>
+              <div class="btn-group btn-group-sm">
+                <button type="button" class="btn btn-xs btn-outline-primary rounded-pill px-2 py-0.5" @click="insertNewParagraph" title="Tambah Paragraf Baru">
+                  <i class="bi bi-plus-circle me-1"></i> + Paragraf Baru
+                </button>
+                <button type="button" class="btn btn-xs btn-outline-secondary rounded-pill px-2 py-0.5 ms-1" @click="insertBulletList" title="Tambah Poin / Rincian">
+                  <i class="bi bi-list-task me-1"></i> + Poin / List
+                </button>
+              </div>
+            </div>
+            <textarea class="form-control form-control-sm border-2 rounded-3" rows="9" v-model="letter.bodyContent" placeholder="Tuliskan isi surat lengkap di sini... (Gunakan Enter 2x untuk membuat paragraf baru)"></textarea>
+            <div class="form-text small text-muted mt-1" style="font-size: 0.78rem;">
+              <i class="bi bi-info-circle text-primary me-1"></i><strong>Tips Paragraf:</strong> Tekan <code>Enter</code> 2x (baris kosong) untuk membuat paragraf baru dengan alinea menjorok.
+            </div>
           </div>
 
           <div class="row g-3">
@@ -141,8 +154,25 @@
             <!-- Salutation & Body -->
             <div class="mb-4">
               <p class="mb-3">Dengan hormat,</p>
-              <div class="white-space-pre-line lh-base" style="text-align: justify; text-indent: 2rem;">
-                {{ letter.bodyContent }}
+
+              <div v-if="bodyParagraphs.length > 0" class="d-flex flex-column gap-2">
+                <div
+                  v-for="(para, idx) in bodyParagraphs"
+                  :key="idx"
+                  class="lh-base text-dark"
+                  :style="{
+                    textAlign: 'justify',
+                    textIndent: isListParagraph(para) ? '0' : '2rem',
+                    whiteSpace: 'pre-line',
+                    marginBottom: '0.75rem'
+                  }"
+                >
+                  {{ para }}
+                </div>
+              </div>
+
+              <div v-else class="lh-base text-muted fst-italic">
+                (Isi surat masih kosong...)
               </div>
             </div>
 
@@ -244,6 +274,44 @@ export default {
       return d.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
     });
 
+    const bodyParagraphs = computed(() => {
+      if (!letter.value.bodyContent) return [];
+      return letter.value.bodyContent
+        .split(/\n\s*\n/)
+        .map(p => p.trim())
+        .filter(p => p.length > 0);
+    });
+
+    const isListParagraph = (p) => {
+      if (!p) return false;
+      const trimmed = p.trim();
+      return (
+        trimmed.startsWith('-') ||
+        trimmed.startsWith('•') ||
+        trimmed.startsWith('*') ||
+        /^\d+[\.\)]/.test(trimmed) ||
+        trimmed.includes('Hari / Tanggal') ||
+        trimmed.startsWith('Waktu') ||
+        trimmed.startsWith('Tempat')
+      );
+    };
+
+    const insertNewParagraph = () => {
+      if (!letter.value.bodyContent) {
+        letter.value.bodyContent = 'Paragraf baru...';
+      } else {
+        letter.value.bodyContent += '\n\nParagraf baru...';
+      }
+    };
+
+    const insertBulletList = () => {
+      if (!letter.value.bodyContent) {
+        letter.value.bodyContent = '- Poin 1\n- Poin 2';
+      } else {
+        letter.value.bodyContent += '\n\n- Poin 1\n- Poin 2';
+      }
+    };
+
     const selectTemplate = (tmpl) => {
       selectedTemplateId.value = tmpl.id;
       letter.value.subject = tmpl.subject;
@@ -268,6 +336,10 @@ export default {
       letterTemplates,
       letter,
       formattedDate,
+      bodyParagraphs,
+      isListParagraph,
+      insertNewParagraph,
+      insertBulletList,
       selectTemplate,
       saveLetter,
       printLetter
