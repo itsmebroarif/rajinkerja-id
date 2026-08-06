@@ -191,6 +191,19 @@
 
     <!-- 3D WORKSPACE SETUP SIMULATOR AT BOTTOM OF DASHBOARD -->
     <Workspace3DSimulator />
+
+    <!-- Floating Action Button (FAB) for Quick Capture -->
+    <router-link
+      to="/quick-capture"
+      class="fab-quick-capture btn btn-warning text-dark fw-extrabold rounded-pill shadow-lg d-flex align-items-center gap-2 px-3.5 py-2.5 position-fixed border border-2 border-white"
+      style="bottom: 85px; right: 24px; z-index: 1040;"
+      title="Quick Capture: Fast Note or Alarm"
+    >
+      <div class="bg-dark text-warning rounded-circle d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
+        <i class="bi bi-lightning-charge-fill fs-6"></i>
+      </div>
+      <span class="fs-6 pe-1">Quick Capture</span>
+    </router-link>
   </div>
 </template>
 

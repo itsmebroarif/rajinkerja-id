@@ -89,6 +89,17 @@
         <div v-if="!isCollapsed" class="sidebar-section-header">📅 AGENDA & PRODUKTIVITAS</div>
         <div v-else class="sidebar-divider my-1"></div>
 
+        <router-link to="/productivity-insights" class="material-nav-link" title="Productivity Insights & D3.js Charts">
+          <i class="bi bi-bar-chart-line-fill me-3 fs-5 nav-icon text-primary"></i>
+          <span v-if="!isCollapsed" class="nav-label">Productivity Insights</span>
+          <span v-if="!isCollapsed" class="badge rounded-pill bg-primary text-white ms-auto small fw-bold">D3.js</span>
+        </router-link>
+
+        <router-link to="/quick-capture" class="material-nav-link" title="Quick Capture Notes & Alarms">
+          <i class="bi bi-lightning-charge-fill me-3 fs-5 nav-icon text-warning"></i>
+          <span v-if="!isCollapsed" class="nav-label">Quick Capture</span>
+        </router-link>
+
         <router-link to="/calendar" class="material-nav-link" title="Kalender Agenda & Timed Events">
           <i class="bi bi-calendar3 me-3 fs-5 nav-icon text-warning"></i>
           <span v-if="!isCollapsed" class="nav-label">Kalender & Agenda</span>
@@ -162,6 +173,18 @@
           <div v-if="isBudgetExceeded" class="badge bg-danger-subtle text-danger border border-danger rounded-circle p-0 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;" title="Over Budget!">
             <i class="bi bi-exclamation-triangle-fill fs-6"></i>
           </div>
+
+          <!-- Theme Switcher Button (Light / Dark / OLED True Black) -->
+          <button 
+            @click="toggleThemeMode" 
+            class="btn btn-sm btn-light border rounded-circle p-0 d-flex align-items-center justify-content-center" 
+            style="width: 36px; height: 36px;" 
+            :title="themeMode === 'light' ? 'Mode Terang (Klik untuk Dark Slate)' : (themeMode === 'dark' ? 'Mode Gelap Slate (Klik untuk OLED True Black)' : 'True Black OLED (Klik untuk Mode Terang)')"
+          >
+            <i v-if="themeMode === 'light'" class="bi bi-sun-fill text-warning fs-6"></i>
+            <i v-else-if="themeMode === 'dark'" class="bi bi-moon-stars-fill text-info fs-6"></i>
+            <i v-else class="bi bi-circle-fill text-white bg-dark rounded-circle border border-secondary p-0.5" style="font-size: 10px;"></i>
+          </button>
 
           <!-- Preferences Link -->
           <router-link to="/preferences" class="btn btn-sm btn-light border rounded-circle p-0 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;" title="Preferences">
@@ -275,14 +298,18 @@ export default {
     const accentColor = computed(() => store.getters.getAccentColor);
 
     const applyThemeToBody = (mode) => {
-      if (mode === 'dark') {
-        document.body.classList.add('dark-theme');
-        document.body.classList.remove('light-theme');
+      document.body.classList.remove('light-theme', 'dark-theme', 'oled-theme', 'dark-mode');
+
+      if (mode === 'oled') {
+        document.body.classList.add('oled-theme', 'dark-mode');
+        document.body.style.backgroundColor = '#000000';
+        document.body.style.color = '#ffffff';
+      } else if (mode === 'dark') {
+        document.body.classList.add('dark-theme', 'dark-mode');
         document.body.style.backgroundColor = '#090d16';
         document.body.style.color = '#f1f5f9';
       } else {
         document.body.classList.add('light-theme');
-        document.body.classList.remove('dark-theme');
         document.body.style.backgroundColor = '#f8fafc';
         document.body.style.color = '#0f172a';
       }
@@ -295,6 +322,29 @@ export default {
     onMounted(() => {
       applyThemeToBody(themeMode.value);
 
+      // Automated Nightly Local Storage Backup Check
+      const isNightlyEnabled = localStorage.getItem('ft_auto_nightly_backup') !== 'false';
+      if (isNightlyEnabled) {
+        const lastBackup = localStorage.getItem('ft_last_nightly_backup_date');
+        const today = new Date().toISOString().split('T')[0];
+        if (lastBackup !== today) {
+          const fullState = {
+            todos: store.state.todos,
+            projects: store.state.projects,
+            finances: store.state.finances,
+            notes: store.state.notes,
+            contacts: store.state.contacts,
+            events: store.state.events,
+            moodLogs: store.state.moodLogs,
+            myBusiness: store.state.myBusiness,
+            exportDate: new Date().toISOString()
+          };
+          localStorage.setItem('ft_nightly_backup_snapshot', JSON.stringify(fullState));
+          localStorage.setItem('ft_last_nightly_backup_date', today);
+          localStorage.setItem('ft_last_nightly_backup_time', new Date().toLocaleTimeString('id-ID'));
+        }
+      }
+
       // Listen for PWA Install Prompt Event
       window.addEventListener('beforeinstallprompt', (e) => {
         e.preventDefault();
@@ -304,7 +354,10 @@ export default {
     });
 
     const toggleThemeMode = () => {
-      const next = themeMode.value === 'dark' ? 'light' : 'dark';
+      let next = 'light';
+      if (themeMode.value === 'light') next = 'dark';
+      else if (themeMode.value === 'dark') next = 'oled';
+      else next = 'light';
       store.dispatch('setThemeMode', next);
     };
 
@@ -359,6 +412,9 @@ html, body, #app, .app-container {
 .light-theme {
   --bg-app: #f8fafc;
   --bg-surface: #ffffff;
+  --bg-card: #ffffff;
+  --bg-input: #ffffff;
+  --bg-hover: #f1f5f9;
   --text-main: #0f172a;
   --text-sub: #64748b;
   --border-color: #e2e8f0;
@@ -373,10 +429,13 @@ html, body, #app, .app-container {
   --sidebar-border: #e2e8f0;
 }
 
-/* Dark Theme Variables */
+/* Dark Theme Variables (Slate Charcoal) */
 .dark-theme {
   --bg-app: #090d16;
   --bg-surface: #131b2e;
+  --bg-card: #131b2e;
+  --bg-input: #1a233a;
+  --bg-hover: rgba(255, 255, 255, 0.08);
   --text-main: #f1f5f9;
   --text-sub: #94a3b8;
   --border-color: #1e293b;
@@ -391,120 +450,250 @@ html, body, #app, .app-container {
   --sidebar-border: #1e293b;
 }
 
+/* OLED True Black Theme Variables (Pure #000000 High Contrast) */
+.oled-theme {
+  --bg-app: #000000;
+  --bg-surface: #0a0a0a;
+  --bg-card: #0d0d0d;
+  --bg-input: #171717;
+  --bg-hover: #222222;
+  --text-main: #ffffff;
+  --text-sub: #d4d4d8;
+  --border-color: #27272a;
+
+  --sidebar-bg: #000000;
+  --sidebar-text: #a1a1aa;
+  --sidebar-hover-bg: #18181b;
+  --sidebar-active-bg: var(--primary-color);
+  --sidebar-active-text: #ffffff;
+  --sidebar-divider: #27272a;
+  --sidebar-header-color: #71717a;
+  --sidebar-border: #27272a;
+}
+
 body {
   font-family: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   background-color: var(--bg-app);
   color: var(--text-main);
   margin: 0;
   padding: 0;
-  transition: background-color 0.3s ease, color 0.3s ease;
+  transition: background-color 0.25s ease, color 0.25s ease;
 }
 
-.dark-theme .bg-white,
-.dark-theme .card,
-.dark-theme .top-header,
-.dark-theme .modal-content,
-.dark-theme .mobile-bottom-bar,
-.dark-theme .accordion-item,
-.dark-theme .offcanvas {
+/* =========================================================
+   Unified Dark Reader Style Inversion Engine (.dark-mode)
+   ========================================================= */
+.dark-mode .bg-white,
+.dark-mode .card:not(.pwa-pure-black-card),
+.dark-mode .top-header,
+.dark-mode .modal-content,
+.dark-mode .mobile-bottom-bar,
+.dark-mode .accordion-item,
+.dark-mode .offcanvas,
+.dark-mode .offcanvas-body,
+.dark-mode .dropdown-menu,
+.dark-mode .list-group-item {
   background-color: var(--bg-surface) !important;
   color: var(--text-main) !important;
   border-color: var(--border-color) !important;
 }
 
-.dark-theme .text-dark,
-.dark-theme .text-black,
-.dark-theme h1, .dark-theme h2, .dark-theme h3, .dark-theme h4, .dark-theme h5, .dark-theme h6 {
-  color: #f1f5f9 !important;
+.dark-mode .text-dark,
+.dark-mode .text-black,
+.dark-mode h1, .dark-mode h2, .dark-mode h3, .dark-mode h4, .dark-mode h5, .dark-mode h6,
+.dark-mode .card-title,
+.dark-mode .form-label,
+.dark-mode .navbar-brand,
+.dark-mode strong {
+  color: var(--text-main) !important;
 }
 
-.dark-theme .text-muted,
-.dark-theme .text-secondary {
-  color: #94a3b8 !important;
+.dark-mode .text-muted,
+.dark-mode .text-secondary,
+.dark-mode small.text-muted,
+.dark-mode .small.text-muted {
+  color: var(--text-sub) !important;
 }
 
-.dark-theme .bg-light,
-.dark-theme .table-light,
-.dark-theme .input-group-text,
-.dark-theme .dropdown-menu {
-  background-color: #1a233a !important;
-  color: #e2e8f0 !important;
-  border-color: #1e293b !important;
+.dark-mode .bg-light,
+.dark-mode .bg-body-tertiary,
+.dark-mode .table-light,
+.dark-mode .input-group-text,
+.dark-mode .preview-box {
+  background-color: var(--bg-input) !important;
+  color: var(--text-main) !important;
+  border-color: var(--border-color) !important;
 }
 
-.dark-theme .btn-light {
-  background-color: #1e293b !important;
-  color: #f1f5f9 !important;
-  border-color: #334155 !important;
+.dark-mode .btn-light {
+  background-color: var(--bg-input) !important;
+  color: var(--text-main) !important;
+  border-color: var(--border-color) !important;
 }
 
-.dark-theme .btn-light:hover {
-  background-color: #334155 !important;
+.dark-mode .btn-light:hover {
+  background-color: var(--bg-hover) !important;
   color: #ffffff !important;
 }
 
-.dark-theme .btn-outline-secondary {
-  border-color: #334155 !important;
-  color: #cbd5e1 !important;
+.dark-mode .btn-outline-secondary {
+  border-color: var(--border-color) !important;
+  color: var(--text-sub) !important;
 }
 
-.dark-theme .btn-outline-secondary:hover {
-  background-color: #1e293b !important;
+.dark-mode .btn-outline-secondary:hover {
+  background-color: var(--bg-hover) !important;
   color: #ffffff !important;
 }
 
-.dark-theme .table {
-  color: #e2e8f0 !important;
-  border-color: #1e293b !important;
+.dark-mode .table,
+.dark-mode .table th,
+.dark-mode .table td {
+  color: var(--text-main) !important;
+  border-color: var(--border-color) !important;
 }
 
-.dark-theme .table-hover tbody tr:hover {
-  background-color: rgba(255, 255, 255, 0.04) !important;
+.dark-mode .table-hover tbody tr:hover {
+  background-color: rgba(255, 255, 255, 0.05) !important;
   color: #ffffff !important;
 }
 
-.dark-theme .form-control,
-.dark-theme .form-select,
-.dark-theme textarea {
-  background-color: #1a233a !important;
+.dark-mode .form-control,
+.dark-mode .form-select,
+.dark-mode textarea {
+  background-color: var(--bg-input) !important;
   color: #ffffff !important;
-  border-color: #334155 !important;
+  border-color: var(--border-color) !important;
 }
 
-.dark-theme .form-control::placeholder,
-.dark-theme textarea::placeholder {
+.dark-mode .form-control::placeholder,
+.dark-mode textarea::placeholder {
   color: #64748b !important;
 }
 
-.dark-theme .form-control:focus,
-.dark-theme .form-select:focus {
-  background-color: #1e293b !important;
+.dark-mode .form-control:focus,
+.dark-mode .form-select:focus {
+  background-color: var(--bg-input) !important;
   color: #ffffff !important;
   border-color: var(--primary-color) !important;
   box-shadow: 0 0 0 0.25rem rgba(37, 99, 235, 0.25) !important;
 }
 
-.dark-theme .modal-header,
-.dark-theme .modal-footer {
-  border-color: #1e293b !important;
+.dark-mode .modal-header,
+.dark-mode .modal-footer {
+  border-color: var(--border-color) !important;
 }
 
-.dark-theme .btn-close {
+.dark-mode .btn-close {
   filter: invert(1) grayscale(100%) brightness(200%);
 }
 
-.dark-theme .border,
-.dark-theme .border-top,
-.dark-theme .border-bottom,
-.dark-theme .border-start,
-.dark-theme .border-end {
-  border-color: #1e293b !important;
+.dark-mode .border,
+.dark-mode .border-top,
+.dark-mode .border-bottom,
+.dark-mode .border-start,
+.dark-mode .border-end,
+.dark-mode .border-2 {
+  border-color: var(--border-color) !important;
 }
 
-.dark-theme .badge.bg-light {
-  background-color: #1e293b !important;
-  color: #e2e8f0 !important;
-  border-color: #334155 !important;
+.dark-mode .badge.bg-light {
+  background-color: var(--bg-input) !important;
+  color: var(--text-main) !important;
+  border-color: var(--border-color) !important;
+}
+
+/* High-Contrast Badge Badges for Dark Readers */
+.dark-mode .bg-primary-subtle {
+  background-color: rgba(37, 99, 235, 0.2) !important;
+  color: #60a5fa !important;
+}
+
+.dark-mode .bg-success-subtle {
+  background-color: rgba(16, 185, 129, 0.2) !important;
+  color: #34d399 !important;
+}
+
+.dark-mode .bg-warning-subtle {
+  background-color: rgba(245, 158, 11, 0.2) !important;
+  color: #fbbf24 !important;
+}
+
+.dark-mode .bg-danger-subtle {
+  background-color: rgba(225, 29, 72, 0.2) !important;
+  color: #f87171 !important;
+}
+
+.dark-mode .bg-info-subtle {
+  background-color: rgba(13, 148, 136, 0.2) !important;
+  color: #2dd4bf !important;
+}
+
+/* =========================================================
+   True Black OLED Specific Overrides (Pure #000000 Power Saving)
+   ========================================================= */
+.oled-theme,
+.oled-theme body,
+.oled-theme .app-container,
+.oled-theme .main-content,
+.oled-theme .sidebar-nav,
+.oled-theme .mobile-drawer,
+.oled-theme .top-header,
+.oled-theme .mobile-bottom-bar {
+  background-color: #000000 !important;
+  color: #ffffff !important;
+}
+
+.oled-theme .bg-white,
+.oled-theme .card:not(.pwa-pure-black-card),
+.oled-theme .modal-content,
+.oled-theme .dropdown-menu,
+.oled-theme .accordion-item,
+.oled-theme .offcanvas {
+  background-color: #0d0d0d !important;
+  border-color: #262626 !important;
+  color: #ffffff !important;
+}
+
+.oled-theme .bg-light,
+.oled-theme .bg-body-tertiary,
+.oled-theme .input-group-text,
+.oled-theme .preview-box {
+  background-color: #171717 !important;
+  color: #ffffff !important;
+  border-color: #333333 !important;
+}
+
+.oled-theme .form-control,
+.oled-theme .form-select,
+.oled-theme textarea {
+  background-color: #121212 !important;
+  color: #ffffff !important;
+  border-color: #383838 !important;
+}
+
+.oled-theme .form-control::placeholder,
+.oled-theme textarea::placeholder {
+  color: #a1a1aa !important;
+}
+
+.oled-theme .border,
+.oled-theme .border-top,
+.oled-theme .border-bottom,
+.oled-theme .border-start,
+.oled-theme .border-end,
+.oled-theme .border-2 {
+  border-color: #262626 !important;
+}
+
+.oled-theme .btn-light {
+  background-color: #1a1a1a !important;
+  color: #ffffff !important;
+  border-color: #333333 !important;
+}
+
+.oled-theme .btn-light:hover {
+  background-color: #292929 !important;
 }
 
 /* Modals backdrop styling */

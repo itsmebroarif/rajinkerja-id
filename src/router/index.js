@@ -119,6 +119,20 @@ const routes = [
     path: "/about",
     name: "about",
     component: () => import("../views/FaqAboutView.vue"),
+  },
+  {
+    path: "/quick-capture",
+    name: "quick-capture",
+    component: () => import("../views/QuickCaptureView.vue"),
+  },
+  {
+    path: "/productivity-insights",
+    name: "productivity-insights",
+    component: () => import("../views/ProductivityInsightsView.vue"),
+  },
+  {
+    path: "/insights",
+    redirect: "/productivity-insights",
   }
 ];
 

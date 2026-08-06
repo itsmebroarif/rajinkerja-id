@@ -261,8 +261,8 @@ export default createStore({
   mutations: {
     // Theme & Preferences
     SET_THEME_MODE(state, mode) {
-      state.themeMode = 'light';
-      saveLocal('ft_themeMode', 'light');
+      state.themeMode = mode;
+      saveLocal('ft_themeMode', state.themeMode);
     },
     SET_ACCENT_COLOR(state, color) {
       state.accentColor = color;
@@ -763,6 +763,10 @@ export default createStore({
     },
     deleteEvent({ commit }, id) {
       commit('DELETE_EVENT', id);
+    },
+
+    setThemeMode({ commit }, mode) {
+      commit('SET_THEME_MODE', mode);
     },
 
     setBudgetThreshold({ commit }, amount) {

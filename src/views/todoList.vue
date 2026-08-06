@@ -122,13 +122,25 @@
           <div class="row g-3">
             <div class="col-md-7">
               <label class="form-label fw-bold">Nama Tugas / Activity <span class="text-danger">*</span></label>
-              <input
-                type="text"
-                class="form-control"
-                :class="{ 'is-invalid': formErrors.name }"
-                placeholder="Contoh: Selesaikan Wireframe UI Landing Page"
-                v-model="form.name"
-              />
+              <div class="input-group">
+                <input
+                  type="text"
+                  class="form-control"
+                  :class="{ 'is-invalid': formErrors.name }"
+                  placeholder="Contoh: Selesaikan Wireframe UI Landing Page"
+                  v-model="form.name"
+                />
+                <button
+                  type="button"
+                  class="btn btn-outline-danger border-2"
+                  :class="{ 'active bg-danger text-white': isListening }"
+                  @click="toggleSpeechRecognition('name')"
+                  title="Dikte Suara (Voice Speech Input)"
+                >
+                  <i :class="isListening ? 'bi bi-mic-fill' : 'bi bi-mic'"></i>
+                  <span v-if="isListening" class="small ms-1 fw-bold">Merekam...</span>
+                </button>
+              </div>
               <div class="invalid-feedback" v-if="formErrors.name">{{ formErrors.name }}</div>
             </div>
 
@@ -157,12 +169,24 @@
             </div>
 
             <div class="col-md-4">
-              <label class="form-label fw-bold">Tingkat Prioritas</label>
+              <div class="d-flex justify-content-between align-items-center mb-1">
+                <label class="form-label fw-bold mb-0">Tingkat Prioritas</label>
+                <button
+                  type="button"
+                  class="btn btn-link btn-sm p-0 text-primary fw-bold text-decoration-none"
+                  @click="runSmartPriorityAi"
+                >
+                  <i class="bi bi-cpu-fill text-primary me-1"></i>✨ Smart Priority AI
+                </button>
+              </div>
               <select class="form-select" v-model="form.level">
                 <option value="Menengah">Menengah (Sedang)</option>
                 <option value="Penting">🔥 Penting / Urgent</option>
                 <option value="Biasa">Biasa (Rendah)</option>
               </select>
+              <div v-if="smartPriorityReason" class="small text-primary mt-1 fw-semibold">
+                {{ smartPriorityReason }}
+              </div>
             </div>
 
             <div class="col-md-4">
@@ -230,7 +254,18 @@
             </div>
 
             <div class="col-12">
-              <label class="form-label fw-bold">Catatan / Detail Pekerjaan</label>
+              <div class="d-flex justify-content-between align-items-center mb-1">
+                <label class="form-label fw-bold mb-0">Catatan / Detail Pekerjaan</label>
+                <button
+                  type="button"
+                  class="btn btn-sm btn-outline-danger rounded-pill px-3 py-0.5"
+                  :class="{ 'active bg-danger text-white': isListening }"
+                  @click="toggleSpeechRecognition('notes')"
+                >
+                  <i :class="isListening ? 'bi bi-mic-fill' : 'bi bi-mic'"></i>
+                  <span>{{ isListening ? 'Merekam Suara...' : 'Dikte Suara (Notes)' }}</span>
+                </button>
+              </div>
               <textarea class="form-control" rows="2" placeholder="Detail petunjuk, tautan, atau syarat pekerjaan..." v-model="form.notes"></textarea>
             </div>
 
@@ -875,6 +910,87 @@ export default {
     const editingId = ref(null);
     const selectedIds = ref([]);
 
+    // Web Speech API Voice Recognition
+    const isListening = ref(false);
+    let recognition = null;
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+    const toggleSpeechRecognition = (field = 'notes') => {
+      if (!SpeechRecognition) {
+        if (typeof showToast === 'function') {
+          showToast('Browser Anda tidak mendukung Web Speech API atau butuh izin mikrofon.');
+        } else {
+          alert('Browser Anda tidak mendukung Web Speech API atau memerlukan izin mikrofon.');
+        }
+        return;
+      }
+
+      if (isListening.value) {
+        if (recognition) recognition.stop();
+        isListening.value = false;
+        return;
+      }
+
+      recognition = new SpeechRecognition();
+      recognition.lang = 'id-ID';
+      recognition.interimResults = true;
+
+      isListening.value = true;
+
+      recognition.onresult = (event) => {
+        let transcript = '';
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          transcript += event.results[i][0].transcript;
+        }
+        if (field === 'name') {
+          form.value.name = transcript;
+        } else {
+          form.value.notes = (form.value.notes ? form.value.notes + ' ' : '') + transcript;
+        }
+      };
+
+      recognition.onerror = () => {
+        isListening.value = false;
+      };
+
+      recognition.onend = () => {
+        isListening.value = false;
+      };
+
+      recognition.start();
+    };
+
+    // Smart Priority AI Suggestion Engine
+    const smartPriorityReason = ref('');
+
+    const runSmartPriorityAi = () => {
+      const nameStr = ((form.value.name || '') + ' ' + (form.value.notes || '')).toLowerCase();
+      if (!nameStr.trim()) {
+        smartPriorityReason.value = '⚠️ Masukkan nama atau detail tugas untuk analisa AI.';
+        return;
+      }
+
+      const urgentKeywords = ['urgent', 'penting', 'secepatnya', 'asap', 'klien', 'bug', 'error', 'bayar', 'invoice', 'atasan', 'presentasi', 'critical', 'mendesak', 'deadline'];
+      const lowKeywords = ['santai', 'nanti', 'opsional', 'baca', 'rutin', 'nonton', 'hobi', 'resep', 'iseng'];
+
+      const isUrgent = urgentKeywords.some(kw => nameStr.includes(kw));
+      const isLow = lowKeywords.some(kw => nameStr.includes(kw));
+
+      if (isUrgent) {
+        form.value.level = 'Penting';
+        form.value.eisenhower = 'do_first';
+        smartPriorityReason.value = '✨ AI: Terdeteksi kata kunci mendesak. Level disesuaikan ke Penting (Urgent).';
+      } else if (isLow) {
+        form.value.level = 'Biasa';
+        form.value.eisenhower = 'eliminate';
+        smartPriorityReason.value = '✨ AI: Aktivitas santai/opsional. Level disesuaikan ke Biasa (Low).';
+      } else {
+        form.value.level = 'Menengah';
+        form.value.eisenhower = 'schedule';
+        smartPriorityReason.value = '✨ AI: Tugas standar. Level disesuaikan ke Menengah (Medium).';
+      }
+    };
+
     const toast = ref({ show: false, message: '' });
 
     // Confirmation Modal State for Task Deletion
@@ -1464,6 +1580,10 @@ export default {
       selectedIds,
       isAllSelected,
       toggleSelectAll,
+      isListening,
+      toggleSpeechRecognition,
+      smartPriorityReason,
+      runSmartPriorityAi,
       toast,
       deleteModal,
       closeDeleteModal,

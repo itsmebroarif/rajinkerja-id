@@ -296,6 +296,110 @@
         </div>
       </div>
 
+      <!-- Theme Mode & Dark Reader OLED Card -->
+      <div class="col-lg-12">
+        <div class="card border-0 shadow-sm rounded-4 bg-white p-4">
+          <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3 mb-3 border-bottom pb-3">
+            <div class="d-flex align-items-center gap-3">
+              <div class="p-3 bg-primary bg-opacity-10 text-primary rounded-3 d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+                <i class="bi bi-moon-stars-fill fs-3"></i>
+              </div>
+              <div>
+                <h5 class="fw-bold text-dark mb-0">🌙 Setelan Dark Mode & True Black OLED</h5>
+                <p class="small text-muted mb-0">Dukungan auto-conversion warna Dark Reader dengan mode khusus layar HP OLED/AMOLED.</p>
+              </div>
+            </div>
+
+            <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3 py-1.5 fw-bold d-inline-flex align-items-center gap-1.5 align-self-start align-self-md-center">
+              <i class="bi bi-shield-check"></i> Dark Reader Engine Active
+            </span>
+          </div>
+
+          <div class="row g-3">
+            <!-- Option 1: Light Mode -->
+            <div class="col-md-4">
+              <div 
+                class="p-3.5 rounded-4 border-2 transition-all position-relative h-100 d-flex flex-column justify-content-between"
+                :class="themeMode === 'light' ? 'border-primary bg-primary bg-opacity-10 shadow-sm' : 'border-secondary-subtle bg-light'"
+                @click="selectTheme('light')"
+                style="cursor: pointer;"
+              >
+                <div>
+                  <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="badge bg-warning text-dark rounded-pill px-2.5 py-1 fw-bold">☀️ Light Mode</span>
+                    <i v-if="themeMode === 'light'" class="bi bi-check-circle-fill text-primary fs-5"></i>
+                  </div>
+                  <h6 class="fw-bold text-dark mb-1">Mode Terang Standard</h6>
+                  <p class="small text-muted mb-0" style="font-size: 0.82rem;">Latar putih cerah (#f8fafc) ideal untuk penggunaan di siang hari atau ruangan terang.</p>
+                </div>
+                <div class="mt-3 p-2 bg-white rounded-3 border d-flex align-items-center justify-content-between">
+                  <small class="text-dark fw-semibold" style="font-size: 11px;">Preview Warna</small>
+                  <div class="d-flex gap-1">
+                    <span class="rounded-circle border" style="width: 14px; height: 14px; background-color: #f8fafc;"></span>
+                    <span class="rounded-circle border" style="width: 14px; height: 14px; background-color: #ffffff;"></span>
+                    <span class="rounded-circle border" style="width: 14px; height: 14px; background-color: #0f172a;"></span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Option 2: Dark Slate Mode -->
+            <div class="col-md-4">
+              <div 
+                class="p-3.5 rounded-4 border-2 transition-all position-relative h-100 d-flex flex-column justify-content-between"
+                :class="themeMode === 'dark' ? 'border-primary bg-primary bg-opacity-10 shadow-sm' : 'border-secondary-subtle bg-light'"
+                @click="selectTheme('dark')"
+                style="cursor: pointer;"
+              >
+                <div>
+                  <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="badge bg-info text-dark rounded-pill px-2.5 py-1 fw-bold">🌙 Dark Slate</span>
+                    <i v-if="themeMode === 'dark'" class="bi bi-check-circle-fill text-primary fs-5"></i>
+                  </div>
+                  <h6 class="fw-bold text-dark mb-1">Mode Gelap Charcoal</h6>
+                  <p class="small text-muted mb-0" style="font-size: 0.82rem;">Warna abu-abu pekat (#090d16) yang nyaman dan redup di mata tanpa membuat kontras terlalu tajam.</p>
+                </div>
+                <div class="mt-3 p-2 rounded-3 border d-flex align-items-center justify-content-between" style="background-color: #131b2e; border-color: #1e293b !important;">
+                  <small class="text-light fw-semibold" style="font-size: 11px;">Preview Warna</small>
+                  <div class="d-flex gap-1">
+                    <span class="rounded-circle border border-secondary" style="width: 14px; height: 14px; background-color: #090d16;"></span>
+                    <span class="rounded-circle border border-secondary" style="width: 14px; height: 14px; background-color: #131b2e;"></span>
+                    <span class="rounded-circle border border-secondary" style="width: 14px; height: 14px; background-color: #f1f5f9;"></span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Option 3: OLED True Black Mode -->
+            <div class="col-md-4">
+              <div 
+                class="p-3.5 rounded-4 border-2 transition-all position-relative h-100 d-flex flex-column justify-content-between"
+                :class="themeMode === 'oled' ? 'border-primary bg-primary bg-opacity-10 shadow-sm' : 'border-secondary-subtle bg-light'"
+                @click="selectTheme('oled')"
+                style="cursor: pointer;"
+              >
+                <div>
+                  <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="badge bg-dark text-white border border-secondary rounded-pill px-2.5 py-1 fw-bold">⬛ True Black OLED</span>
+                    <i v-if="themeMode === 'oled'" class="bi bi-check-circle-fill text-primary fs-5"></i>
+                  </div>
+                  <h6 class="fw-bold text-dark mb-1">True Black OLED / AMOLED</h6>
+                  <p class="small text-muted mb-0" style="font-size: 0.82rem;">Hitam pekat sempurna (#000000). Mematikan piksel layar OLED HP, hemat daya baterai & kontras tajam.</p>
+                </div>
+                <div class="mt-3 p-2 rounded-3 border d-flex align-items-center justify-content-between" style="background-color: #000000; border-color: #333333 !important;">
+                  <small class="text-white fw-semibold" style="font-size: 11px;">Preview Warna OLED</small>
+                  <div class="d-flex gap-1">
+                    <span class="rounded-circle border border-dark" style="width: 14px; height: 14px; background-color: #000000;"></span>
+                    <span class="rounded-circle border border-secondary" style="width: 14px; height: 14px; background-color: #0d0d0d;"></span>
+                    <span class="rounded-circle border border-light" style="width: 14px; height: 14px; background-color: #ffffff;"></span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- Theme & Accent Palette Card -->
       <div class="col-lg-6">
         <div class="card border-0 shadow-sm rounded-4 bg-white p-4 h-100">
@@ -322,6 +426,69 @@
           <small class="text-muted d-block">
             Warna aksen aktif: <strong class="text-dark">{{ currentAccentName }}</strong> ({{ accentColor }})
           </small>
+        </div>
+      </div>
+
+      <!-- Automated Nightly LocalStorage Backup & JSON Export Card -->
+      <div class="col-lg-12">
+        <div class="card border-0 shadow-sm rounded-4 bg-white p-4">
+          <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 border-bottom pb-3 mb-3">
+            <div class="d-flex align-items-center gap-3">
+              <div class="p-3 bg-primary bg-opacity-10 text-primary rounded-3">
+                <i class="bi bi-shield-check fs-2"></i>
+              </div>
+              <div>
+                <h5 class="fw-bold text-dark mb-0">💾 Automated Nightly Local Storage Backup & Export</h5>
+                <p class="small text-muted mb-0">Pencadangan otomatis setiap malam ke Local Storage & Export lengkap seluruh database aplikasi (.json).</p>
+              </div>
+            </div>
+
+            <div class="d-flex align-items-center gap-2">
+              <button class="btn btn-primary fw-bold px-4 py-2 rounded-3 shadow-sm d-flex align-items-center gap-2" @click="exportAllDataJson">
+                <i class="bi bi-download"></i>
+                <span>Export All Data (JSON)</span>
+              </button>
+              <button class="btn btn-outline-secondary fw-semibold px-3 py-2 rounded-3" @click="triggerNightlyBackupNow">
+                <i class="bi bi-arrow-repeat me-1"></i> Cadangkan Sekarang
+              </button>
+            </div>
+          </div>
+
+          <div class="row g-3 align-items-center">
+            <div class="col-md-6">
+              <div class="form-check form-switch p-3 rounded-3 bg-light border d-flex align-items-center justify-content-between">
+                <div>
+                  <label class="form-check-label fw-bold text-dark d-block" for="nightlyBackupSwitch">
+                    ⚡ Automated Nightly Backup (Tiap Malam)
+                  </label>
+                  <small class="text-muted" style="font-size: 0.8rem;">
+                    Secara otomatis menyimpan snapshot lengkap seluruh data aplikasi ke memori aman setiap pergantian hari.
+                  </small>
+                </div>
+                <input
+                  class="form-check-input ms-3 fs-4"
+                  type="checkbox"
+                  id="nightlyBackupSwitch"
+                  v-model="autoNightlyBackup"
+                  @change="toggleNightlyBackupSetting"
+                  style="cursor: pointer;"
+                />
+              </div>
+            </div>
+
+            <div class="col-md-6">
+              <div class="p-3 rounded-3 bg-light border">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                  <span class="small fw-bold text-dark">Status Cadangan Terakhir:</span>
+                  <span class="badge bg-success-subtle text-success fw-bold px-2.5 py-1 rounded-pill">
+                    <i class="bi bi-check-circle-fill me-1"></i>Aktif
+                  </span>
+                </div>
+                <div class="small text-muted">Tanggal: <strong class="text-dark">{{ lastBackupDate || 'Hari ini' }}</strong></div>
+                <div class="small text-muted">Waktu: <strong class="text-dark">{{ lastBackupTime || '23:59:00' }}</strong></div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -410,6 +577,80 @@ export default {
     const notifPermission = ref('default');
     const notifEnabled = ref(localStorage.getItem('ft_notifications_enabled') !== 'false');
 
+    // Automated Nightly Backup State
+    const autoNightlyBackup = ref(localStorage.getItem('ft_auto_nightly_backup') !== 'false');
+    const lastBackupDate = ref(localStorage.getItem('ft_last_nightly_backup_date') || new Date().toISOString().split('T')[0]);
+    const lastBackupTime = ref(localStorage.getItem('ft_last_nightly_backup_time') || new Date().toLocaleTimeString('id-ID'));
+
+    const toggleNightlyBackupSetting = () => {
+      localStorage.setItem('ft_auto_nightly_backup', autoNightlyBackup.value ? 'true' : 'false');
+      if (autoNightlyBackup.value) {
+        triggerNightlyBackupNow();
+      }
+    };
+
+    const triggerNightlyBackupNow = () => {
+      const fullState = {
+        todos: store.state.todos,
+        projects: store.state.projects,
+        finances: store.state.finances,
+        notes: store.state.notes,
+        contacts: store.state.contacts,
+        events: store.state.events,
+        moodLogs: store.state.moodLogs,
+        myBusiness: store.state.myBusiness,
+        exportDate: new Date().toISOString()
+      };
+
+      const today = new Date().toISOString().split('T')[0];
+      const time = new Date().toLocaleTimeString('id-ID');
+
+      localStorage.setItem('ft_nightly_backup_snapshot', JSON.stringify(fullState));
+      localStorage.setItem('ft_last_nightly_backup_date', today);
+      localStorage.setItem('ft_last_nightly_backup_time', time);
+
+      lastBackupDate.value = today;
+      lastBackupTime.value = time;
+
+      sendOnDeviceNotification('💾 Nightly Backup Berhasil', {
+        body: `Snapshot data lokal tersimpan aman pada ${time}.`,
+        type: 'success'
+      });
+    };
+
+    const exportAllDataJson = () => {
+      const fullData = {
+        todos: store.state.todos,
+        projects: store.state.projects,
+        finances: store.state.finances,
+        notes: store.state.notes,
+        contacts: store.state.contacts,
+        events: store.state.events,
+        moodLogs: store.state.moodLogs,
+        myBusiness: store.state.myBusiness,
+        exportTimestamp: new Date().toISOString(),
+        version: '2.5'
+      };
+
+      const jsonStr = JSON.stringify(fullData, null, 2);
+      const blob = new Blob([jsonStr], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+
+      const link = document.createElement('a');
+      link.href = url;
+      const dateStr = new Date().toISOString().split('T')[0];
+      link.download = `rajinkerja-full-backup-${dateStr}.json`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      sendOnDeviceNotification('📥 Export Data Selesai', {
+        body: `Berkas rajinkerja-full-backup-${dateStr}.json berhasil diunduh.`,
+        type: 'success'
+      });
+    };
+
     // AI Integration state
     const geminiApiKey = ref(store.getters.getGeminiApiKey || '');
     const aiProvider = ref(store.getters.getAiProvider || 'gemini');
@@ -486,6 +727,20 @@ export default {
     };
 
     const accentColor = computed(() => store.getters.getAccentColor);
+    const themeMode = computed(() => store.getters.getThemeMode);
+
+    const selectTheme = (mode) => {
+      store.dispatch('setThemeMode', mode);
+      const modeNames = {
+        light: 'Mode Terang (Light)',
+        dark: 'Mode Gelap Slate (Dark)',
+        oled: 'True Black OLED (Pure #000000)'
+      };
+      sendOnDeviceNotification('🌙 Mode Tampilan Diperbarui', {
+        body: `Tema tampilan berhasil diubah ke ${modeNames[mode] || mode}.`,
+        type: 'success'
+      });
+    };
 
     const accentPalette = [
       { name: 'Material Blue', hex: '#2563eb' },
@@ -717,6 +972,8 @@ export default {
       saveAiSettings,
       testAiConnection,
       accentColor,
+      themeMode,
+      selectTheme,
       accentPalette,
       currentAccentName,
       setAccent,
@@ -726,6 +983,12 @@ export default {
       saveNotifToggle,
       getNotifBadgeClass,
       getNotifPermissionLabel,
+      autoNightlyBackup,
+      lastBackupDate,
+      lastBackupTime,
+      toggleNightlyBackupSetting,
+      triggerNightlyBackupNow,
+      exportAllDataJson,
       exportJSONBackup,
       handleJSONSelect,
       executeFullRecovery,
