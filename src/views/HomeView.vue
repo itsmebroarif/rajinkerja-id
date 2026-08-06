@@ -10,9 +10,9 @@
               ⚠️ BUDGET THRESHOLD EXCEEDED!
             </span>
           </div>
-          <h1 class="fw-extrabold display-6 mb-2">Selamat Datang, {{ myBusiness.owner || 'Rekan Kerja' }}!</h1>
+          <h1 class="fw-extrabold display-6 mb-2">{{ welcomeTitleDisplay }}</h1>
           <p class="lead opacity-90 mb-4">
-            Pusat kendali produktivitas & organizer karir karyawan Anda: kelola tugas (5 view modes), proyek kantor, arus kas, dan invoice.
+            {{ welcomeBanner.subtitle }}
           </p>
 
           <div class="d-flex flex-wrap gap-2">
@@ -223,6 +223,17 @@ export default {
     const store = useStore();
 
     const myBusiness = computed(() => store.getters.getMyBusiness);
+    const welcomeBanner = computed(() => store.getters.getWelcomeBanner);
+    const welcomeTitleDisplay = computed(() => {
+      const banner = welcomeBanner.value;
+      if (banner && banner.title) {
+        if (myBusiness.value && myBusiness.value.owner && banner.title.includes('Rekan Kerja')) {
+          return banner.title.replace('Rekan Kerja', myBusiness.value.owner);
+        }
+        return banner.title;
+      }
+      return `Selamat Datang, ${myBusiness.value?.owner || 'Rekan Kerja'}!`;
+    });
     const pendingTasksCount = computed(() => store.getters.pendingTasksCount);
     const activeProjectsCount = computed(() => store.getters.activeProjectsCount);
     const totalClientsCount = computed(() => store.getters.totalClientsCount);
@@ -258,6 +269,8 @@ export default {
 
     return {
       myBusiness,
+      welcomeBanner,
+      welcomeTitleDisplay,
       pendingTasksCount,
       activeProjectsCount,
       totalClientsCount,

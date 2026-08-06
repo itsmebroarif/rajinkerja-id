@@ -50,6 +50,16 @@
           <span v-if="!isCollapsed" class="nav-label">Kamera & Scan Dokumen</span>
         </router-link>
 
+        <router-link to="/surat" class="material-nav-link" title="Surat Builder Generator">
+          <i class="bi bi-file-earmark-text-fill me-3 fs-5 nav-icon text-primary"></i>
+          <span v-if="!isCollapsed" class="nav-label">Surat Generator</span>
+        </router-link>
+
+        <router-link to="/cv" class="material-nav-link" title="CV & Resume Builder">
+          <i class="bi bi-person-vcard-fill me-3 fs-5 nav-icon text-success"></i>
+          <span v-if="!isCollapsed" class="nav-label">CV & Resume Builder</span>
+        </router-link>
+
         <div class="sidebar-divider my-2"></div>
 
         <!-- GROUP 2: TIM & KOMUNIKASI -->
@@ -64,10 +74,16 @@
           </span>
         </router-link>
 
+        <router-link to="/chat-ai" class="material-nav-link" title="Live Chat AI Assistant">
+          <i class="bi bi-robot me-3 fs-5 nav-icon text-info"></i>
+          <span v-if="!isCollapsed" class="nav-label">Live Chat AI</span>
+          <span v-if="!isCollapsed" class="badge rounded-pill bg-info text-dark ms-auto small fw-bold">AI</span>
+        </router-link>
+
         <div class="sidebar-divider my-2"></div>
 
-        <!-- GROUP 3: KEUANGAN & KLIEN -->
-        <div v-if="!isCollapsed" class="sidebar-section-header">💰 KEUANGAN & KLIEN</div>
+        <!-- GROUP 3: KEUANGAN & DATA -->
+        <div v-if="!isCollapsed" class="sidebar-section-header">💰 KEUANGAN & DATA</div>
         <div v-else class="sidebar-divider my-1"></div>
 
         <router-link to="/finance" class="material-nav-link" title="Keuangan & Tracker">
@@ -83,9 +99,14 @@
           <span v-if="!isCollapsed" class="nav-label">Invoice Generator</span>
         </router-link>
 
+        <router-link to="/sql" class="material-nav-link" title="SQL Data Export & Runner">
+          <i class="bi bi-database-fill-gear me-3 fs-5 nav-icon text-warning"></i>
+          <span v-if="!isCollapsed" class="nav-label">SQL Data Export</span>
+        </router-link>
+
         <div class="sidebar-divider my-2"></div>
 
-        <!-- GROUP 4: PRODUKTIVITAS & AGENDA -->
+        <!-- GROUP 4: AGENDA, HEALTH & PRODUKTIVITAS -->
         <div v-if="!isCollapsed" class="sidebar-section-header">📅 AGENDA & PRODUKTIVITAS</div>
         <div v-else class="sidebar-divider my-1"></div>
 
@@ -105,6 +126,16 @@
           <span v-if="!isCollapsed" class="nav-label">Kalender & Agenda</span>
         </router-link>
 
+        <router-link to="/time-suite" class="material-nav-link" title="Time Suite & Pomodoro Timer">
+          <i class="bi bi-clock-history me-3 fs-5 nav-icon text-success"></i>
+          <span v-if="!isCollapsed" class="nav-label">Time Suite & Pomodoro</span>
+        </router-link>
+
+        <router-link to="/selfie" class="material-nav-link" title="Selfie for Happiness & Auto Backup Drive">
+          <i class="bi bi-camera-reels-fill me-3 fs-5 nav-icon text-danger"></i>
+          <span v-if="!isCollapsed" class="nav-label">Selfie for Happiness</span>
+        </router-link>
+
         <router-link to="/mood" class="material-nav-link" title="On-Cam Mood Tracker & Alarm Kerja">
           <i class="bi bi-emoji-smile-fill me-3 fs-5 nav-icon text-danger"></i>
           <span v-if="!isCollapsed" class="nav-label">Kamera Mood & Alarm</span>
@@ -113,6 +144,11 @@
         <router-link to="/notes" class="material-nav-link" title="Sticky Notes & Scratchpad">
           <i class="bi bi-journal-text me-3 fs-5 nav-icon text-secondary"></i>
           <span v-if="!isCollapsed" class="nav-label">Notes & Scratchpad</span>
+        </router-link>
+
+        <router-link to="/code-notes" class="material-nav-link" title="Code Snippets & Tech Notes">
+          <i class="bi bi-code-slash me-3 fs-5 nav-icon text-info"></i>
+          <span v-if="!isCollapsed" class="nav-label">Code Snippets</span>
         </router-link>
 
         <router-link to="/games" class="material-nav-link" title="Mini Games & 3D Simulator">
@@ -210,25 +246,33 @@
             </button>
           </div>
           <nav class="d-flex flex-column gap-1" @click="mobileDrawer = false">
-            <div class="sidebar-section-header px-1 pt-1">📌 WORKFLOW & PROYEK</div>
+            <div class="sidebar-section-header px-1 pt-1">📌 WORKFLOW & DOKUMEN</div>
             <router-link to="/" class="material-nav-link"><i class="bi bi-grid-1x2-fill me-3 text-primary"></i>Dashboard</router-link>
             <router-link to="/todo" class="material-nav-link"><i class="bi bi-kanban-fill me-3 text-warning"></i>To-Do & Kanban</router-link>
             <router-link to="/project" class="material-nav-link"><i class="bi bi-folder-fill me-3 text-info"></i>Proyek & Kontrak</router-link>
             <router-link to="/camera" class="material-nav-link"><i class="bi bi-camera-fill me-3 text-danger"></i>Kamera & Scan Dokumen</router-link>
+            <router-link to="/surat" class="material-nav-link"><i class="bi bi-file-earmark-text-fill me-3 text-primary"></i>Surat Generator</router-link>
+            <router-link to="/cv" class="material-nav-link"><i class="bi bi-person-vcard-fill me-3 text-success"></i>CV & Resume Builder</router-link>
 
             <div class="sidebar-divider my-2"></div>
             <div class="sidebar-section-header px-1">👥 TIM & KOMUNIKASI</div>
             <router-link to="/contacts" class="material-nav-link"><i class="bi bi-person-lines-fill me-3 text-success"></i>Kontak Tim & WA</router-link>
+            <router-link to="/chat-ai" class="material-nav-link"><i class="bi bi-robot me-3 text-info"></i>Live Chat AI Assistant</router-link>
 
             <div class="sidebar-divider my-2"></div>
-            <div class="sidebar-section-header px-1">💰 KEUANGAN & KLIEN</div>
+            <div class="sidebar-section-header px-1">💰 KEUANGAN & DATA</div>
             <router-link to="/finance" class="material-nav-link"><i class="bi bi-wallet2 me-3 text-primary"></i>Keuangan</router-link>
             <router-link to="/invoice" class="material-nav-link"><i class="bi bi-receipt me-3 text-info"></i>Invoice Generator</router-link>
+            <router-link to="/sql" class="material-nav-link"><i class="bi bi-database-fill-gear me-3 text-warning"></i>SQL Data Export</router-link>
 
             <div class="sidebar-divider my-2"></div>
             <div class="sidebar-section-header px-1">📅 AGENDA & PRODUKTIVITAS</div>
             <router-link to="/calendar" class="material-nav-link"><i class="bi bi-calendar3 me-3 text-warning"></i>Kalender & Agenda</router-link>
+            <router-link to="/time-suite" class="material-nav-link"><i class="bi bi-clock-history me-3 text-success"></i>Time Suite & Pomodoro</router-link>
+            <router-link to="/selfie" class="material-nav-link"><i class="bi bi-camera-reels-fill me-3 text-danger"></i>Selfie for Happiness</router-link>
+            <router-link to="/mood" class="material-nav-link"><i class="bi bi-emoji-smile-fill me-3 text-danger"></i>Kamera Mood & Alarm</router-link>
             <router-link to="/notes" class="material-nav-link"><i class="bi bi-journal-text me-3 text-secondary"></i>Notes & Scratchpad</router-link>
+            <router-link to="/code-notes" class="material-nav-link"><i class="bi bi-code-slash me-3 text-info"></i>Code Snippets</router-link>
             <router-link to="/games" class="material-nav-link"><i class="bi bi-controller me-3 text-purple"></i>3D Games & Simulator</router-link>
 
             <div class="sidebar-divider my-2"></div>

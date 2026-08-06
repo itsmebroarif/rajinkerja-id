@@ -203,6 +203,10 @@ export default createStore({
       themeMode: 'light', // Light mode default
       accentColor: loadLocal('ft_accentColor', '#2563eb'), // default Material blue
       budgetThreshold: loadLocal('ft_budgetThreshold', 5000000), // Default budget threshold: Rp 5.000.000
+      welcomeBanner: loadLocal('ft_welcomeBanner', {
+        title: 'Selamat Datang, Rekan Kerja!',
+        subtitle: 'Pusat kendali produktivitas & organizer karir karyawan Anda: kelola tugas (5 view modes), proyek kantor, arus kas, dan invoice.'
+      }),
       myBusiness: loadLocal('ft_myBusiness', {
         name: '',
         tagline: '',
@@ -277,6 +281,7 @@ export default createStore({
     getAccentColor: (state) => state.accentColor,
     getBudgetThreshold: (state) => state.budgetThreshold,
     getMyBusiness: (state) => state.myBusiness,
+    getWelcomeBanner: (state) => state.welcomeBanner || { title: 'Selamat Datang, Rekan Kerja!', subtitle: 'Pusat kendali produktivitas & organizer karir karyawan Anda: kelola tugas (5 view modes), proyek kantor, arus kas, dan invoice.' },
     getUserProfile: (state) => state.userProfile,
     getCvData: (state) => state.cvData,
     getCodeNotes: (state) => state.codeNotes,
@@ -589,6 +594,11 @@ export default createStore({
     UPDATE_MY_BUSINESS(state, info) {
       state.myBusiness = { ...state.myBusiness, ...info };
       saveLocal('ft_myBusiness', state.myBusiness);
+    },
+
+    UPDATE_WELCOME_BANNER(state, banner) {
+      state.welcomeBanner = { ...state.welcomeBanner, ...banner };
+      saveLocal('ft_welcomeBanner', state.welcomeBanner);
     },
 
     UPDATE_USER_PROFILE(state, profile) {

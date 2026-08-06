@@ -99,6 +99,47 @@
         </div>
       </div>
 
+      <!-- Custom Welcome & Greeting Banner Dashboard Editor Card -->
+      <div class="col-lg-12">
+        <div class="card border-0 shadow-sm rounded-4 bg-white p-4">
+          <div class="d-flex align-items-center gap-3 mb-3 border-bottom pb-3">
+            <div class="bg-primary bg-opacity-10 rounded-3 p-3 text-primary d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+              <i class="bi bi-chat-quote-fill fs-3"></i>
+            </div>
+            <div>
+              <h5 class="fw-bold text-dark mb-0">✏️ Kustomisasi Teks Welcome Banner Dashboard</h5>
+              <p class="small text-muted mb-0">Ubah judul ucapan dan teks deskripsi greeting di halaman utama Dashboard sesuai keinginan Anda.</p>
+            </div>
+          </div>
+
+          <form @submit.prevent="saveWelcomeBannerSettings">
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label class="form-label fw-bold text-dark small mb-1">Judul Welcome / Greeting Title</label>
+                <input type="text" class="form-control border-2 rounded-3" v-model="welcomeTitleInput" placeholder="misal: Selamat Datang, Rekan Kerja!" />
+                <small class="text-muted d-block mt-1" style="font-size: 0.78rem;">
+                  Tips: Kata 'Rekan Kerja' akan otomatis diganti nama Anda jika profil terisi.
+                </small>
+              </div>
+
+              <div class="col-md-6">
+                <label class="form-label fw-bold text-dark small mb-1">Teks Subtitle / Deskripsi Banner</label>
+                <textarea class="form-control border-2 rounded-3" rows="2" v-model="welcomeSubtitleInput" placeholder="Deskripsi ringkas banner..."></textarea>
+              </div>
+            </div>
+
+            <div class="d-flex justify-content-end gap-2 mt-3 pt-2">
+              <button type="button" class="btn btn-outline-secondary rounded-pill px-3 btn-sm" @click="resetWelcomeBannerDefault">
+                Reset Teks Standard
+              </button>
+              <button type="submit" class="btn btn-primary rounded-pill px-4 fw-bold shadow-sm py-2">
+                <i class="bi bi-check-lg me-1"></i> Simpan Teks Banner
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
       <!-- AI Integration & API Key Settings Card (Baru) -->
       <div class="col-lg-12">
         <div class="card border-0 shadow-sm rounded-4 bg-white p-4">
@@ -577,6 +618,28 @@ export default {
     const notifPermission = ref('default');
     const notifEnabled = ref(localStorage.getItem('ft_notifications_enabled') !== 'false');
 
+    // Welcome Banner Settings
+    const currentBanner = store.getters.getWelcomeBanner || {};
+    const welcomeTitleInput = ref(currentBanner.title || 'Selamat Datang, Rekan Kerja!');
+    const welcomeSubtitleInput = ref(currentBanner.subtitle || 'Pusat kendali produktivitas & organizer karir karyawan Anda: kelola tugas (5 view modes), proyek kantor, arus kas, dan invoice.');
+
+    const saveWelcomeBannerSettings = () => {
+      store.commit('UPDATE_WELCOME_BANNER', {
+        title: welcomeTitleInput.value,
+        subtitle: welcomeSubtitleInput.value
+      });
+      sendOnDeviceNotification('✏️ Teks Banner Diperbarui', {
+        body: 'Teks welcome banner dashboard berhasil disimpan!',
+        type: 'success'
+      });
+    };
+
+    const resetWelcomeBannerDefault = () => {
+      welcomeTitleInput.value = 'Selamat Datang, Rekan Kerja!';
+      welcomeSubtitleInput.value = 'Pusat kendali produktivitas & organizer karir karyawan Anda: kelola tugas (5 view modes), proyek kantor, arus kas, dan invoice.';
+      saveWelcomeBannerSettings();
+    };
+
     // Automated Nightly Backup State
     const autoNightlyBackup = ref(localStorage.getItem('ft_auto_nightly_backup') !== 'false');
     const lastBackupDate = ref(localStorage.getItem('ft_last_nightly_backup_date') || new Date().toISOString().split('T')[0]);
@@ -963,6 +1026,10 @@ export default {
       isStandalone,
       notifPermission,
       notifEnabled,
+      welcomeTitleInput,
+      welcomeSubtitleInput,
+      saveWelcomeBannerSettings,
+      resetWelcomeBannerDefault,
       geminiApiKey,
       aiProvider,
       aiModel,

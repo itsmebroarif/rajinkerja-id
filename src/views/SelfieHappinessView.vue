@@ -5,20 +5,22 @@
       <div>
         <div class="d-flex align-items-center gap-2 mb-1">
           <span class="badge bg-warning text-dark fw-bold px-3 py-1.5 rounded-pill">📸 Mood & Happiness</span>
-          <span class="badge bg-primary-subtle text-primary fw-bold px-3 py-1.5 rounded-pill">Webcam Gallery</span>
+          <span class="badge bg-success text-white fw-bold px-3 py-1.5 rounded-pill">⚡ Auto-Backup Drive Aktif</span>
         </div>
-        <h2 class="fw-bold mb-1 text-dark">📸 Selfie for Happiness</h2>
-        <p class="text-muted mb-0">Abadikan momen kebahagiaan dan pencapaian kerja Anda via webcam untuk menjaga kesehatan mental & motivasi.</p>
+        <h2 class="fw-bold mb-1 text-dark">📸 Selfie for Happiness & Auto Drive Sync</h2>
+        <p class="text-muted mb-0">Abadikan momen kebahagiaan Anda. Foto otomatis diunduh ke folder perangkat agar tersinkronisasi otomatis ke Google Drive.</p>
       </div>
 
-      <a
-        href="https://drive.google.com/drive/folders/1RRzl1aLt4Vd2OQ3lMjTo9Trod0pcVoat?usp=sharing"
-        target="_blank"
-        rel="noopener noreferrer"
-        class="btn btn-outline-primary rounded-pill px-4 fw-bold shadow-sm d-flex align-items-center gap-2"
-      >
-        <i class="bi bi-google-drive fs-5 text-success"></i> Backup ke Google Drive
-      </a>
+      <div class="d-flex flex-wrap gap-2 align-items-center">
+        <a
+          href="https://drive.google.com/drive/folders/1RRzl1aLt4Vd2OQ3lMjTo9Trod0pcVoat?usp=sharing"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="btn btn-success rounded-pill px-4 fw-bold shadow-sm d-flex align-items-center gap-2"
+        >
+          <i class="bi bi-google-drive fs-5"></i> Buka Folder Google Drive
+        </a>
+      </div>
     </div>
 
     <!-- Camera Capture & Preview Section -->
@@ -64,8 +66,11 @@
           </div>
 
           <div v-else class="d-flex flex-column gap-3">
-            <div class="rounded-4 overflow-hidden border shadow-sm max-w-md mx-auto">
+            <div class="rounded-4 overflow-hidden border shadow-sm max-w-md mx-auto position-relative">
               <img :src="capturedImage" class="img-fluid w-100" alt="Selfie Preview" />
+              <span class="badge bg-success position-absolute top-0 end-0 m-2 px-3 py-1.5 shadow fw-bold">
+                <i class="bi bi-cloud-arrow-up-fill me-1"></i> Ready for Drive
+              </span>
             </div>
 
             <div class="row g-2">
@@ -84,9 +89,25 @@
               </div>
             </div>
 
-            <button class="btn btn-success rounded-pill px-4 fw-bold shadow-sm" @click="saveSelfieToGallery">
-              <i class="bi bi-bookmark-heart me-1"></i> Simpan ke Galeri Lokal
-            </button>
+            <!-- Auto Backup Drive Checkbox -->
+            <div class="form-check form-switch p-2 bg-success-subtle rounded-3 border border-success-subtle d-flex align-items-center justify-content-between px-3">
+              <div>
+                <label class="form-check-label fw-bold text-success small d-block" for="autoDriveToggle">
+                  <i class="bi bi-cloud-check-fill me-1"></i> Auto-Download file JPG ke Google Drive Folder
+                </label>
+                <small class="text-muted d-block" style="font-size: 0.75rem;">Otomatis mengunduh file foto untuk tersinkron langsung ke Google Drive perangkat Anda.</small>
+              </div>
+              <input class="form-check-input ms-2 fs-5" type="checkbox" role="switch" id="autoDriveToggle" v-model="autoDriveSync" />
+            </div>
+
+            <div class="d-flex gap-2">
+              <button class="btn btn-success flex-grow-1 rounded-pill px-4 fw-bold shadow-sm py-2" @click="saveSelfieToGallery">
+                <i class="bi bi-bookmark-heart me-1"></i> Simpan & Auto-Backup
+              </button>
+              <button class="btn btn-outline-primary rounded-pill px-3 fw-bold" @click="downloadSinglePhoto(capturedImage, 'Selfie_Happiness')" title="Unduh File JPG Langsung">
+                <i class="bi bi-download"></i>
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -94,9 +115,17 @@
 
     <!-- Local Happiness Gallery -->
     <div class="card border-0 shadow-sm rounded-4 bg-white p-4">
-      <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-3">
-        <h5 class="fw-bold text-dark mb-0"><i class="bi bi-grid-fill text-warning me-2"></i>Galeri Foto Kebahagiaan</h5>
-        <span class="badge bg-light text-dark border px-3 py-1">{{ gallery.length }} Foto Tersimpan</span>
+      <div class="d-flex flex-wrap justify-content-between align-items-center border-bottom pb-3 mb-3 gap-2">
+        <div class="d-flex align-items-center gap-2">
+          <h5 class="fw-bold text-dark mb-0"><i class="bi bi-grid-fill text-warning me-2"></i>Galeri Foto Kebahagiaan</h5>
+          <span class="badge bg-light text-dark border px-3 py-1 fw-bold">{{ gallery.length }} Foto Tersimpan</span>
+        </div>
+
+        <div class="d-flex gap-2" v-if="gallery.length > 0">
+          <button class="btn btn-sm btn-outline-success rounded-pill px-3 fw-bold d-flex align-items-center gap-1" @click="downloadAllSelfies">
+            <i class="bi bi-download"></i> Unduh Semua JPG untuk Backup Drive
+          </button>
+        </div>
       </div>
 
       <div v-if="gallery.length === 0" class="text-center py-5 text-muted">
@@ -106,12 +135,17 @@
 
       <div v-else class="row g-3">
         <div v-for="item in gallery" :key="item.id" class="col-6 col-md-4 col-lg-3">
-          <div class="card border-0 shadow-sm rounded-4 overflow-hidden h-100 position-relative group-hover">
+          <div class="card border-0 shadow-sm rounded-4 overflow-hidden h-100 position-relative group-hover border">
             <img :src="item.image" class="card-img-top object-fit-cover" style="height: 180px;" alt="Happiness Snapshot" />
             <div class="card-body p-3 bg-white">
               <span class="badge bg-warning text-dark small fw-bold mb-1">{{ item.mood }}</span>
               <p class="small text-dark fw-semibold mb-1 text-truncate">{{ item.note || 'Momen Hari Ini' }}</p>
-              <small class="text-muted d-block" style="font-size: 0.7rem;">{{ item.date }}</small>
+              <div class="d-flex justify-content-between align-items-center mt-2 pt-2 border-top">
+                <small class="text-muted" style="font-size: 0.7rem;">{{ item.date }}</small>
+                <button class="btn btn-xs btn-outline-primary rounded-pill px-2 py-0.5 fw-bold" style="font-size: 0.7rem;" @click="downloadSinglePhoto(item.image, `Selfie_${item.mood}_${item.id}`)" title="Unduh File JPG">
+                  <i class="bi bi-download me-1"></i> Unduh
+                </button>
+              </div>
             </div>
             <button class="btn btn-sm btn-danger position-absolute top-0 end-0 m-2 rounded-circle p-1" @click="deleteSelfie(item.id)" title="Hapus">
               <i class="bi bi-x-lg"></i>
@@ -139,6 +173,7 @@ export default {
     const capturedImage = ref(null);
     const selfieMood = ref('😃 Bahagia');
     const selfieNote = ref('');
+    const autoDriveSync = ref(true);
     let stream = null;
 
     const gallery = computed(() => store.getters.getSelfieGallery || []);
@@ -175,18 +210,50 @@ export default {
       }
     };
 
+    const downloadSinglePhoto = (dataUrl, filenamePrefix = 'Selfie_Happiness') => {
+      if (!dataUrl) return;
+      const a = document.createElement('a');
+      a.href = dataUrl;
+      a.download = `${filenamePrefix}_${new Date().toISOString().slice(0, 10)}.jpg`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    };
+
+    const downloadAllSelfies = () => {
+      if (!gallery.value || gallery.value.length === 0) return;
+      gallery.value.forEach((item, idx) => {
+        setTimeout(() => {
+          downloadSinglePhoto(item.image, `Selfie_${idx + 1}`);
+        }, idx * 300);
+      });
+      sendOnDeviceNotification('📥 Backup Google Drive Diunduh', {
+        body: `${gallery.value.length} foto kebahagiaan diunduh ke folder Drive perangkat Anda.`,
+        type: 'success'
+      });
+    };
+
     const saveSelfieToGallery = () => {
       if (!capturedImage.value) return;
+
+      const dateStr = new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
 
       store.dispatch('addSelfie', {
         image: capturedImage.value,
         mood: selfieMood.value,
         note: selfieNote.value,
-        date: new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })
+        date: dateStr
       });
 
-      sendOnDeviceNotification('📸 Foto Tersimpan', {
-        body: 'Foto kebahagiaan berhasil disimpan ke galeri lokal Anda.',
+      // Auto-download file JPG to local device / Drive sync folder if toggle is ON
+      if (autoDriveSync.value) {
+        downloadSinglePhoto(capturedImage.value, `Selfie_DriveBackup_${selfieMood.value.replace(/[^a-zA-Z0-9]/g, '')}`);
+      }
+
+      sendOnDeviceNotification('📸 Foto & Backup Drive Tersimpan', {
+        body: autoDriveSync.value
+          ? 'Foto kebahagiaan disimpan & otomatis terunduh untuk disinkronkan ke Google Drive!'
+          : 'Foto kebahagiaan berhasil disimpan ke galeri lokal Anda.',
         type: 'success'
       });
 
@@ -209,10 +276,13 @@ export default {
       capturedImage,
       selfieMood,
       selfieNote,
+      autoDriveSync,
       gallery,
       startCamera,
       stopCamera,
       takeSelfie,
+      downloadSinglePhoto,
+      downloadAllSelfies,
       saveSelfieToGallery,
       deleteSelfie
     };
