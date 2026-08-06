@@ -169,7 +169,7 @@
 
         <router-link to="/faq" class="material-nav-link" title="FAQ, Panduan & Tentang App">
           <i class="bi bi-question-circle-fill me-3 fs-5 nav-icon text-info"></i>
-          <span v-if="!isCollapsed" class="nav-label">FAQ & About App</span>
+          <span v-if="!isCollapsed" class="nav-label">Info & Hidden Features</span>
         </router-link>
       </nav>
 
