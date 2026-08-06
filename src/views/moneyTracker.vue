@@ -398,9 +398,42 @@
       </div>
     </div>
 
-    <!-- Transactions Table -->
+    <!-- Transactions Table & Spreadsheet Modes -->
     <div class="card border-0 shadow-sm rounded-4 bg-white mb-4">
-      <div class="card-body p-0">
+      <!-- Mode View Header Switcher -->
+      <div class="card-header bg-light border-bottom p-3 d-flex flex-wrap justify-content-between align-items-center gap-2 no-print">
+        <div class="d-flex align-items-center gap-2">
+          <span class="fw-bold text-dark me-2"><i class="bi bi-grid-3x3-gap-fill text-success me-1"></i> Mode Tampilan:</span>
+          <div class="btn-group p-1 bg-white rounded-3 border" role="group">
+            <button
+              class="btn btn-sm px-3 py-1.5 fw-bold transition-all"
+              :class="modeView === 'table' ? 'btn-success text-white shadow-sm' : 'btn-light text-dark'"
+              @click="modeView = 'table'"
+            >
+              <i class="bi bi-table me-1"></i> Standard Table
+            </button>
+            <button
+              class="btn btn-sm px-3 py-1.5 fw-bold transition-all"
+              :class="modeView === 'spreadsheet' ? 'btn-success text-white shadow-sm' : 'btn-light text-dark'"
+              @click="modeView = 'spreadsheet'"
+            >
+              <i class="bi bi-file-earmark-excel-fill me-1"></i> Spreadsheet (Excel Grid & Formulas)
+            </button>
+            <button
+              class="btn btn-sm px-3 py-1.5 fw-bold transition-all"
+              :class="modeView === 'sql' ? 'btn-dark text-white shadow-sm' : 'btn-light text-dark'"
+              @click="modeView = 'sql'"
+            >
+              <i class="bi bi-terminal-fill me-1"></i> SQL Query Mode
+            </button>
+          </div>
+        </div>
+
+        <span class="badge bg-light text-dark border px-3 py-1.5 fw-bold">{{ filteredTransactions.length }} Rekam Keuangan</span>
+      </div>
+
+      <!-- 1. STANDARD TABLE MODE -->
+      <div class="card-body p-0" v-if="modeView === 'table'">
         <div class="table-responsive" v-if="filteredTransactions.length > 0">
           <table class="table table-hover align-middle mb-0">
             <thead class="table-light">
@@ -457,14 +490,87 @@
             </tbody>
           </table>
         </div>
+        <div v-else class="text-center py-5 text-muted">
+          <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+          <p class="small mb-0">Belum ada data transaksi keuangan.</p>
+        </div>
+      </div>
 
-        <div v-else class="text-center py-5 no-print">
-          <i class="bi bi-receipt-cutoff display-1 text-muted opacity-50"></i>
-          <h4 class="fw-bold mt-3 text-dark">Belum Ada Transaksi</h4>
-          <p class="text-muted">Mulailah mencatat pemasukan dan pengeluaran proyek freelancer Anda.</p>
-          <button class="btn btn-success rounded-3 px-4 py-2 mt-2" @click="openAddModal">
-            <i class="bi bi-plus-lg me-1"></i> Catat Transaksi Baru
-          </button>
+      <!-- 2. SPREADSHEET (EXCEL) GRID MODE -->
+      <div class="card-body p-3 bg-light" v-else-if="modeView === 'spreadsheet'">
+        <!-- Formula Bar -->
+        <div class="bg-white p-2 border rounded-3 mb-3 d-flex align-items-center gap-2 shadow-sm">
+          <span class="badge bg-success font-monospace px-2.5 py-1.5 fw-bold">fx</span>
+          <input
+            type="text"
+            class="form-control font-monospace border-1"
+            v-model="formulaInput"
+            placeholder="Masukkan rumus Excel (contoh: =SUM(E1:E10), =AVG(E1:E10), =MAX(E1:E10))"
+            @keyup.enter="evaluateFormula"
+          />
+          <button class="btn btn-sm btn-success fw-bold px-3 text-nowrap" @click="evaluateFormula">Hitung Formula</button>
+        </div>
+
+        <div v-if="formulaResult !== null" class="alert alert-success border-0 shadow-sm p-3 mb-3 d-flex justify-content-between align-items-center">
+          <span class="fw-bold"><i class="bi bi-calculator-fill me-2"></i>Hasil Formula Excel:</span>
+          <span class="fw-extrabold fs-5 font-monospace text-success">{{ formulaResult }}</span>
+        </div>
+
+        <!-- Excel Grid Table -->
+        <div class="table-responsive border rounded-3 bg-white shadow-sm" style="max-height: 400px;">
+          <table class="table table-bordered table-sm font-monospace text-nowrap mb-0 align-middle">
+            <thead class="table-dark text-center">
+              <tr>
+                <th style="width: 40px;">#</th>
+                <th style="width: 50px;">Col</th>
+                <th>A (Deskripsi)</th>
+                <th>B (Kategori)</th>
+                <th>C (Tipe)</th>
+                <th>D (Tanggal)</th>
+                <th>E (Nominal / Amount)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="(t, idx) in filteredTransactions" :key="t.id">
+                <td class="text-center bg-light text-muted fw-bold">{{ idx + 1 }}</td>
+                <td class="text-center bg-light text-secondary small">R{{ idx + 1 }}</td>
+                <td><input type="text" class="form-control form-control-sm border-0 font-monospace" v-model="t.item" /></td>
+                <td><input type="text" class="form-control form-control-sm border-0 font-monospace" v-model="t.category" /></td>
+                <td class="text-center">
+                  <span class="badge" :class="t.type === 'income' ? 'bg-success' : 'bg-danger'">{{ t.type }}</span>
+                </td>
+                <td><input type="date" class="form-control form-control-sm border-0 font-monospace" v-model="t.date" /></td>
+                <td><input type="number" class="form-control form-control-sm border-0 font-monospace fw-bold text-end" v-model.number="t.amount" /></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- 3. SQL QUERY MODE -->
+      <div class="card-body p-3 bg-dark text-light" v-else>
+        <div class="mb-3">
+          <label class="form-label fw-bold text-success font-monospace small"><i class="bi bi-terminal me-1"></i>SQL Query Runner (Table: transactions)</label>
+          <div class="d-flex gap-2">
+            <input type="text" class="form-control font-monospace bg-black text-success border-secondary" v-model="sqlQueryInput" placeholder="SELECT * FROM transactions WHERE type = 'income'" />
+            <button class="btn btn-success fw-bold px-4" @click="runSqlQuery">RUN QUERY</button>
+          </div>
+          <small class="text-muted d-block mt-1">Coba query contoh: <code>SELECT * FROM transactions</code>, <code>SELECT * FROM transactions WHERE type = 'income'</code></small>
+        </div>
+
+        <div v-if="sqlResults.length > 0" class="table-responsive bg-black p-2 rounded border border-secondary">
+          <table class="table table-dark table-striped table-sm font-monospace small mb-0">
+            <thead>
+              <tr>
+                <th v-for="(val, key) in sqlResults[0]" :key="key" class="text-success">{{ key }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="(row, idx) in sqlResults" :key="idx">
+                <td v-for="(val, key) in row" :key="key">{{ val }}</td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </div>
     </div>
@@ -498,7 +604,40 @@ export default {
     const filterType = ref('');
     const filterCategory = ref('');
     const chartView = ref('bar');
+    const modeView = ref('table'); // 'table', 'spreadsheet', 'sql'
+    const formulaInput = ref('=SUM(E1:E10)');
+    const formulaResult = ref(null);
+    const sqlQueryInput = ref('SELECT * FROM transactions');
+    const sqlResults = ref([]);
     const tempBudget = ref(5000000);
+
+    const evaluateFormula = () => {
+      const amounts = (transactions.value || []).map(t => Number(t.amount || 0));
+      const f = formulaInput.value.toUpperCase();
+      if (f.includes('SUM')) {
+        const total = amounts.reduce((a, b) => a + b, 0);
+        formulaResult.value = `Rp ${total.toLocaleString('id-ID')}`;
+      } else if (f.includes('AVG')) {
+        const avg = amounts.length ? Math.round(amounts.reduce((a, b) => a + b, 0) / amounts.length) : 0;
+        formulaResult.value = `Rp ${avg.toLocaleString('id-ID')}`;
+      } else if (f.includes('MAX')) {
+        const max = amounts.length ? Math.max(...amounts) : 0;
+        formulaResult.value = `Rp ${max.toLocaleString('id-ID')}`;
+      } else {
+        formulaResult.value = `Formula dievaluasi: ${amounts.reduce((a, b) => a + b, 0)}`;
+      }
+    };
+
+    const runSqlQuery = () => {
+      const q = sqlQueryInput.value.toLowerCase();
+      if (q.includes('where type = \'income\'') || q.includes('where type="income"')) {
+        sqlResults.value = (transactions.value || []).filter(t => t.type === 'income');
+      } else if (q.includes('where type = \'expense\'') || q.includes('where type="expense"')) {
+        sqlResults.value = (transactions.value || []).filter(t => t.type === 'expense');
+      } else {
+        sqlResults.value = (transactions.value || []);
+      }
+    };
     const showForm = ref(false);
     const formTab = ref('single');
     const isEditing = ref(false);
@@ -763,6 +902,13 @@ export default {
       filterType,
       filterCategory,
       chartView,
+      modeView,
+      formulaInput,
+      formulaResult,
+      sqlQueryInput,
+      sqlResults,
+      evaluateFormula,
+      runSqlQuery,
       tempBudget,
       showForm,
       formTab,

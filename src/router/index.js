@@ -52,7 +52,42 @@ const routes = [
   {
     path: "/games",
     name: "games",
-    component: () => import("../views/MiniGamesView.vue"),
+    component: () => import("../views/GamesView.vue"),
+  },
+  {
+    path: "/selfie",
+    name: "selfie",
+    component: () => import("../views/SelfieHappinessView.vue"),
+  },
+  {
+    path: "/cv",
+    name: "cv",
+    component: () => import("../views/CvBuilderView.vue"),
+  },
+  {
+    path: "/sql",
+    name: "sql",
+    component: () => import("../views/SqlExportView.vue"),
+  },
+  {
+    path: "/chat-ai",
+    name: "chat-ai",
+    component: () => import("../views/LiveChatAiView.vue"),
+  },
+  {
+    path: "/code-notes",
+    name: "code-notes",
+    component: () => import("../views/CodeNotesView.vue"),
+  },
+  {
+    path: "/surat",
+    name: "surat",
+    component: () => import("../views/SuratBuilderView.vue"),
+  },
+  {
+    path: "/time-suite",
+    name: "time-suite",
+    component: () => import("../views/TimeSuiteView.vue"),
   },
   {
     path: "/habits",

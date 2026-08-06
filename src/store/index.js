@@ -212,7 +212,51 @@ export default createStore({
         bankName: '',
         accountNumber: '',
         accountHolder: ''
-      })
+      }),
+      userProfile: loadLocal('ft_userProfile', {
+        name: 'Arip Developer',
+        jobTitle: 'Full-Stack Developer & Tech Lead',
+        company: 'RajinKerja Studio',
+        bio: 'Productive developer creating high-performance web solutions & productivity tools.',
+        email: 'aripstrike@gmail.com',
+        phone: '081234567890',
+        avatar: ''
+      }),
+      cvData: loadLocal('ft_cvData', {
+        fullName: 'Budi Pratama',
+        jobTitle: 'Senior Frontend Engineer',
+        email: 'budi.pratama@email.com',
+        phone: '081234567890',
+        address: 'Jakarta, Indonesia',
+        linkedin: 'linkedin.com/in/budipratama',
+        github: 'github.com/budipratama',
+        website: 'budipratama.dev',
+        summary: 'Experienced Senior Frontend Engineer with 5+ years of building scalable web applications using Vue 3, React, and Modern Web Standards.',
+        experience: [
+          {
+            company: 'PT Tech Inovasi',
+            position: 'Senior Frontend Developer',
+            period: '2022 - Sekarang',
+            location: 'Jakarta',
+            description: 'Memimpin tim frontend dalam pengembangan PWA web app dengan Vue 3 & TypeScript, meningkatkan conversion rate 35%.'
+          }
+        ],
+        education: [
+          {
+            institution: 'Universitas Indonesia',
+            degree: 'S1 Teknik Informatika',
+            period: '2017 - 2021',
+            gpa: '3.82'
+          }
+        ],
+        skills: ['Vue.js 3', 'TypeScript', 'Tailwind CSS', 'Node.js', 'REST API', 'Git', 'PWA', 'Jest'],
+        languages: ['Bahasa Indonesia (Native)', 'English (Professional)'],
+        certifications: ['Google Certified Associate Cloud Engineer', 'Meta Front-End Developer Specialization'],
+        selectedTemplate: 'ats_clean_1'
+      }),
+      codeNotes: loadLocal('ft_codeNotes', []),
+      suratList: loadLocal('ft_suratList', []),
+      selfieGallery: loadLocal('ft_selfieGallery', [])
     };
   },
   getters: {
@@ -233,6 +277,11 @@ export default createStore({
     getAccentColor: (state) => state.accentColor,
     getBudgetThreshold: (state) => state.budgetThreshold,
     getMyBusiness: (state) => state.myBusiness,
+    getUserProfile: (state) => state.userProfile,
+    getCvData: (state) => state.cvData,
+    getCodeNotes: (state) => state.codeNotes,
+    getSuratList: (state) => state.suratList,
+    getSelfieGallery: (state) => state.selfieGallery,
 
     // Statistics
     totalClientsCount: (state) => state.contacts.length,
@@ -542,6 +591,50 @@ export default createStore({
       saveLocal('ft_myBusiness', state.myBusiness);
     },
 
+    UPDATE_USER_PROFILE(state, profile) {
+      state.userProfile = { ...state.userProfile, ...profile };
+      saveLocal('ft_userProfile', state.userProfile);
+    },
+
+    SAVE_CV_DATA(state, cvData) {
+      state.cvData = { ...state.cvData, ...cvData };
+      saveLocal('ft_cvData', state.cvData);
+    },
+
+    ADD_CODE_NOTE(state, note) {
+      state.codeNotes.unshift(note);
+      saveLocal('ft_codeNotes', state.codeNotes);
+    },
+    UPDATE_CODE_NOTE(state, updatedNote) {
+      const idx = state.codeNotes.findIndex(c => c.id === updatedNote.id);
+      if (idx !== -1) {
+        state.codeNotes.splice(idx, 1, updatedNote);
+        saveLocal('ft_codeNotes', state.codeNotes);
+      }
+    },
+    DELETE_CODE_NOTE(state, id) {
+      state.codeNotes = state.codeNotes.filter(c => c.id !== id);
+      saveLocal('ft_codeNotes', state.codeNotes);
+    },
+
+    ADD_SURAT(state, surat) {
+      state.suratList.unshift(surat);
+      saveLocal('ft_suratList', state.suratList);
+    },
+    DELETE_SURAT(state, id) {
+      state.suratList = state.suratList.filter(s => s.id !== id);
+      saveLocal('ft_suratList', state.suratList);
+    },
+
+    ADD_SELFIE(state, selfie) {
+      state.selfieGallery.unshift(selfie);
+      saveLocal('ft_selfieGallery', state.selfieGallery);
+    },
+    DELETE_SELFIE(state, id) {
+      state.selfieGallery = state.selfieGallery.filter(s => s.id !== id);
+      saveLocal('ft_selfieGallery', state.selfieGallery);
+    },
+
     // Global Reset & Import/Export
     CLEAR_ALL_DATA(state) {
       state.contacts = [];
@@ -775,6 +868,38 @@ export default createStore({
 
     updateMyBusiness({ commit }, info) {
       commit('UPDATE_MY_BUSINESS', info);
+    },
+
+    updateUserProfile({ commit }, profile) {
+      commit('UPDATE_USER_PROFILE', profile);
+    },
+
+    saveCvData({ commit }, cvData) {
+      commit('SAVE_CV_DATA', cvData);
+    },
+
+    addCodeNote({ commit }, note) {
+      commit('ADD_CODE_NOTE', { ...note, id: 'cn_' + Date.now(), createdAt: new Date().toISOString() });
+    },
+    updateCodeNote({ commit }, note) {
+      commit('UPDATE_CODE_NOTE', note);
+    },
+    deleteCodeNote({ commit }, id) {
+      commit('DELETE_CODE_NOTE', id);
+    },
+
+    addSurat({ commit }, surat) {
+      commit('ADD_SURAT', { ...surat, id: 'srt_' + Date.now(), createdAt: new Date().toISOString() });
+    },
+    deleteSurat({ commit }, id) {
+      commit('DELETE_SURAT', id);
+    },
+
+    addSelfie({ commit }, selfie) {
+      commit('ADD_SELFIE', { ...selfie, id: 'slf_' + Date.now(), timestamp: new Date().toISOString() });
+    },
+    deleteSelfie({ commit }, id) {
+      commit('DELETE_SELFIE', id);
     },
 
     clearAllData({ commit }) {
