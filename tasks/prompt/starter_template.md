@@ -5,9 +5,17 @@ Alur: Tulis prompt → Saya analisis & buat phases → Kamu approve → Saya eks
 
 ---
 
-## 📝 Prompt
+## 📝 Prompt Feature
 
-<!-- Tulis prompt/task kamu di sini -->
+<!-- Tulis prompt/task Yang ingin kamu tambah di sini -->
+
+```
+
+```
+
+## 📝 Prompt Fixer
+
+<!-- Tulis prompt/task Yang ingin kamu perbaiki di sini -->
 
 ```
 
